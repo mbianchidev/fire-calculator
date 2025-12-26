@@ -33,6 +33,7 @@ export const AssetAllocationManager: React.FC = () => {
       name: 'New Asset',
       ticker: 'NEW',
       assetClass: 'STOCKS',
+      subAssetType: 'ETF',
       currentValue: 0,
       targetMode: 'PERCENTAGE',
       targetPercent: 0,

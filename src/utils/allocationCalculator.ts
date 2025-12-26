@@ -259,7 +259,7 @@ export function prepareAssetClassChartData(assetClasses: AssetClassSummary[]): C
     BONDS: '#764ba2',
     CASH: '#4CAF50',
     CRYPTO: '#FF9800',
-    OTHER: '#9E9E9E',
+    REAL_ESTATE: '#9C27B0',
   };
   
   return assetClasses
@@ -395,6 +395,7 @@ export function importFromCSV(csv: string): Asset[] {
       name,
       ticker,
       assetClass: assetClass as AssetClass,
+      subAssetType: 'NONE',
       currentValue: parseFloat(currentValue),
       targetMode,
       targetPercent,

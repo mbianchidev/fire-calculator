@@ -4,18 +4,30 @@
 
 export type AllocationMode = 'PERCENTAGE' | 'OFF' | 'SET';
 
+export type AssetClass = 'STOCKS' | 'BONDS' | 'CASH' | 'CRYPTO' | 'REAL_ESTATE';
+
+export type SubAssetType = 
+  | 'ETF' 
+  | 'SINGLE_STOCK' 
+  | 'SINGLE_BOND' 
+  | 'SAVINGS_ACCOUNT'
+  | 'CHECKING_ACCOUNT'
+  | 'COIN'
+  | 'PROPERTY'
+  | 'REIT'
+  | 'NONE';
+
 export interface Asset {
   id: string;
   name: string;
   ticker: string;
   assetClass: AssetClass;
+  subAssetType: SubAssetType;
   currentValue: number;
   targetMode: AllocationMode;
   targetValue?: number; // For SET mode (fixed amount)
   targetPercent?: number; // For PERCENTAGE mode
 }
-
-export type AssetClass = 'STOCKS' | 'BONDS' | 'CASH' | 'CRYPTO' | 'OTHER';
 
 export interface AssetClassSummary {
   assetClass: AssetClass;
