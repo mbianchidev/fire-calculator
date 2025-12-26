@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Asset, PortfolioAllocation } from '../types/assetAllocation';
-import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, exportToCSV, importFromCSV } from '../utils/allocationCalculator';
+import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, exportToCSV, importFromCSV, formatAssetName } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS } from '../utils/defaultAssets';
 import { AssetClassTable } from './AssetClassTable';
 import { AllocationChart } from './AllocationChart';
@@ -146,7 +146,7 @@ export const AssetAllocationPage: React.FC = () => {
             <option value="">Select Asset Class</option>
             {allocation.assetClasses.map(ac => (
               <option key={ac.assetClass} value={ac.assetClass}>
-                {ac.assetClass.replace('_', ' ')}
+                {formatAssetName(ac.assetClass)}
               </option>
             ))}
           </select>

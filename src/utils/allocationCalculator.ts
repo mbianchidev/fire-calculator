@@ -403,3 +403,13 @@ export function importFromCSV(csv: string): Asset[] {
     };
   });
 }
+
+/**
+ * Format asset class or sub-type name for display
+ */
+export function formatAssetName(name: string): string {
+  return name
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}

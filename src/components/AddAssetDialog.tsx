@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Asset, AssetClass, SubAssetType, AllocationMode } from '../types/assetAllocation';
+import { formatAssetName } from '../utils/allocationCalculator';
 
 interface AddAssetDialogProps {
   isOpen: boolean;
@@ -99,7 +100,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
               >
                 {SUB_ASSET_TYPES[assetClass].map(type => (
                   <option key={type} value={type}>
-                    {type.replace('_', ' ')}
+                    {formatAssetName(type)}
                   </option>
                 ))}
               </select>

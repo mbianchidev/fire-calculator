@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Asset, AllocationDelta, AssetClass, AllocationMode } from '../types/assetAllocation';
-import { formatCurrency, formatPercent } from '../utils/allocationCalculator';
+import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
 
 interface CollapsibleAllocationTableProps {
   assets: Asset[];
@@ -114,7 +114,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
               <div className="class-header-left">
                 <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
                 <span className={`asset-class-badge ${assetClass.toLowerCase()}`}>
-                  {assetClass.replace('_', ' ')}
+                  {formatAssetName(assetClass)}
                 </span>
                 <span className="asset-count">({classAssets.length} assets)</span>
               </div>
@@ -156,7 +156,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         <td className="asset-name">{asset.name}</td>
                         <td>
                           <span className="sub-type-badge">
-                            {asset.subAssetType.replace('_', ' ')}
+                            {formatAssetName(asset.subAssetType)}
                           </span>
                         </td>
                         <td>{asset.ticker}</td>
