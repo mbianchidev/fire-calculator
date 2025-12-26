@@ -723,3 +723,129 @@
     padding: 0.5rem;
   }
 }
+
+/* White background for charts */
+.chart-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Collapsible How to Use section */
+.collapsible-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collapsible-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapse-icon-small {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.how-to-use-content {
+  margin-top: 1rem;
+  padding-left: 1.5rem;
+}
+
+/* Section header with actions */
+.section-header-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Danger button styling */
+.danger-btn {
+  background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+  color: white;
+}
+
+.danger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* Delete button in edit mode */
+.btn-delete {
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #f44336;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #e53935;
+}
+
+/* Edit select for asset class table */
+.edit-select-small {
+  padding: 0.4rem;
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Collapsed state styling for asset class headers */
+.asset-class-header.collapsed {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+}
+
+/* Display delta in asset class header */
+.class-delta.positive {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.class-delta.negative {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .section-header-with-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table-actions {
+    width: 100%;
+  }
+
+  .action-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+}

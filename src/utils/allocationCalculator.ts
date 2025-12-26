@@ -408,8 +408,15 @@ export function importFromCSV(csv: string): Asset[] {
  * Format asset class or sub-type name for display
  */
 export function formatAssetName(name: string): string {
+  // Special case for ETF - keep it all caps
+  if (name === 'ETF') return 'ETF';
+  
   return name
     .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map(word => {
+      // Keep ETF in all caps
+      if (word === 'ETF') return 'ETF';
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
     .join(' ');
 }

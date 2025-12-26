@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Asset, PortfolioAllocation } from '../types/assetAllocation';
+import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, exportToCSV, importFromCSV, formatAssetName } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS } from '../utils/defaultAssets';
-import { AssetClassTable } from './AssetClassTable';
+import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
@@ -15,6 +15,7 @@ export const AssetAllocationPage: React.FC = () => {
   );
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
 
   const updateAllocation = (newAssets: Asset[]) => {
     setAssets(newAssets);
@@ -29,8 +30,34 @@ export const AssetAllocationPage: React.FC = () => {
     updateAllocation(newAssets);
   };
 
+  const handleDeleteAsset = (assetId: string) => {
+    const newAssets = assets.filter(asset => asset.id !== assetId);
+    updateAllocation(newAssets);
+  };
+
+  const handleUpdateAssetClass = (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => {
+    // Update all assets in this class
+    const newAssets = assets.map(asset => {
+      if (asset.assetClass === assetClass) {
+        return {
+          ...asset,
+          targetMode: updates.targetMode || asset.targetMode,
+          targetPercent: updates.targetPercent !== undefined ? updates.targetPercent : asset.targetPercent,
+        };
+      }
+      return asset;
+    });
+    updateAllocation(newAssets);
+  };
+
   const handleAddAsset = (newAsset: Asset) => {
     updateAllocation([...assets, newAsset]);
+  };
+
+  const handleStartFromScratch = () => {
+    if (confirm('Are you sure you want to delete all assets and start from scratch?')) {
+      updateAllocation([]);
+    }
   };
 
   const handleExport = () => {
@@ -82,6 +109,29 @@ export const AssetAllocationPage: React.FC = () => {
       </div>
 
       <div className="asset-allocation-manager">
+        {/* How to Use - Collapsible at top */}
+        <div className="allocation-info collapsible-section">
+          <div className="collapsible-header" onClick={() => setIsHowToUseOpen(!isHowToUseOpen)}>
+            <h4>💡 How to Use <span className="collapse-icon-small">{isHowToUseOpen ? '▼' : '▶'}</span></h4>
+          </div>
+          {isHowToUseOpen && (
+            <ul className="how-to-use-content">
+              <li><strong>Add Asset:</strong> Click the "Add Asset" button to add a new asset with type selection</li>
+              <li><strong>Edit Asset:</strong> Click the edit (✎) button in any row to edit the current value and target %</li>
+              <li><strong>Delete Asset:</strong> When editing an asset, click the trash icon (🗑️) to delete it</li>
+              <li><strong>Collapsible Tables:</strong> Click on an asset class header to expand/collapse and see individual assets</li>
+              <li><strong>Target Mode:</strong> Choose "%" for percentage-based allocation, "SET" for fixed amounts (only for cash types), or "OFF" to exclude</li>
+              <li><strong>Percentage targets</strong> for active assets within a class should sum to 100%</li>
+              <li><strong>Actions:</strong> 
+                <span className="info-badge buy">BUY/SAVE</span> = Increase position | 
+                <span className="info-badge sell">SELL/INVEST</span> = Decrease position | 
+                <span className="info-badge hold">HOLD</span> = Within target range |
+                <span className="info-badge excluded">EXCLUDED</span> = Not in allocation
+              </li>
+            </ul>
+          )}
+        </div>
+
         {!allocation.isValid && (
           <div className="validation-errors">
             <strong>⚠️ Validation Errors:</strong>
@@ -93,30 +143,13 @@ export const AssetAllocationPage: React.FC = () => {
           </div>
         )}
 
-        <div className="manager-actions">
-          <button onClick={() => setIsDialogOpen(true)} className="action-btn add-btn">
-            ➕ Add Asset
-          </button>
-          <button onClick={handleExport} className="action-btn export-btn">
-            📥 Export CSV
-          </button>
-          <label className="action-btn import-btn">
-            📤 Import CSV
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
-          </label>
-        </div>
-
         <div className="allocation-section">
           <h3>Asset Class Summary</h3>
-          <AssetClassTable
+          <EditableAssetClassTable
             assetClasses={allocation.assetClasses}
             totalValue={allocation.totalValue}
             currency={currency}
+            onUpdateAssetClass={handleUpdateAssetClass}
           />
         </div>
 
@@ -130,7 +163,7 @@ export const AssetAllocationPage: React.FC = () => {
           {selectedAssetClass && (
             <AllocationChart
               data={assetChartData}
-              title={`${selectedAssetClass.assetClass} Breakdown`}
+              title={`${formatAssetName(selectedAssetClass.assetClass)} Breakdown`}
               currency={currency}
             />
           )}
@@ -153,30 +186,36 @@ export const AssetAllocationPage: React.FC = () => {
         </div>
 
         <div className="allocation-section">
-          <h3>Portfolio Details by Asset Class</h3>
+          <div className="section-header-with-actions">
+            <h3>Portfolio Details by Asset Class</h3>
+            <div className="table-actions">
+              <button onClick={() => setIsDialogOpen(true)} className="action-btn add-btn">
+                ➕ Add Asset
+              </button>
+              <button onClick={handleStartFromScratch} className="action-btn danger-btn">
+                🗑️ Start from Scratch
+              </button>
+              <button onClick={handleExport} className="action-btn export-btn">
+                📥 Export CSV
+              </button>
+              <label className="action-btn import-btn">
+                📤 Import CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImport}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+          </div>
           <CollapsibleAllocationTable
             assets={assets}
             deltas={allocation.deltas}
             currency={currency}
             onUpdateAsset={handleUpdateAsset}
+            onDeleteAsset={handleDeleteAsset}
           />
-        </div>
-
-        <div className="allocation-info">
-          <h4>💡 How to Use</h4>
-          <ul>
-            <li><strong>Add Asset:</strong> Click the "Add Asset" button to add a new asset with type selection</li>
-            <li><strong>Edit Asset:</strong> Click the edit (✎) button in any row to edit the current value and target %</li>
-            <li><strong>Collapsible Tables:</strong> Click on an asset class header to expand/collapse and see individual assets</li>
-            <li><strong>Target Mode:</strong> Choose "%" for percentage-based allocation, "SET" for fixed amounts, or "OFF" to exclude</li>
-            <li><strong>Percentage targets</strong> for active assets should sum to 100%</li>
-            <li><strong>Actions:</strong> 
-              <span className="info-badge buy">BUY/SAVE</span> = Increase position | 
-              <span className="info-badge sell">SELL/INVEST</span> = Decrease position | 
-              <span className="info-badge hold">HOLD</span> = Within target range |
-              <span className="info-badge excluded">EXCLUDED</span> = Not in allocation
-            </li>
-          </ul>
         </div>
       </div>
 

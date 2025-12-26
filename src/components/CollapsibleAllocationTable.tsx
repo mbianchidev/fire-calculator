@@ -7,6 +7,7 @@ interface CollapsibleAllocationTableProps {
   deltas: AllocationDelta[];
   currency: string;
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
+  onDeleteAsset: (assetId: string) => void;
 }
 
 export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProps> = ({
@@ -14,8 +15,11 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
   deltas,
   currency,
   onUpdateAsset,
+  onDeleteAsset,
 }) => {
-  const [collapsedClasses, setCollapsedClasses] = useState<Set<AssetClass>>(new Set());
+  // Initialize with all classes collapsed
+  const allClasses = new Set(assets.map(a => a.assetClass));
+  const [collapsedClasses, setCollapsedClasses] = useState<Set<AssetClass>>(allClasses);
   const [editingAsset, setEditingAsset] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ currentValue: number; targetPercent: number }>({
     currentValue: 0,
@@ -236,6 +240,12 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                             <div className="edit-actions">
                               <button onClick={() => saveEditing(asset.id)} className="btn-save" title="Save">✓</button>
                               <button onClick={cancelEditing} className="btn-cancel-edit" title="Cancel">✕</button>
+                              <button onClick={() => {
+                                if (confirm(`Delete ${asset.name}?`)) {
+                                  onDeleteAsset(asset.id);
+                                  setEditingAsset(null);
+                                }
+                              }} className="btn-delete" title="Delete">🗑️</button>
                             </div>
                           ) : (
                             <button onClick={() => startEditing(asset)} className="btn-edit" title="Edit">✎</button>

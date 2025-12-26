@@ -11,10 +11,13 @@ interface AddAssetDialogProps {
 const SUB_ASSET_TYPES: Record<AssetClass, SubAssetType[]> = {
   STOCKS: ['ETF', 'SINGLE_STOCK'],
   BONDS: ['ETF', 'SINGLE_BOND'],
-  CASH: ['SAVINGS_ACCOUNT', 'CHECKING_ACCOUNT'],
+  CASH: ['SAVINGS_ACCOUNT', 'CHECKING_ACCOUNT', 'MONEY_ETF'],
   CRYPTO: ['COIN'],
   REAL_ESTATE: ['PROPERTY', 'REIT'],
 };
+
+// Only these sub-types can use SET mode
+const SET_MODE_ALLOWED: SubAssetType[] = ['SAVINGS_ACCOUNT', 'CHECKING_ACCOUNT', 'MONEY_ETF'];
 
 export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose, onAdd }) => {
   const [assetClass, setAssetClass] = useState<AssetClass>('STOCKS');
@@ -151,16 +154,19 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
                 value={targetMode}
                 onChange={(e) => setTargetMode(e.target.value as AllocationMode)}
                 className="dialog-select"
+                disabled={!SET_MODE_ALLOWED.includes(subAssetType)}
               >
                 <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="SET">Fixed Amount (SET)</option>
+                {SET_MODE_ALLOWED.includes(subAssetType) && (
+                  <option value="SET">Fixed Amount (SET)</option>
+                )}
                 <option value="OFF">Excluded (OFF)</option>
               </select>
             </div>
 
             {targetMode === 'PERCENTAGE' && (
               <div className="form-group">
-                <label>Target % *</label>
+                <label>Target % (of Asset Class) *</label>
                 <input
                   type="number"
                   value={targetPercent}
