@@ -98,6 +98,9 @@ export function calculateAssetClassSummaries(
   return summaries;
 }
 
+// Threshold for determining when to take action (in currency units)
+const ACTION_THRESHOLD = 100;
+
 /**
  * Determine the recommended action based on delta
  */
@@ -110,9 +113,7 @@ export function determineAction(
     return 'EXCLUDED';
   }
   
-  const threshold = 100; // Minimum delta to trigger action
-  
-  if (Math.abs(delta) < threshold) {
+  if (Math.abs(delta) < ACTION_THRESHOLD) {
     return 'HOLD';
   }
   
@@ -271,6 +272,9 @@ export function prepareAssetClassChartData(assetClasses: AssetClassSummary[]): C
     }));
 }
 
+// Golden angle for good color distribution in charts
+const GOLDEN_ANGLE_DEGREES = 137.5;
+
 /**
  * Prepare data for pie/donut chart by individual asset within a class
  */
@@ -282,8 +286,8 @@ export function prepareAssetChartData(
     .filter(a => a.targetMode !== 'OFF' && a.currentValue > 0)
     .map((asset, index) => {
       const percentage = classTotal > 0 ? (asset.currentValue / classTotal) * 100 : 0;
-      // Generate colors based on index
-      const hue = (index * 137.5) % 360; // Golden angle for good color distribution
+      // Generate colors based on index using golden angle
+      const hue = (index * GOLDEN_ANGLE_DEGREES) % 360;
       return {
         name: asset.name,
         value: asset.currentValue,
@@ -298,7 +302,8 @@ export function prepareAssetChartData(
  */
 export function formatCurrency(value: number, currency: string = 'EUR'): string {
   const symbol = currency === 'EUR' ? '€' : '$';
-  return `${symbol}${Math.abs(value).toLocaleString('en-US', { 
+  const absValue = Math.abs(value);
+  return `${symbol}${absValue.toLocaleString('en-US', { 
     minimumFractionDigits: 0,
     maximumFractionDigits: 0 
   })}`;

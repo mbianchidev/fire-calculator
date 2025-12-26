@@ -40,12 +40,6 @@ export const AssetAllocationManager: React.FC = () => {
     updateAllocation([...assets, newAsset]);
   };
 
-  // const handleDeleteAsset = (_assetId: string) => {
-  //   // TODO: Implement delete functionality
-  //   // const newAssets = assets.filter(a => a.id !== assetId);
-  //   // updateAllocation(newAssets);
-  // };
-
   const handleExport = () => {
     const csv = exportToCSV(allocation);
     const blob = new Blob([csv], { type: 'text/csv' });

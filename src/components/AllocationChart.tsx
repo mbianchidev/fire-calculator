@@ -8,6 +8,13 @@ interface AllocationChartProps {
   currency: string;
 }
 
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: ChartData;
+  }>;
+}
+
 export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, currency }) => {
   if (!data || data.length === 0) {
     return (
@@ -18,11 +25,12 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
     );
   }
 
-  const renderCustomLabel = (entry: any) => {
-    return `${entry.name}: ${formatPercent(entry.percentage)}`;
+  const renderCustomLabel = (props: { name?: string; percentage?: number }) => {
+    if (!props.name || props.percentage === undefined) return '';
+    return `${props.name}: ${formatPercent(props.percentage)}`;
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
