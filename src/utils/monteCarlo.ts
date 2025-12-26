@@ -10,7 +10,11 @@ import {
  */
 function generateRandomReturn(expectedReturn: number, volatility: number): number {
   // Box-Muller transform for normal distribution
-  const u1 = Math.random();
+  // Ensure u1 is never 0 to avoid Math.log(0)
+  let u1 = Math.random();
+  while (u1 === 0) {
+    u1 = Math.random();
+  }
   const u2 = Math.random();
   const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   
@@ -102,8 +106,8 @@ function runSingleSimulation(
       laborIncome = laborIncome * (1 + inputs.laborIncomeGrowthRate / 100);
     }
     
-    // Check for failure (portfolio depleted)
-    if (portfolioValue < 0) {
+    // Check for failure (portfolio significantly depleted)
+    if (portfolioValue < -1000) {
       return {
         simulationId,
         success: false,

@@ -61,7 +61,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         </div>
         <div className="allocation-sum">
           Total: {inputs.stocksPercent + inputs.bondsPercent + inputs.cashPercent}%
-          {inputs.stocksPercent + inputs.bondsPercent + inputs.cashPercent !== 100 && 
+          {Math.abs((inputs.stocksPercent + inputs.bondsPercent + inputs.cashPercent) - 100) > 0.01 && 
             <span className="warning"> ⚠️ Should equal 100%</span>
           }
         </div>

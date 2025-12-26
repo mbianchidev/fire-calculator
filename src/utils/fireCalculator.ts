@@ -84,8 +84,8 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
       laborIncome = laborIncome * (1 + inputs.laborIncomeGrowthRate / 100);
     }
     
-    // Stop if portfolio is depleted
-    if (portfolioValue < 0) {
+    // Stop if portfolio is significantly depleted
+    if (portfolioValue < -1000) {
       break;
     }
   }
