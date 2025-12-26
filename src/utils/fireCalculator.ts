@@ -8,7 +8,16 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
   const currentAge = currentYear - inputs.yearOfBirth;
   const projections: YearProjection[] = [];
   
+  // Validate asset allocation
+  const allocationSum = inputs.stocksPercent + inputs.bondsPercent + inputs.cashPercent;
+  if (Math.abs(allocationSum - 100) > 0.01) {
+    throw new Error(`Asset allocation must sum to 100%, currently ${allocationSum.toFixed(2)}%`);
+  }
+  
   // Calculate FIRE target based on desired withdrawal rate
+  if (inputs.desiredWithdrawalRate <= 0) {
+    throw new Error('desiredWithdrawalRate must be greater than 0');
+  }
   const fireTarget = inputs.fireAnnualExpenses / (inputs.desiredWithdrawalRate / 100);
   
   let portfolioValue = inputs.initialSavings;
@@ -30,8 +39,9 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
       yearsToFIRE = i;
     }
     
-    // Determine if still working
-    const isWorking = !isFIREAchieved || !inputs.stopWorkingAtFIRE;
+    // If stopWorkingAtFIRE is enabled, stop working once FIRE is achieved.
+    // Otherwise, keep working regardless of FIRE status.
+    const isWorking = inputs.stopWorkingAtFIRE ? !isFIREAchieved : true;
     
     // Calculate investment yield based on asset allocation
     const portfolioReturn = (
@@ -55,6 +65,7 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
     let portfolioChange: number;
     if (isWorking) {
       // While working: save a percentage of labor income, plus all investment returns
+      // The savings rate already accounts for expenses (if you save 30%, you spend 70%)
       const laborSavings = laborIncome * (inputs.savingsRate / 100);
       portfolioChange = laborSavings + investmentYield;
     } else {

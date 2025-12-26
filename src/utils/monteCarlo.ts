@@ -5,15 +5,35 @@ import {
   SimulationRun
 } from '../types/calculator';
 
+// Cache for the second normal variate produced by the Box-Muller transform
+let cachedNormal: number | null = null;
+
 /**
  * Generate a random return based on expected return and volatility
  */
 function generateRandomReturn(expectedReturn: number, volatility: number): number {
-  // Box-Muller transform for normal distribution
-  // Ensure u1 is never 0 to avoid Math.log(0)
-  const u1 = Math.random() || 1e-10;
-  const u2 = Math.random();
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  let z: number;
+
+  if (cachedNormal !== null) {
+    // Use the cached normal variate from the previous call
+    z = cachedNormal;
+    cachedNormal = null;
+  } else {
+    // Box-Muller transform for normal distribution
+    // Ensure u1 is never 0 to avoid Math.log(0)
+    const u1 = Math.random() || 1e-10;
+    const u2 = Math.random();
+
+    const radius = Math.sqrt(-2 * Math.log(u1));
+    const theta = 2 * Math.PI * u2;
+
+    const z0 = radius * Math.cos(theta);
+    const z1 = radius * Math.sin(theta);
+
+    z = z0;
+    // Cache the second independent normal variate for the next call
+    cachedNormal = z1;
+  }
   
   return expectedReturn + (volatility * z);
 }
@@ -28,6 +48,16 @@ function runSingleSimulation(
 ): SimulationRun {
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - inputs.yearOfBirth;
+  
+  // Validate asset allocation
+  const allocationSum = inputs.stocksPercent + inputs.bondsPercent + inputs.cashPercent;
+  if (Math.abs(allocationSum - 100) > 0.01) {
+    throw new Error(`Asset allocation must sum to 100%, currently ${allocationSum.toFixed(2)}%`);
+  }
+  
+  if (inputs.desiredWithdrawalRate <= 0) {
+    throw new Error('desiredWithdrawalRate must be greater than 0');
+  }
   
   const fireTarget = inputs.fireAnnualExpenses / (inputs.desiredWithdrawalRate / 100);
   
@@ -68,8 +98,9 @@ function runSingleSimulation(
       yearsToFIRE = i;
     }
     
-    // Determine if still working
-    const isWorking = !isFIREAchieved || !inputs.stopWorkingAtFIRE;
+    // If stopWorkingAtFIRE is enabled, stop working once FIRE is achieved.
+    // Otherwise, keep working regardless of FIRE status.
+    const isWorking = inputs.stopWorkingAtFIRE ? !isFIREAchieved : true;
     
     // Calculate investment yield
     const investmentYield = portfolioValue * portfolioReturn;
@@ -88,6 +119,7 @@ function runSingleSimulation(
     let portfolioChange: number;
     if (isWorking) {
       // While working: save a percentage of labor income, plus all investment returns
+      // The savings rate already accounts for expenses (if you save 30%, you spend 70%)
       const laborSavings = laborIncome * (inputs.savingsRate / 100);
       portfolioChange = laborSavings + investmentYield;
     } else {
@@ -146,8 +178,15 @@ export function runMonteCarloSimulation(
     .map(s => s.yearsToFIRE as number)
     .sort((a, b) => a - b);
   
-  const medianYearsToFIRE = successfulYears.length > 0 ?
-    successfulYears[Math.floor(successfulYears.length / 2)] : 0;
+  let medianYearsToFIRE = 0;
+  if (successfulYears.length > 0) {
+    const midIndex = Math.floor(successfulYears.length / 2);
+    if (successfulYears.length % 2 === 0) {
+      medianYearsToFIRE = (successfulYears[midIndex - 1] + successfulYears[midIndex]) / 2;
+    } else {
+      medianYearsToFIRE = successfulYears[midIndex];
+    }
+  }
   
   return {
     successCount,
