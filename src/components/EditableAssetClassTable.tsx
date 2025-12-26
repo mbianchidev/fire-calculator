@@ -180,7 +180,6 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       onChange={(e) => setEditPercent(parseFloat(e.target.value) || 0)}
                       onClick={(e) => e.stopPropagation()}
                       className="edit-input"
-                      step="0.1"
                       min="0"
                       max="100"
                     />

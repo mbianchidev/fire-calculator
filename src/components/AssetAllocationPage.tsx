@@ -6,6 +6,7 @@ import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
+import { MassEditDialog } from './MassEditDialog';
 
 export const AssetAllocationPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(DEFAULT_ASSETS);
@@ -24,6 +25,10 @@ export const AssetAllocationPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
+  // Mass edit dialog state
+  const [isMassEditOpen, setIsMassEditOpen] = useState(false);
+  const [massEditMode, setMassEditMode] = useState<'assetClass' | 'asset'>('assetClass');
+  const [massEditAssetClass, setMassEditAssetClass] = useState<AssetClass | null>(null);
 
   const updateAllocation = (newAssets: Asset[]) => {
     setAssets(newAssets);
@@ -212,6 +217,58 @@ export const AssetAllocationPage: React.FC = () => {
     reader.readAsText(file);
   };
 
+  // Calculate cash invest amount (negative delta from Cash class with INVEST action)
+  const cashInvestAmount = (() => {
+    const cashClass = allocation.assetClasses.find(ac => ac.assetClass === 'CASH');
+    if (!cashClass) return 0;
+    
+    // Calculate cash delta based on assetClassTargets
+    const cashTarget = assetClassTargets.CASH;
+    if (cashTarget.targetMode === 'SET') {
+      // For SET mode, calculate delta from target total
+      const delta = (cashClass.targetTotal || 0) - cashClass.currentTotal;
+      // If delta is negative (INVEST), return the absolute value to add to other classes
+      return delta < 0 ? Math.abs(delta) : 0;
+    }
+    return 0;
+  })();
+
+  // Mass edit handlers
+  const handleOpenMassEditAssetClass = () => {
+    setMassEditMode('assetClass');
+    setMassEditAssetClass(null);
+    setIsMassEditOpen(true);
+  };
+
+  const handleOpenMassEditAsset = (assetClass: AssetClass) => {
+    setMassEditMode('asset');
+    setMassEditAssetClass(assetClass);
+    setIsMassEditOpen(true);
+  };
+
+  const handleMassEditSave = (updates: Record<string, number>) => {
+    if (massEditMode === 'assetClass') {
+      // Update asset class targets directly (no redistribution)
+      const newTargets = { ...assetClassTargets };
+      Object.entries(updates).forEach(([cls, percent]) => {
+        newTargets[cls as AssetClass] = {
+          ...newTargets[cls as AssetClass],
+          targetPercent: percent,
+        };
+      });
+      setAssetClassTargets(newTargets);
+    } else if (massEditMode === 'asset' && massEditAssetClass) {
+      // Update asset percentages directly (no redistribution)
+      const newAssets = assets.map(asset => {
+        if (updates[asset.id] !== undefined) {
+          return { ...asset, targetPercent: updates[asset.id] };
+        }
+        return asset;
+      });
+      updateAllocation(newAssets);
+    }
+  };
+
   const assetClassChartData = prepareAssetClassChartData(allocation.assetClasses);
   const selectedAssetClass = selectedClass 
     ? allocation.assetClasses.find(ac => ac.assetClass === selectedClass)
@@ -266,7 +323,12 @@ export const AssetAllocationPage: React.FC = () => {
         )}
 
         <div className="allocation-section">
-          <h3>Asset Classes</h3>
+          <div className="section-header-with-actions">
+            <h3>Asset Classes</h3>
+            <button onClick={handleOpenMassEditAssetClass} className="action-btn add-btn">
+              ✏️ Mass Edit
+            </button>
+          </div>
           <EditableAssetClassTable
             assetClasses={allocation.assetClasses}
             totalValue={allocation.totalValue}
@@ -336,8 +398,10 @@ export const AssetAllocationPage: React.FC = () => {
             assets={assets}
             deltas={allocation.deltas}
             currency={currency}
+            cashInvestAmount={cashInvestAmount}
             onUpdateAsset={handleUpdateAsset}
             onDeleteAsset={handleDeleteAsset}
+            onMassEdit={handleOpenMassEditAsset}
           />
         </div>
       </div>
@@ -346,6 +410,17 @@ export const AssetAllocationPage: React.FC = () => {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onAdd={handleAddAsset}
+      />
+
+      <MassEditDialog
+        isOpen={isMassEditOpen}
+        onClose={() => setIsMassEditOpen(false)}
+        onSave={handleMassEditSave}
+        assets={assets}
+        assetClass={massEditAssetClass}
+        title={massEditMode === 'assetClass' ? 'Mass Edit Asset Classes' : `Mass Edit ${massEditAssetClass ? formatAssetName(massEditAssetClass) : ''} Assets`}
+        mode={massEditMode}
+        assetClassTargets={assetClassTargets}
       />
     </div>
   );

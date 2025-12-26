@@ -6,16 +6,20 @@ interface CollapsibleAllocationTableProps {
   assets: Asset[];
   deltas: AllocationDelta[];
   currency: string;
+  cashInvestAmount?: number; // Amount of cash marked as "Invest" to add to each class delta
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
   onDeleteAsset: (assetId: string) => void;
+  onMassEdit?: (assetClass: AssetClass) => void; // Handler for opening mass edit dialog
 }
 
 export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProps> = ({
   assets,
   deltas,
   currency,
+  cashInvestAmount = 0,
   onUpdateAsset,
   onDeleteAsset,
+  onMassEdit,
 }) => {
   // Initialize with all classes collapsed
   const allClasses = new Set(assets.map(a => a.assetClass));
@@ -90,24 +94,24 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     const remainingPercent = 100 - newTargetPercent;
     console.log('[Sub-table] Remaining percent to distribute:', remainingPercent);
     
-    // Get total of other assets' current percentages
-    const otherAssetsTotal = classAssets.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
-    console.log('[Sub-table] Total of other assets before redistribution:', otherAssetsTotal);
+    // Get total of other assets' current VALUES (not percentages) for proportional distribution
+    const otherAssetsValueTotal = classAssets.reduce((sum, a) => sum + a.currentValue, 0);
+    console.log('[Sub-table] Total value of other assets:', otherAssetsValueTotal);
     
-    if (otherAssetsTotal === 0) {
-      // Distribute equally if all others are 0
+    if (otherAssetsValueTotal === 0) {
+      // Distribute equally if all others have 0 value
       const equalPercent = remainingPercent / classAssets.length;
       console.log('[Sub-table] Distributing equally:', equalPercent, '% each');
       classAssets.forEach(asset => {
         onUpdateAsset(asset.id, { targetPercent: equalPercent });
       });
     } else {
-      // Distribute proportionally based on current percentages
-      console.log('[Sub-table] Distributing proportionally');
+      // Distribute proportionally based on current VALUES
+      console.log('[Sub-table] Distributing proportionally based on current values');
       classAssets.forEach(asset => {
-        const proportion = (asset.targetPercent || 0) / otherAssetsTotal;
+        const proportion = asset.currentValue / otherAssetsValueTotal;
         const newPercent = proportion * remainingPercent;
-        console.log('[Sub-table] Asset:', asset.name, 'proportion:', proportion, 'new percent:', newPercent);
+        console.log('[Sub-table] Asset:', asset.name, 'value:', asset.currentValue, 'proportion:', proportion, 'new percent:', newPercent);
         onUpdateAsset(asset.id, { targetPercent: newPercent });
       });
     }
@@ -166,7 +170,9 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
         );
         const classDeltas = classAssets.map(asset => deltas.find(d => d.assetId === asset.id)!).filter(Boolean);
         const classTargetTotal = classDeltas.reduce((sum, delta) => sum + delta.targetValue, 0);
-        const classDelta = classTargetTotal - classTotal;
+        // Include cash invest amount in the delta for non-cash asset classes
+        const cashBonus = assetClass !== 'CASH' ? cashInvestAmount : 0;
+        const classDelta = classTargetTotal - classTotal + cashBonus;
 
         return (
           <div key={assetClass} className="asset-class-group">
@@ -180,6 +186,18 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                   {formatAssetName(assetClass)}
                 </span>
                 <span className="asset-count">({classAssets.length} assets)</span>
+                {onMassEdit && (
+                  <button
+                    className="btn-mass-edit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMassEdit(assetClass as AssetClass);
+                    }}
+                    title="Mass Edit Percentages"
+                  >
+                    ✏️ Mass Edit
+                  </button>
+                )}
               </div>
               <div className="class-header-right">
                 <span className="class-total">{formatCurrency(classTotal, currency)}</span>
@@ -246,7 +264,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               value={editValues.targetPercent}
                               onChange={(e) => setEditValues({ ...editValues, targetPercent: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              step="0.1"
                               min="0"
                               max="100"
                             />
@@ -267,7 +284,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               value={editValues.currentValue}
                               onChange={(e) => setEditValues({ ...editValues, currentValue: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              step="100"
                               min="0"
                             />
                           ) : (
@@ -282,7 +298,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               onChange={(e) => handleTargetValueChange(asset.id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
                               className="target-input"
-                              step="100"
                               min="0"
                             />
                           ) : (
