@@ -8,6 +8,7 @@ interface CollapsibleAllocationTableProps {
   currency: string;
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
   onDeleteAsset: (assetId: string) => void;
+  onBatchUpdateAssets?: (updates: Map<string, Partial<Asset>>) => void;
 }
 
 export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProps> = ({
@@ -16,6 +17,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
   currency,
   onUpdateAsset,
   onDeleteAsset,
+  onBatchUpdateAssets,
 }) => {
   // Initialize with all classes collapsed
   const allClasses = new Set(assets.map(a => a.assetClass));
@@ -71,35 +73,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     });
   };
 
-  const redistributePercentages = (assetId: string, newTargetPercent: number, assetClass: AssetClass) => {
-    console.log('[Sub-table] Redistributing percentages for asset class:', assetClass);
-    console.log('[Sub-table] New target percent for edited asset:', newTargetPercent);
-    
-    // Get all percentage-based assets in the same class
-    const classAssets = assets.filter(a => 
-      a.assetClass === assetClass && 
-      a.targetMode === 'PERCENTAGE' &&
-      a.id !== assetId
-    );
-    
-    console.log('[Sub-table] Other assets in class:', classAssets.map(a => a.name));
-    
-    if (classAssets.length === 0) return;
-    
-    // Calculate remaining percentage to distribute
-    const remainingPercent = 100 - newTargetPercent;
-    console.log('[Sub-table] Remaining percent to distribute:', remainingPercent);
-    
-    // Use equal distribution by default as per issue requirements
-    // The issue states that freed percentage should be distributed equally among other assets
-    const equalPercent = remainingPercent / classAssets.length;
-    console.log('[Sub-table] Distributing equally:', equalPercent, '% each');
-    
-    classAssets.forEach(asset => {
-      onUpdateAsset(asset.id, { targetPercent: equalPercent });
-    });
-  };
-
   const saveEditing = (assetId: string) => {
     const asset = assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -108,15 +81,58 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     console.log('[Sub-table] New current value:', editValues.currentValue);
     console.log('[Sub-table] New target percent:', editValues.targetPercent);
     
-    // First update the edited asset
-    onUpdateAsset(assetId, {
-      currentValue: editValues.currentValue,
-      targetPercent: editValues.targetPercent,
-    });
-    
-    // Then redistribute percentages if this is a percentage-based asset
-    if (asset.targetMode === 'PERCENTAGE') {
-      redistributePercentages(assetId, editValues.targetPercent, asset.assetClass);
+    // If this is a percentage-based asset and we have batch update capability, use it
+    if (asset.targetMode === 'PERCENTAGE' && onBatchUpdateAssets) {
+      const newTargetPercent = editValues.targetPercent;
+      
+      // Get all percentage-based assets in the same class (excluding the one being edited)
+      const classAssets = assets.filter(a => 
+        a.assetClass === asset.assetClass && 
+        a.targetMode === 'PERCENTAGE' &&
+        a.id !== assetId
+      );
+      
+      console.log('[Sub-table] Redistributing percentages for asset class:', asset.assetClass);
+      console.log('[Sub-table] New target percent for edited asset:', newTargetPercent);
+      console.log('[Sub-table] Other assets in class:', classAssets.map(a => a.name));
+      
+      if (classAssets.length > 0) {
+        // Calculate remaining percentage to distribute
+        const remainingPercent = 100 - newTargetPercent;
+        const equalPercent = remainingPercent / classAssets.length;
+        
+        console.log('[Sub-table] Remaining percent to distribute:', remainingPercent);
+        console.log('[Sub-table] Distributing equally:', equalPercent, '% each');
+        
+        // Create a map of all updates to apply at once
+        const updatesMap = new Map<string, Partial<Asset>>();
+        
+        // Update the edited asset
+        updatesMap.set(assetId, {
+          currentValue: editValues.currentValue,
+          targetPercent: newTargetPercent,
+        });
+        
+        // Update all other assets in the class
+        classAssets.forEach(a => {
+          updatesMap.set(a.id, { targetPercent: equalPercent });
+        });
+        
+        // Apply all updates at once
+        onBatchUpdateAssets(updatesMap);
+      } else {
+        // No other assets to redistribute to, just update the edited asset
+        onUpdateAsset(assetId, {
+          currentValue: editValues.currentValue,
+          targetPercent: newTargetPercent,
+        });
+      }
+    } else {
+      // Fallback to single update
+      onUpdateAsset(assetId, {
+        currentValue: editValues.currentValue,
+        targetPercent: editValues.targetPercent,
+      });
     }
     
     setEditingAsset(null);

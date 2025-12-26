@@ -39,6 +39,14 @@ export const AssetAllocationPage: React.FC = () => {
     updateAllocation(newAssets);
   };
 
+  const handleBatchUpdateAssets = (updates: Map<string, Partial<Asset>>) => {
+    const newAssets = assets.map(asset => {
+      const assetUpdates = updates.get(asset.id);
+      return assetUpdates ? { ...asset, ...assetUpdates } : asset;
+    });
+    updateAllocation(newAssets);
+  };
+
   const handleDeleteAsset = (assetId: string) => {
     const assetToDelete = assets.find(a => a.id === assetId);
     if (!assetToDelete) return;
@@ -320,6 +328,7 @@ export const AssetAllocationPage: React.FC = () => {
             currency={currency}
             onUpdateAsset={handleUpdateAsset}
             onDeleteAsset={handleDeleteAsset}
+            onBatchUpdateAssets={handleBatchUpdateAssets}
           />
         </div>
       </div>
