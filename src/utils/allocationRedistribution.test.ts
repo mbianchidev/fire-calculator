@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { AllocationMode, AssetClass } from '../types/assetAllocation';
 
 /**
  * Tests for target allocation redistribution logic.
@@ -11,11 +12,9 @@ import { describe, it, expect } from 'vitest';
 
 // Helper type for asset class targets
 interface AssetClassTarget {
-  targetMode: 'PERCENTAGE' | 'SET' | 'OFF';
+  targetMode: AllocationMode;
   targetPercent?: number;
 }
-
-type AssetClass = 'STOCKS' | 'BONDS' | 'CASH' | 'CRYPTO' | 'REAL_ESTATE';
 
 /**
  * Redistributes asset class percentages when one class's target is changed.
@@ -77,7 +76,7 @@ function redistributeAssetClassPercentages(
 interface Asset {
   id: string;
   assetClass: AssetClass;
-  targetMode: 'PERCENTAGE' | 'SET' | 'OFF';
+  targetMode: AllocationMode;
   targetPercent?: number;
   currentValue: number;
 }

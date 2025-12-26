@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { AssetClassSummary, AllocationMode, AssetClass } from '../types/assetAllocation';
 import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
 
-interface AssetClassTargets {
+interface AssetClassTarget {
   targetMode: AllocationMode;
   targetPercent?: number;
 }
@@ -11,7 +11,7 @@ interface EditableAssetClassTableProps {
   assetClasses: AssetClassSummary[];
   totalValue: number;
   currency: string;
-  assetClassTargets: Record<AssetClass, AssetClassTargets>;
+  assetClassTargets: Record<AssetClass, AssetClassTarget>;
   onUpdateAssetClass: (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => void;
 }
 
