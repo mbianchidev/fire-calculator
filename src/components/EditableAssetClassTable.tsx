@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AssetClassSummary, AllocationMode, AssetClass } from '../types/assetAllocation';
 import { formatCurrency, formatPercent, formatAssetName, AssetClassTargets } from '../utils/allocationCalculator';
+import { MassEditDialog } from './MassEditDialog';
 
 interface EditableAssetClassTableProps {
   assetClasses: AssetClassSummary[];
@@ -8,6 +9,7 @@ interface EditableAssetClassTableProps {
   totalValue: number;
   currency: string;
   onUpdateAssetClass: (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => void;
+  onUpdateAssetClassTargets: (targets: AssetClassTargets) => void;
 }
 
 export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = ({
@@ -16,10 +18,12 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
   totalValue,
   currency,
   onUpdateAssetClass,
+  onUpdateAssetClassTargets,
 }) => {
   const [editingClass, setEditingClass] = useState<AssetClass | null>(null);
   const [editMode, setEditMode] = useState<AllocationMode>('PERCENTAGE');
   const [editPercent, setEditPercent] = useState<number>(0);
+  const [isMassEditOpen, setIsMassEditOpen] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Click outside to save
@@ -150,7 +154,6 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       onChange={(e) => setEditPercent(parseFloat(e.target.value) || 0)}
                       onClick={(e) => e.stopPropagation()}
                       className="edit-input"
-                      step="0.1"
                       min="0"
                       max="100"
                     />
@@ -199,6 +202,22 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
           </tr>
         </tbody>
       </table>
+      <div className="mass-edit-button-container">
+        <button 
+          onClick={() => setIsMassEditOpen(true)} 
+          className="action-btn mass-edit-btn"
+          title="Edit all percentages at once"
+        >
+          📝 Mass Edit Percentages
+        </button>
+      </div>
+      <MassEditDialog
+        isOpen={isMassEditOpen}
+        onClose={() => setIsMassEditOpen(false)}
+        mode="assetClass"
+        assetClassTargets={assetClassTargets}
+        onSaveAssetClassTargets={onUpdateAssetClassTargets}
+      />
     </div>
   );
 };

@@ -90,31 +90,58 @@ describe('Asset Class Table Logic', () => {
 
 describe('Asset-Specific Table Logic', () => {
   describe('redistributeAssetPercentagesInClass', () => {
-    it('should redistribute percentages within class when editing VBR to 25% (Example 1)', () => {
+    it('should redistribute percentages within class to ensure 100% total when editing one asset', () => {
       const assets: Asset[] = [
-        { id: 'spy', name: 'SPY', ticker: 'SPY', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 12000, targetMode: 'PERCENTAGE', targetPercent: 24 },
-        { id: 'vti', name: 'VTI', ticker: 'VTI', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 8000, targetMode: 'PERCENTAGE', targetPercent: 16 },
-        { id: 'vxus', name: 'VXUS', ticker: 'VXUS', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 5000, targetMode: 'PERCENTAGE', targetPercent: 10 },
-        { id: 'vwo', name: 'VWO', ticker: 'VWO', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 3000, targetMode: 'PERCENTAGE', targetPercent: 6 },
-        { id: 'vbr', name: 'VBR', ticker: 'VBR', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 2000, targetMode: 'PERCENTAGE', targetPercent: 4 },
+        { id: 'spy', name: 'SPY', ticker: 'SPY', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 12000, targetMode: 'PERCENTAGE', targetPercent: 40 },
+        { id: 'vti', name: 'VTI', ticker: 'VTI', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 8000, targetMode: 'PERCENTAGE', targetPercent: 30 },
+        { id: 'vxus', name: 'VXUS', ticker: 'VXUS', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 5000, targetMode: 'PERCENTAGE', targetPercent: 20 },
+        { id: 'vbr', name: 'VBR', ticker: 'VBR', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 2000, targetMode: 'PERCENTAGE', targetPercent: 10 },
       ];
 
-      // Total was 60%, VBR was 4%, now VBR is 25%
-      // Remaining is 60% - 25% = 35% for others (was 56%)
+      // User edits VBR to 25%, others should redistribute to total 100%
       const result = redistributeAssetPercentagesInClass(assets, 'vbr', 25);
 
       expect(result.find(a => a.id === 'vbr')?.targetPercent).toBe(25);
       
-      // Other assets should be proportionally reduced
-      // SPY was 24/56, VTI was 16/56, VXUS was 10/56, VWO was 6/56
-      // SPY: 24/56 * 35 = 15
-      // VTI: 16/56 * 35 = 10
-      // VXUS: 10/56 * 35 = 6.25
-      // VWO: 6/56 * 35 = 3.75
-      expect(result.find(a => a.id === 'spy')?.targetPercent).toBeCloseTo(15, 1);
-      expect(result.find(a => a.id === 'vti')?.targetPercent).toBeCloseTo(10, 1);
-      expect(result.find(a => a.id === 'vxus')?.targetPercent).toBeCloseTo(6.25, 1);
-      expect(result.find(a => a.id === 'vwo')?.targetPercent).toBeCloseTo(3.75, 1);
+      // Calculate expected: remaining is 75% (100-25), distributed proportionally among 90% (40+30+20)
+      // SPY: 40/90 * 75 = 33.33
+      // VTI: 30/90 * 75 = 25
+      // VXUS: 20/90 * 75 = 16.67
+      const spy = result.find(a => a.id === 'spy');
+      const vti = result.find(a => a.id === 'vti');
+      const vxus = result.find(a => a.id === 'vxus');
+      const vbr = result.find(a => a.id === 'vbr');
+      
+      expect(spy?.targetPercent).toBeCloseTo(33.33, 1);
+      expect(vti?.targetPercent).toBeCloseTo(25, 1);
+      expect(vxus?.targetPercent).toBeCloseTo(16.67, 1);
+      
+      // Verify total is 100%
+      const total = (spy?.targetPercent || 0) + (vti?.targetPercent || 0) + (vxus?.targetPercent || 0) + (vbr?.targetPercent || 0);
+      expect(total).toBeCloseTo(100, 1);
+    });
+
+    it('should set asset to 0% and redistribute to maintain 100% total', () => {
+      const assets: Asset[] = [
+        { id: 'a', name: 'A', ticker: 'A', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 5000, targetMode: 'PERCENTAGE', targetPercent: 60 },
+        { id: 'b', name: 'B', ticker: 'B', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 3000, targetMode: 'PERCENTAGE', targetPercent: 30 },
+        { id: 'c', name: 'C', ticker: 'C', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 2000, targetMode: 'PERCENTAGE', targetPercent: 10 },
+      ];
+
+      // User edits A to 0%
+      const result = redistributeAssetPercentagesInClass(assets, 'a', 0);
+
+      expect(result.find(a => a.id === 'a')?.targetPercent).toBe(0);
+      
+      // B and C should get the remaining 100%, distributed proportionally from their 40% (30+10)
+      // B: 30/40 * 100 = 75
+      // C: 10/40 * 100 = 25
+      expect(result.find(a => a.id === 'b')?.targetPercent).toBeCloseTo(75, 1);
+      expect(result.find(a => a.id === 'c')?.targetPercent).toBeCloseTo(25, 1);
+      
+      // Verify total is 100%
+      const total = result.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
+      expect(total).toBeCloseTo(100, 1);
     });
 
     it('should handle redistribution when only one other asset exists', () => {
@@ -127,6 +154,26 @@ describe('Asset-Specific Table Logic', () => {
 
       expect(result.find(a => a.id === 'bnd')?.targetPercent).toBe(70);
       expect(result.find(a => a.id === 'tip')?.targetPercent).toBe(30);
+      
+      // Verify total is 100%
+      const total = result.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
+      expect(total).toBeCloseTo(100, 0);
+    });
+    
+    it('should clamp percentage to 100 and give 0 to others', () => {
+      const assets: Asset[] = [
+        { id: 'a', name: 'A', ticker: 'A', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 5000, targetMode: 'PERCENTAGE', targetPercent: 60 },
+        { id: 'b', name: 'B', ticker: 'B', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 3000, targetMode: 'PERCENTAGE', targetPercent: 40 },
+      ];
+
+      const result = redistributeAssetPercentagesInClass(assets, 'a', 100);
+
+      expect(result.find(a => a.id === 'a')?.targetPercent).toBe(100);
+      expect(result.find(a => a.id === 'b')?.targetPercent).toBe(0);
+      
+      // Verify total is 100%
+      const total = result.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
+      expect(total).toBeCloseTo(100, 0);
     });
   });
 
@@ -201,7 +248,7 @@ describe('Asset-Specific Table Logic', () => {
   });
 
   describe('handleAssetRemoval', () => {
-    it('should redistribute removed asset percentage to remaining assets (Example 2 - BNDX removal)', () => {
+    it('should redistribute removed asset percentage to remaining assets to maintain 100% (Example 2 - BNDX removal)', () => {
       // After removing BNDX (which had 20%), remaining assets should absorb it proportionally
       const assetsAfterRemoval: Asset[] = [
         { id: 'bnd', name: 'BND', ticker: 'BND', assetClass: 'BONDS', subAssetType: 'ETF', currentValue: 10000, targetMode: 'PERCENTAGE', targetPercent: 50 },
@@ -220,6 +267,10 @@ describe('Asset-Specific Table Logic', () => {
       // Together = 100%
       expect(result.find(a => a.id === 'bnd')?.targetPercent).toBeCloseTo(62.5, 1);
       expect(result.find(a => a.id === 'tip')?.targetPercent).toBeCloseTo(37.5, 1);
+      
+      // Verify total is 100%
+      const total = result.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
+      expect(total).toBeCloseTo(100, 1);
     });
 
     it('should distribute equally when remaining assets have 0% each', () => {

@@ -505,7 +505,7 @@ export function redistributeAssetClassPercentages(
 
 /**
  * Redistribute asset percentages within a class when one asset's target is edited.
- * This ensures all percentage-based assets within the class sum to their proper totals.
+ * This ensures all percentage-based assets within the class ALWAYS sum to 100%.
  * 
  * @param assets - All assets
  * @param editedAssetId - The asset that was edited
@@ -522,6 +522,9 @@ export function redistributeAssetPercentagesInClass(
   
   const assetClass = editedAsset.assetClass;
   
+  // Clamp newTargetPercent to valid range (0-100)
+  const clampedPercent = Math.max(0, Math.min(100, newTargetPercent));
+  
   // Get all percentage-based assets in the same class (excluding the edited one)
   const otherAssetsInClass = assets.filter(
     a => a.assetClass === assetClass && 
@@ -530,28 +533,16 @@ export function redistributeAssetPercentagesInClass(
   );
   
   if (otherAssetsInClass.length === 0) {
-    // Just update the edited asset
+    // Just update the edited asset - it gets 100%
     return assets.map(asset =>
       asset.id === editedAssetId
-        ? { ...asset, targetPercent: newTargetPercent }
+        ? { ...asset, targetPercent: 100 }
         : asset
     );
   }
   
-  // Get total target percentage for all percentage-based assets in this class (including the edited asset's old value)
-  const allPercentageAssetsInClass = assets.filter(
-    a => a.assetClass === assetClass && a.targetMode === 'PERCENTAGE'
-  );
-  const totalClassTargetPercent = allPercentageAssetsInClass.reduce(
-    (sum, a) => sum + (a.targetPercent || 0),
-    0
-  );
-  
-  // Calculate remaining percentage for other assets.
-  // Since totalClassTargetPercent includes the edited asset's OLD percentage,
-  // subtracting the new percentage gives us the correct remaining for others
-  // to maintain the same total class percentage.
-  const remainingPercent = Math.max(0, totalClassTargetPercent - newTargetPercent);
+  // The remaining percentage for other assets (to ensure total is 100%)
+  const remainingPercent = Math.max(0, 100 - clampedPercent);
   
   // Get total of other assets' current percentages
   const otherAssetsTotal = otherAssetsInClass.reduce(
@@ -561,16 +552,20 @@ export function redistributeAssetPercentagesInClass(
   
   return assets.map(asset => {
     if (asset.id === editedAssetId) {
-      return { ...asset, targetPercent: newTargetPercent };
+      return { ...asset, targetPercent: clampedPercent };
     }
     
-    if (asset.assetClass === assetClass && 
-        asset.targetMode === 'PERCENTAGE' &&
-        otherAssetsTotal > 0) {
-      // Proportionally adjust this asset's percentage
-      const proportion = (asset.targetPercent || 0) / otherAssetsTotal;
-      const newPercent = proportion * remainingPercent;
-      return { ...asset, targetPercent: Math.max(0, newPercent) };
+    if (asset.assetClass === assetClass && asset.targetMode === 'PERCENTAGE') {
+      if (otherAssetsTotal > 0) {
+        // Proportionally adjust this asset's percentage
+        const proportion = (asset.targetPercent || 0) / otherAssetsTotal;
+        const newPercent = proportion * remainingPercent;
+        return { ...asset, targetPercent: Math.max(0, newPercent) };
+      } else {
+        // Distribute equally if all others were 0
+        const equalPercent = remainingPercent / otherAssetsInClass.length;
+        return { ...asset, targetPercent: equalPercent };
+      }
     }
     
     return asset;

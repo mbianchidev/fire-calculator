@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Asset, AllocationDelta, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { formatCurrency, formatPercent, formatAssetName, redistributeAssetPercentagesInClass } from '../utils/allocationCalculator';
+import { MassEditDialog } from './MassEditDialog';
 
 interface CollapsibleAllocationTableProps {
   assets: Asset[];
   deltas: AllocationDelta[];
   currency: string;
+  cashToInvest: number;
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
   onUpdateAssets: (newAssets: Asset[]) => void;
   onDeleteAsset: (assetId: string) => void;
@@ -15,6 +17,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
   assets,
   deltas,
   currency,
+  cashToInvest,
   onUpdateAsset,
   onUpdateAssets,
   onDeleteAsset,
@@ -27,6 +30,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     currentValue: 0,
     targetPercent: 0,
   });
+  const [massEditClass, setMassEditClass] = useState<AssetClass | null>(null);
 
   const toggleCollapse = (assetClass: AssetClass) => {
     const newCollapsed = new Set(collapsedClasses);
@@ -136,7 +140,23 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
         );
         const classDeltas = classAssets.map(asset => deltas.find(d => d.assetId === asset.id)!).filter(Boolean);
         const classTargetTotal = classDeltas.reduce((sum, delta) => sum + delta.targetValue, 0);
-        const classDelta = classTargetTotal - classTotal;
+        
+        // Calculate delta including cash to invest for non-cash asset classes
+        let classDelta = classTargetTotal - classTotal;
+        if (assetClass !== 'CASH' && cashToInvest > 0) {
+          // Distribute cash to invest proportionally to this asset class
+          const totalNonCashTargetValue = deltas
+            .filter(d => {
+              const asset = assets.find(a => a.id === d.assetId);
+              return asset && asset.assetClass !== 'CASH' && asset.targetMode === 'PERCENTAGE';
+            })
+            .reduce((sum, d) => sum + d.targetValue, 0);
+          
+          if (totalNonCashTargetValue > 0) {
+            const classTargetProportion = classTargetTotal / totalNonCashTargetValue;
+            classDelta += cashToInvest * classTargetProportion;
+          }
+        }
 
         return (
           <div key={assetClass} className="asset-class-group">
@@ -160,6 +180,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
             </div>
 
             {!isCollapsed && (
+              <>
               <table className="assets-table">
                 <thead>
                   <tr>
@@ -216,7 +237,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               value={editValues.targetPercent}
                               onChange={(e) => setEditValues({ ...editValues, targetPercent: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              step="0.1"
                               min="0"
                               max="100"
                             />
@@ -237,7 +257,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               value={editValues.currentValue}
                               onChange={(e) => setEditValues({ ...editValues, currentValue: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              step="100"
                               min="0"
                             />
                           ) : (
@@ -252,7 +271,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               onChange={(e) => handleTargetValueChange(asset.id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
                               className="target-input"
-                              step="100"
                               min="0"
                             />
                           ) : (
@@ -291,10 +309,31 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                   })}
                 </tbody>
               </table>
+              <div className="mass-edit-button-container">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMassEditClass(assetClass as AssetClass);
+                  }} 
+                  className="action-btn mass-edit-btn"
+                  title="Edit all percentages at once"
+                >
+                  📝 Mass Edit {formatAssetName(assetClass)} Percentages
+                </button>
+              </div>
+              </>
             )}
           </div>
         );
       })}
+      <MassEditDialog
+        isOpen={massEditClass !== null}
+        onClose={() => setMassEditClass(null)}
+        mode="asset"
+        assets={assets}
+        assetClass={massEditClass || undefined}
+        onSaveAssets={onUpdateAssets}
+      />
     </div>
   );
 };

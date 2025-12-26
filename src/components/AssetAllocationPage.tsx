@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, exportToCSV, importFromCSV, formatAssetName, handleAssetRemoval, redistributeAssetClassPercentages, AssetClassTargets } from '../utils/allocationCalculator';
-import { DEFAULT_ASSETS } from '../utils/defaultAssets';
+import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
@@ -10,6 +10,7 @@ import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
 export const AssetAllocationPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(DEFAULT_ASSETS);
   const [currency] = useState<string>('EUR');
+  const [portfolioValue, setPortfolioValue] = useState<number>(DEFAULT_PORTFOLIO_VALUE);
   // Store asset class level targets independently (for future use in calculations)
   const [assetClassTargets, setAssetClassTargets] = useState<AssetClassTargets>({
     STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 60 },
@@ -24,6 +25,14 @@ export const AssetAllocationPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
+
+  // Calculate cash to invest (from CASH assets with INVEST action)
+  const cashToInvest = allocation.deltas
+    .filter(d => {
+      const asset = assets.find(a => a.id === d.assetId);
+      return asset && asset.assetClass === 'CASH' && d.action === 'INVEST';
+    })
+    .reduce((sum, d) => sum + Math.abs(d.delta), 0);
 
   const updateAllocation = (newAssets: Asset[]) => {
     setAssets(newAssets);
@@ -97,6 +106,10 @@ export const AssetAllocationPage: React.FC = () => {
       });
       updateAllocation(newAssets);
     }
+  };
+
+  const handleUpdateAssetClassTargets = (newTargets: AssetClassTargets) => {
+    setAssetClassTargets(newTargets);
   };
 
   const handleAddAsset = (newAsset: Asset) => {
@@ -192,6 +205,21 @@ export const AssetAllocationPage: React.FC = () => {
           </div>
         )}
 
+        <div className="portfolio-value-section">
+          <label htmlFor="portfolio-value">💰 Target Portfolio Value:</label>
+          <input
+            id="portfolio-value"
+            type="number"
+            value={portfolioValue}
+            onChange={(e) => setPortfolioValue(parseFloat(e.target.value) || 0)}
+            className="portfolio-value-input"
+            min="0"
+          />
+          <span className="portfolio-value-info">
+            {currency === 'EUR' ? '€' : '$'} (Upper limit for absolute targets)
+          </span>
+        </div>
+
         <div className="allocation-section">
           <h3>Asset Classes</h3>
           <EditableAssetClassTable
@@ -200,6 +228,7 @@ export const AssetAllocationPage: React.FC = () => {
             totalValue={allocation.totalValue}
             currency={currency}
             onUpdateAssetClass={handleUpdateAssetClass}
+            onUpdateAssetClassTargets={handleUpdateAssetClassTargets}
           />
         </div>
 
@@ -263,6 +292,7 @@ export const AssetAllocationPage: React.FC = () => {
             assets={assets}
             deltas={allocation.deltas}
             currency={currency}
+            cashToInvest={cashToInvest}
             onUpdateAsset={handleUpdateAsset}
             onUpdateAssets={handleUpdateAssets}
             onDeleteAsset={handleDeleteAsset}
