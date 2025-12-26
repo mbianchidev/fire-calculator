@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { AssetClassSummary, AllocationMode, AssetClass } from '../types/assetAllocation';
-import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
+import { formatCurrency, formatPercent, formatAssetName, AssetClassTargets } from '../utils/allocationCalculator';
 
 interface EditableAssetClassTableProps {
   assetClasses: AssetClassSummary[];
+  assetClassTargets: AssetClassTargets;
   totalValue: number;
   currency: string;
   onUpdateAssetClass: (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => void;
@@ -11,6 +12,7 @@ interface EditableAssetClassTableProps {
 
 export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = ({
   assetClasses,
+  assetClassTargets,
   totalValue,
   currency,
   onUpdateAssetClass,
@@ -55,12 +57,14 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
   };
 
   const startEditing = (ac: AssetClassSummary) => {
+    // Use the asset class targets state for editing, not the derived values
+    const target = assetClassTargets[ac.assetClass];
     console.log('[Asset Classes Table] Starting to edit:', ac.assetClass);
-    console.log('[Asset Classes Table] Current target mode:', ac.targetMode);
-    console.log('[Asset Classes Table] Current target percent:', ac.targetPercent);
+    console.log('[Asset Classes Table] Current target mode:', target?.targetMode);
+    console.log('[Asset Classes Table] Current target percent:', target?.targetPercent);
     setEditingClass(ac.assetClass);
-    setEditMode(ac.targetMode);
-    setEditPercent(ac.targetPercent || 0);
+    setEditMode(target?.targetMode || 'PERCENTAGE');
+    setEditPercent(target?.targetPercent || 0);
   };
 
   const saveEditing = () => {
@@ -100,11 +104,15 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
         <tbody>
           {assetClasses.map(ac => {
             const isEditing = editingClass === ac.assetClass;
+            // Get the target from assetClassTargets state (independent from assets)
+            const target = assetClassTargets[ac.assetClass];
+            const displayTargetMode = target?.targetMode || ac.targetMode;
+            const displayTargetPercent = target?.targetPercent;
             
             return (
               <tr 
                 key={ac.assetClass} 
-                className={`${ac.targetMode === 'OFF' ? 'excluded-row' : ''} ${isEditing ? 'editing-row' : ''}`}
+                className={`${displayTargetMode === 'OFF' ? 'excluded-row' : ''} ${isEditing ? 'editing-row' : ''}`}
                 onClick={() => !isEditing && startEditing(ac)}
               >
                 <td>
@@ -125,9 +133,9 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       <option value="OFF">OFF</option>
                     </select>
                   ) : (
-                    ac.targetMode === 'SET' ? (
+                    displayTargetMode === 'SET' ? (
                       <span className="set-label">SET</span>
-                    ) : ac.targetMode === 'OFF' ? (
+                    ) : displayTargetMode === 'OFF' ? (
                       <span className="off-label">OFF</span>
                     ) : (
                       <span>%</span>
@@ -147,9 +155,9 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       max="100"
                     />
                   ) : (
-                    ac.targetMode === 'PERCENTAGE' && ac.targetPercent !== undefined
-                      ? formatPercent(ac.targetPercent)
-                      : ac.targetMode === 'SET'
+                    displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
+                      ? formatPercent(displayTargetPercent)
+                      : displayTargetMode === 'SET'
                       ? 'SET'
                       : 'OFF'
                   )}

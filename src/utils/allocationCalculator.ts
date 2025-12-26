@@ -420,3 +420,251 @@ export function formatAssetName(name: string): string {
     })
     .join(' ');
 }
+
+/**
+ * Asset class target configuration
+ */
+export interface AssetClassTarget {
+  targetMode: AllocationMode;
+  targetPercent?: number;
+}
+
+export type AssetClassTargets = Record<AssetClass, AssetClassTarget>;
+
+/**
+ * Redistribute asset class percentages when one is edited.
+ * This function ensures all percentage-based asset classes sum to 100%.
+ * It does NOT modify asset-specific table targets.
+ * 
+ * @param currentTargets - Current asset class targets
+ * @param editedClass - The asset class that was edited
+ * @param newPercent - The new percentage for the edited class
+ * @returns Updated asset class targets with redistributed percentages
+ */
+export function redistributeAssetClassPercentages(
+  currentTargets: AssetClassTargets,
+  editedClass: AssetClass,
+  newPercent: number
+): AssetClassTargets {
+  const updatedTargets = { ...currentTargets };
+  
+  // Update the edited class
+  updatedTargets[editedClass] = {
+    ...updatedTargets[editedClass],
+    targetPercent: newPercent,
+  };
+  
+  // Get all percentage-based asset classes except the one being edited
+  const otherPercentageClasses = (Object.keys(updatedTargets) as AssetClass[]).filter(
+    (cls) => cls !== editedClass && updatedTargets[cls].targetMode === 'PERCENTAGE'
+  );
+  
+  if (otherPercentageClasses.length === 0) {
+    return updatedTargets;
+  }
+  
+  const remainingPercent = 100 - newPercent;
+  
+  // Get total of other classes' current percentages
+  const otherClassesTotal = otherPercentageClasses.reduce(
+    (sum, cls) => sum + (updatedTargets[cls].targetPercent || 0),
+    0
+  );
+  
+  if (otherClassesTotal === 0) {
+    // Distribute equally if all others are 0
+    const equalPercent = remainingPercent / otherPercentageClasses.length;
+    otherPercentageClasses.forEach((cls) => {
+      updatedTargets[cls] = {
+        ...updatedTargets[cls],
+        targetPercent: equalPercent,
+      };
+    });
+  } else {
+    // Distribute proportionally based on current percentages
+    otherPercentageClasses.forEach((cls) => {
+      const proportion = (updatedTargets[cls].targetPercent || 0) / otherClassesTotal;
+      const newClassPercent = proportion * remainingPercent;
+      updatedTargets[cls] = {
+        ...updatedTargets[cls],
+        targetPercent: newClassPercent,
+      };
+    });
+  }
+  
+  return updatedTargets;
+}
+
+/**
+ * Redistribute asset percentages within a class when one asset's target is edited.
+ * This ensures all percentage-based assets within the class sum to their proper totals.
+ * 
+ * @param assets - All assets
+ * @param editedAssetId - The asset that was edited
+ * @param newTargetPercent - The new target percentage for the edited asset
+ * @returns Updated assets array with redistributed percentages within the same class
+ */
+export function redistributeAssetPercentagesInClass(
+  assets: Asset[],
+  editedAssetId: string,
+  newTargetPercent: number
+): Asset[] {
+  const editedAsset = assets.find(a => a.id === editedAssetId);
+  if (!editedAsset) return assets;
+  
+  const assetClass = editedAsset.assetClass;
+  
+  // Get all percentage-based assets in the same class (excluding the edited one)
+  const otherAssetsInClass = assets.filter(
+    a => a.assetClass === assetClass && 
+         a.targetMode === 'PERCENTAGE' && 
+         a.id !== editedAssetId
+  );
+  
+  if (otherAssetsInClass.length === 0) {
+    // Just update the edited asset
+    return assets.map(asset =>
+      asset.id === editedAssetId
+        ? { ...asset, targetPercent: newTargetPercent }
+        : asset
+    );
+  }
+  
+  // Get total target percentage for all percentage-based assets in this class
+  const allPercentageAssetsInClass = assets.filter(
+    a => a.assetClass === assetClass && a.targetMode === 'PERCENTAGE'
+  );
+  const totalClassTargetPercent = allPercentageAssetsInClass.reduce(
+    (sum, a) => sum + (a.targetPercent || 0),
+    0
+  );
+  
+  // The remaining assets need to absorb the inverse of this change
+  const remainingPercent = totalClassTargetPercent - newTargetPercent;
+  
+  // Get total of other assets' current percentages
+  const otherAssetsTotal = otherAssetsInClass.reduce(
+    (sum, a) => sum + (a.targetPercent || 0),
+    0
+  );
+  
+  return assets.map(asset => {
+    if (asset.id === editedAssetId) {
+      return { ...asset, targetPercent: newTargetPercent };
+    }
+    
+    if (asset.assetClass === assetClass && 
+        asset.targetMode === 'PERCENTAGE' &&
+        otherAssetsTotal > 0) {
+      // Proportionally adjust this asset's percentage
+      const proportion = (asset.targetPercent || 0) / otherAssetsTotal;
+      const newPercent = proportion * remainingPercent;
+      return { ...asset, targetPercent: Math.max(0, newPercent) };
+    }
+    
+    return asset;
+  });
+}
+
+/**
+ * Distribute a delta amount across assets within a class based on their current percentages.
+ * 
+ * @param assets - All assets
+ * @param assetClass - The asset class to distribute delta to
+ * @param delta - The delta amount to distribute (positive = buy, negative = sell)
+ * @returns Map of asset IDs to their allocated delta amounts
+ */
+export function distributeDeltaToAssets(
+  assets: Asset[],
+  assetClass: AssetClass,
+  delta: number
+): Map<string, number> {
+  const deltaMap = new Map<string, number>();
+  
+  // Get percentage-based assets in this class (only these participate in delta distribution)
+  const classAssets = assets.filter(
+    a => a.assetClass === assetClass && a.targetMode === 'PERCENTAGE'
+  );
+  
+  if (classAssets.length === 0) {
+    return deltaMap;
+  }
+  
+  // Get total percentage for the class
+  const totalPercent = classAssets.reduce(
+    (sum, a) => sum + (a.targetPercent || 0),
+    0
+  );
+  
+  if (totalPercent === 0) {
+    // Distribute equally if no percentages set
+    const equalDelta = delta / classAssets.length;
+    classAssets.forEach(asset => {
+      deltaMap.set(asset.id, equalDelta);
+    });
+  } else {
+    // Distribute proportionally based on target percentages
+    classAssets.forEach(asset => {
+      const proportion = (asset.targetPercent || 0) / totalPercent;
+      const assetDelta = proportion * delta;
+      deltaMap.set(asset.id, assetDelta);
+    });
+  }
+  
+  return deltaMap;
+}
+
+/**
+ * Handle asset removal by redistributing its percentage to remaining assets.
+ * 
+ * @param assets - All assets (after removal)
+ * @param removedAsset - The asset that was removed
+ * @returns Updated assets array with redistributed percentages
+ */
+export function handleAssetRemoval(
+  assets: Asset[],
+  removedAsset: Asset
+): Asset[] {
+  if (removedAsset.targetMode !== 'PERCENTAGE') {
+    return assets;
+  }
+  
+  const assetClass = removedAsset.assetClass;
+  const removedPercent = removedAsset.targetPercent || 0;
+  
+  // Get remaining percentage-based assets in the same class
+  const remainingAssetsInClass = assets.filter(
+    a => a.assetClass === assetClass && a.targetMode === 'PERCENTAGE'
+  );
+  
+  if (remainingAssetsInClass.length === 0 || removedPercent === 0) {
+    return assets;
+  }
+  
+  // Get total of remaining assets' current percentages
+  const remainingTotal = remainingAssetsInClass.reduce(
+    (sum, a) => sum + (a.targetPercent || 0),
+    0
+  );
+  
+  if (remainingTotal === 0) {
+    // Distribute equally
+    const equalPercent = removedPercent / remainingAssetsInClass.length;
+    return assets.map(asset => {
+      if (asset.assetClass === assetClass && asset.targetMode === 'PERCENTAGE') {
+        return { ...asset, targetPercent: (asset.targetPercent || 0) + equalPercent };
+      }
+      return asset;
+    });
+  }
+  
+  // Distribute proportionally
+  return assets.map(asset => {
+    if (asset.assetClass === assetClass && asset.targetMode === 'PERCENTAGE') {
+      const proportion = (asset.targetPercent || 0) / remainingTotal;
+      const additionalPercent = proportion * removedPercent;
+      return { ...asset, targetPercent: (asset.targetPercent || 0) + additionalPercent };
+    }
+    return asset;
+  });
+}

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Asset, AllocationDelta, AssetClass, AllocationMode } from '../types/assetAllocation';
-import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
+import { formatCurrency, formatPercent, formatAssetName, redistributeAssetPercentagesInClass } from '../utils/allocationCalculator';
 
 interface CollapsibleAllocationTableProps {
   assets: Asset[];
   deltas: AllocationDelta[];
   currency: string;
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
+  onUpdateAssets: (newAssets: Asset[]) => void;
   onDeleteAsset: (assetId: string) => void;
 }
 
@@ -15,6 +16,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
   deltas,
   currency,
   onUpdateAsset,
+  onUpdateAssets,
   onDeleteAsset,
 }) => {
   // Initialize with all classes collapsed
@@ -71,48 +73,6 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     });
   };
 
-  const redistributePercentages = (assetId: string, newTargetPercent: number, assetClass: AssetClass) => {
-    console.log('[Sub-table] Redistributing percentages for asset class:', assetClass);
-    console.log('[Sub-table] New target percent for edited asset:', newTargetPercent);
-    
-    // Get all percentage-based assets in the same class
-    const classAssets = assets.filter(a => 
-      a.assetClass === assetClass && 
-      a.targetMode === 'PERCENTAGE' &&
-      a.id !== assetId
-    );
-    
-    console.log('[Sub-table] Other assets in class:', classAssets.map(a => a.name));
-    
-    if (classAssets.length === 0) return;
-    
-    // Calculate remaining percentage to distribute
-    const remainingPercent = 100 - newTargetPercent;
-    console.log('[Sub-table] Remaining percent to distribute:', remainingPercent);
-    
-    // Get total of other assets' current percentages
-    const otherAssetsTotal = classAssets.reduce((sum, a) => sum + (a.targetPercent || 0), 0);
-    console.log('[Sub-table] Total of other assets before redistribution:', otherAssetsTotal);
-    
-    if (otherAssetsTotal === 0) {
-      // Distribute equally if all others are 0
-      const equalPercent = remainingPercent / classAssets.length;
-      console.log('[Sub-table] Distributing equally:', equalPercent, '% each');
-      classAssets.forEach(asset => {
-        onUpdateAsset(asset.id, { targetPercent: equalPercent });
-      });
-    } else {
-      // Distribute proportionally based on current percentages
-      console.log('[Sub-table] Distributing proportionally');
-      classAssets.forEach(asset => {
-        const proportion = (asset.targetPercent || 0) / otherAssetsTotal;
-        const newPercent = proportion * remainingPercent;
-        console.log('[Sub-table] Asset:', asset.name, 'proportion:', proportion, 'new percent:', newPercent);
-        onUpdateAsset(asset.id, { targetPercent: newPercent });
-      });
-    }
-  };
-
   const saveEditing = (assetId: string) => {
     const asset = assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -121,17 +81,27 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     console.log('[Sub-table] New current value:', editValues.currentValue);
     console.log('[Sub-table] New target percent:', editValues.targetPercent);
     
-    // First update the edited asset
-    onUpdateAsset(assetId, {
-      currentValue: editValues.currentValue,
-      targetPercent: editValues.targetPercent,
-    });
+    // Update current value first
+    let updatedAssets = assets.map(a =>
+      a.id === assetId ? { ...a, currentValue: editValues.currentValue } : a
+    );
     
-    // Then redistribute percentages if this is a percentage-based asset
+    // If this is a percentage-based asset, use the proper redistribution logic
     if (asset.targetMode === 'PERCENTAGE') {
-      redistributePercentages(assetId, editValues.targetPercent, asset.assetClass);
+      updatedAssets = redistributeAssetPercentagesInClass(
+        updatedAssets,
+        assetId,
+        editValues.targetPercent
+      );
+    } else {
+      // For non-percentage assets, just update the values
+      updatedAssets = updatedAssets.map(a =>
+        a.id === assetId ? { ...a, targetPercent: editValues.targetPercent } : a
+      );
     }
     
+    // Use bulk update to apply all changes at once
+    onUpdateAssets(updatedAssets);
     setEditingAsset(null);
   };
 
