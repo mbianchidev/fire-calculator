@@ -131,6 +131,9 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     onUpdateAsset(assetId, { targetValue: val });
   };
 
+  // Create a lookup map for O(1) asset access by ID
+  const assetMap = new Map(assets.map(a => [a.id, a]));
+
   return (
     <div className="collapsible-allocation-table">
       {Object.entries(groupedAssets).map(([assetClass, classAssets]) => {
@@ -145,9 +148,10 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
         let classDelta = classTargetTotal - classTotal;
         if (assetClass !== 'CASH' && cashToInvest > 0) {
           // Distribute cash to invest proportionally to this asset class
+          // Use assetMap for O(1) lookup instead of O(n) find
           const totalNonCashTargetValue = deltas
             .filter(d => {
-              const asset = assets.find(a => a.id === d.assetId);
+              const asset = assetMap.get(d.assetId);
               return asset && asset.assetClass !== 'CASH' && asset.targetMode === 'PERCENTAGE';
             })
             .reduce((sum, d) => sum + d.targetValue, 0);

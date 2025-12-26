@@ -51,11 +51,14 @@ export const MassEditDialog: React.FC<MassEditDialogProps> = ({
     }
   }, [isOpen, mode, assetClassTargets, assets, assetClass]);
 
+// Tolerance for floating point comparison when checking if percentages sum to 100%
+const PERCENTAGE_TOLERANCE = 0.01;
+
   useEffect(() => {
     const sum = Object.values(editValues).reduce((acc, val) => acc + val, 0);
     setTotal(sum);
     
-    if (Math.abs(sum - 100) > 0.01) {
+    if (Math.abs(sum - 100) > PERCENTAGE_TOLERANCE) {
       setError(`Total must be 100%. Current: ${sum.toFixed(2)}%`);
     } else {
       setError(null);
@@ -63,7 +66,9 @@ export const MassEditDialog: React.FC<MassEditDialogProps> = ({
   }, [editValues]);
 
   const handleChange = (key: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    // Handle empty string or invalid input explicitly
+    const parsed = parseFloat(value);
+    const numValue = isNaN(parsed) ? 0 : Math.max(0, parsed);
     setEditValues(prev => ({
       ...prev,
       [key]: numValue,

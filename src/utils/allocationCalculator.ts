@@ -523,6 +523,8 @@ export function redistributeAssetPercentagesInClass(
   const assetClass = editedAsset.assetClass;
   
   // Clamp newTargetPercent to valid range (0-100)
+  // When set to 100%, all other assets in the class will be set to 0%
+  // When set to 0%, all remaining percentage is distributed to other assets
   const clampedPercent = Math.max(0, Math.min(100, newTargetPercent));
   
   // Get all percentage-based assets in the same class (excluding the edited one)
