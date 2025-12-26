@@ -7,7 +7,9 @@ import { IncomeExpensesChart } from './components/IncomeExpensesChart';
 import { NetWorthChart } from './components/NetWorthChart';
 import { FIREMetrics } from './components/FIREMetrics';
 import { MonteCarloSimulator } from './components/MonteCarloSimulator';
+import { AssetAllocationManager } from './components/AssetAllocationManager';
 import './App.css';
+import './components/AssetAllocationManager.css';
 
 function App() {
   const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
@@ -46,6 +48,10 @@ function App() {
               <div className="separator" />
 
               <MonteCarloSimulator inputs={inputs} />
+
+              <div className="separator" />
+
+              <AssetAllocationManager />
             </>
           )}
         </div>
