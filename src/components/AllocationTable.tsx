@@ -1,5 +1,7 @@
 import { Asset, AllocationDelta, AllocationMode } from '../types/assetAllocation';
 import { formatCurrency, formatPercent } from '../utils/allocationCalculator';
+import { useTableSort } from '../utils/useTableSort';
+import { NumberInput } from './NumberInput';
 
 interface AllocationTableProps {
   assets: Asset[];
@@ -8,12 +10,25 @@ interface AllocationTableProps {
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
 }
 
+interface TableRow {
+  asset: Asset;
+  delta: AllocationDelta;
+}
+
 export const AllocationTable: React.FC<AllocationTableProps> = ({
   assets,
   deltas,
   currency,
   onUpdateAsset,
 }) => {
+  // Create combined data for sorting
+  const tableData: TableRow[] = assets.map(asset => ({
+    asset,
+    delta: deltas.find(d => d.assetId === asset.id)!,
+  })).filter(row => row.delta !== undefined);
+
+  const { sortedData, requestSort, getSortIndicator } = useTableSort<TableRow>(tableData);
+
   const getActionColor = (action: string): string => {
     switch (action) {
       case 'BUY':
@@ -43,14 +58,12 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
     onUpdateAsset(assetId, updates);
   };
 
-  const handleTargetPercentChange = (assetId: string, value: string) => {
-    const percent = parseFloat(value) || 0;
-    onUpdateAsset(assetId, { targetPercent: percent });
+  const handleTargetPercentChange = (assetId: string, value: number) => {
+    onUpdateAsset(assetId, { targetPercent: value });
   };
 
-  const handleTargetValueChange = (assetId: string, value: string) => {
-    const val = parseFloat(value) || 0;
-    onUpdateAsset(assetId, { targetValue: val });
+  const handleTargetValueChange = (assetId: string, value: number) => {
+    onUpdateAsset(assetId, { targetValue: value });
   };
 
   return (
@@ -58,24 +71,39 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
       <table className="allocation-table">
         <thead>
           <tr>
-            <th>Asset / Index</th>
+            <th className="sortable" onClick={() => requestSort('asset.name')}>
+              Asset / Index <span className="sort-indicator">{getSortIndicator('asset.name')}</span>
+            </th>
             <th>Ticker</th>
-            <th>Asset Class</th>
+            <th className="sortable" onClick={() => requestSort('asset.assetClass')}>
+              Asset Class <span className="sort-indicator">{getSortIndicator('asset.assetClass')}</span>
+            </th>
             <th>Target Mode</th>
-            <th>% Target</th>
-            <th>% Current (Total)</th>
-            <th>% Current (Class)</th>
-            <th>Absolute Current</th>
-            <th>Absolute Target</th>
-            <th>Delta</th>
-            <th>Action</th>
+            <th className="sortable" onClick={() => requestSort('asset.targetPercent')}>
+              % Target <span className="sort-indicator">{getSortIndicator('asset.targetPercent')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.currentPercent')}>
+              % Current (Total) <span className="sort-indicator">{getSortIndicator('delta.currentPercent')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.currentPercentInClass')}>
+              % Current (Class) <span className="sort-indicator">{getSortIndicator('delta.currentPercentInClass')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.currentValue')}>
+              Absolute Current <span className="sort-indicator">{getSortIndicator('delta.currentValue')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.targetValue')}>
+              Absolute Target <span className="sort-indicator">{getSortIndicator('delta.targetValue')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.delta')}>
+              Delta <span className="sort-indicator">{getSortIndicator('delta.delta')}</span>
+            </th>
+            <th className="sortable" onClick={() => requestSort('delta.action')}>
+              Action <span className="sort-indicator">{getSortIndicator('delta.action')}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
-          {assets.map(asset => {
-            const delta = deltas.find(d => d.assetId === asset.id);
-            if (!delta) return null;
-
+          {sortedData.map(({ asset, delta }) => {
             return (
               <tr key={asset.id} className={asset.targetMode === 'OFF' ? 'excluded-row' : ''}>
                 <td className="asset-name">{asset.name}</td>
@@ -98,14 +126,10 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
                 </td>
                 <td>
                   {asset.targetMode === 'PERCENTAGE' ? (
-                    <input
-                      type="number"
+                    <NumberInput
                       value={asset.targetPercent || 0}
-                      onChange={(e) => handleTargetPercentChange(asset.id, e.target.value)}
+                      onChange={(value) => handleTargetPercentChange(asset.id, value)}
                       className="target-input"
-                      step="0.1"
-                      min="0"
-                      max="100"
                     />
                   ) : asset.targetMode === 'SET' ? (
                     <span className="set-label">SET</span>
@@ -118,13 +142,10 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
                 <td className="currency-value">{formatCurrency(delta.currentValue, currency)}</td>
                 <td className="currency-value">
                   {asset.targetMode === 'SET' ? (
-                    <input
-                      type="number"
+                    <NumberInput
                       value={asset.targetValue || 0}
-                      onChange={(e) => handleTargetValueChange(asset.id, e.target.value)}
+                      onChange={(value) => handleTargetValueChange(asset.id, value)}
                       className="target-input"
-                      step="100"
-                      min="0"
                     />
                   ) : (
                     formatCurrency(delta.targetValue, currency)

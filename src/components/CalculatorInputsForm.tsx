@@ -1,4 +1,5 @@
 import { CalculatorInputs } from '../types/calculator';
+import { NumberInput } from './NumberInput';
 
 interface CalculatorInputsProps {
   inputs: CalculatorInputs;
@@ -27,23 +28,6 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
     onChange(newInputs);
   };
 
-  // Safe number parsing that preserves zero and handles NaN gracefully
-  const safeParseFloat = (value: string): number => {
-    if (value === '' || value === '-' || value === '.') {
-      return 0;
-    }
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
-  };
-
-  const safeParseInt = (value: string): number => {
-    if (value === '' || value === '-') {
-      return 0;
-    }
-    const parsed = parseInt(value, 10);
-    return isNaN(parsed) ? 0 : parsed;
-  };
-
   return (
     <div className="inputs-form">
       <h2>FIRE Calculator Inputs</h2>
@@ -52,12 +36,10 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>💰 Initial Values</h3>
         <div className="form-group">
           <label htmlFor="initial-savings">Initial Savings / Portfolio Value (€)</label>
-          <input
+          <NumberInput
             id="initial-savings"
-            type="number"
             value={inputs.initialSavings}
-            onChange={(e) => handleChange('initialSavings', safeParseFloat(e.target.value))}
-            aria-describedby="initial-savings-desc"
+            onChange={(value) => handleChange('initialSavings', value)}
           />
         </div>
       </div>
@@ -66,37 +48,34 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>📊 Asset Allocation</h3>
         <div className="form-group">
           <label htmlFor="stocks-percent">Stocks (%)</label>
-          <input
+          <NumberInput
             id="stocks-percent"
-            type="number"
-            min="0"
-            max="100"
             value={inputs.stocksPercent}
-            onChange={(e) => handleChange('stocksPercent', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('stocksPercent', value)}
+            min={0}
+            max={100}
             aria-describedby="allocation-sum"
           />
         </div>
         <div className="form-group">
           <label htmlFor="bonds-percent">Bonds (%)</label>
-          <input
+          <NumberInput
             id="bonds-percent"
-            type="number"
-            min="0"
-            max="100"
             value={inputs.bondsPercent}
-            onChange={(e) => handleChange('bondsPercent', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('bondsPercent', value)}
+            min={0}
+            max={100}
             aria-describedby="allocation-sum"
           />
         </div>
         <div className="form-group">
           <label htmlFor="cash-percent">Cash (%)</label>
-          <input
+          <NumberInput
             id="cash-percent"
-            type="number"
-            min="0"
-            max="100"
             value={inputs.cashPercent}
-            onChange={(e) => handleChange('cashPercent', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('cashPercent', value)}
+            min={0}
+            max={100}
             aria-describedby="allocation-sum"
           />
         </div>
@@ -112,48 +91,43 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>💵 Income</h3>
         <div className="form-group">
           <label htmlFor="annual-labor-income">Annual Labor Income (Net) (€)</label>
-          <input
+          <NumberInput
             id="annual-labor-income"
-            type="number"
             value={inputs.annualLaborIncome}
-            onChange={(e) => handleChange('annualLaborIncome', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('annualLaborIncome', value)}
           />
         </div>
         <div className="form-group">
           <label htmlFor="labor-income-growth-rate">Labor Income Growth Rate (%)</label>
-          <input
+          <NumberInput
             id="labor-income-growth-rate"
-            type="number"
-            step="0.1"
             value={inputs.laborIncomeGrowthRate}
-            onChange={(e) => handleChange('laborIncomeGrowthRate', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('laborIncomeGrowthRate', value)}
+            step="0.1"
           />
         </div>
         <div className="form-group">
           <label htmlFor="state-pension-income">State Pension Income (Annual) (€)</label>
-          <input
+          <NumberInput
             id="state-pension-income"
-            type="number"
             value={inputs.statePensionIncome}
-            onChange={(e) => handleChange('statePensionIncome', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('statePensionIncome', value)}
           />
         </div>
         <div className="form-group">
           <label htmlFor="private-pension-income">Private Pension Income (Annual) (€)</label>
-          <input
+          <NumberInput
             id="private-pension-income"
-            type="number"
             value={inputs.privatePensionIncome}
-            onChange={(e) => handleChange('privatePensionIncome', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('privatePensionIncome', value)}
           />
         </div>
         <div className="form-group">
           <label htmlFor="other-income">Other Income (Annual) (€)</label>
-          <input
+          <NumberInput
             id="other-income"
-            type="number"
             value={inputs.otherIncome}
-            onChange={(e) => handleChange('otherIncome', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('otherIncome', value)}
           />
         </div>
       </div>
@@ -162,20 +136,18 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>💸 Expenses & Savings</h3>
         <div className="form-group">
           <label htmlFor="current-annual-expenses">Current Annual Expenses (€)</label>
-          <input
+          <NumberInput
             id="current-annual-expenses"
-            type="number"
             value={inputs.currentAnnualExpenses}
-            onChange={(e) => handleChange('currentAnnualExpenses', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('currentAnnualExpenses', value)}
           />
         </div>
         <div className="form-group">
           <label htmlFor="fire-annual-expenses">FIRE Annual Expenses (€)</label>
-          <input
+          <NumberInput
             id="fire-annual-expenses"
-            type="number"
             value={inputs.fireAnnualExpenses}
-            onChange={(e) => handleChange('fireAnnualExpenses', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('fireAnnualExpenses', value)}
           />
         </div>
         <div className="form-group">
@@ -183,7 +155,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           <input
             id="savings-rate"
             type="number"
-            value={(inputs.savingsRate ?? 0).toFixed(1)}
+            value={(inputs.savingsRate ?? 0).toFixed(2)}
             readOnly
             className="calculated-field"
             aria-readonly="true"
@@ -195,12 +167,11 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>🎯 FIRE Target</h3>
         <div className="form-group">
           <label htmlFor="desired-withdrawal-rate">Desired Withdrawal Rate (%)</label>
-          <input
+          <NumberInput
             id="desired-withdrawal-rate"
-            type="number"
-            step="0.1"
             value={inputs.desiredWithdrawalRate}
-            onChange={(e) => handleChange('desiredWithdrawalRate', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('desiredWithdrawalRate', value)}
+            step="0.1"
           />
         </div>
       </div>
@@ -209,32 +180,29 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>📈 Expected Returns</h3>
         <div className="form-group">
           <label htmlFor="expected-stock-return">Expected Stock Return (%)</label>
-          <input
+          <NumberInput
             id="expected-stock-return"
-            type="number"
-            step="0.1"
             value={inputs.expectedStockReturn}
-            onChange={(e) => handleChange('expectedStockReturn', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('expectedStockReturn', value)}
+            step="0.1"
           />
         </div>
         <div className="form-group">
           <label htmlFor="expected-bond-return">Expected Bond Return (%)</label>
-          <input
+          <NumberInput
             id="expected-bond-return"
-            type="number"
-            step="0.1"
             value={inputs.expectedBondReturn}
-            onChange={(e) => handleChange('expectedBondReturn', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('expectedBondReturn', value)}
+            step="0.1"
           />
         </div>
         <div className="form-group">
           <label htmlFor="expected-cash-return">Cash / Inflation Rate (%)</label>
-          <input
+          <NumberInput
             id="expected-cash-return"
-            type="number"
-            step="0.1"
             value={inputs.expectedCashReturn}
-            onChange={(e) => handleChange('expectedCashReturn', safeParseFloat(e.target.value))}
+            onChange={(value) => handleChange('expectedCashReturn', value)}
+            step="0.1"
           />
         </div>
       </div>
@@ -243,20 +211,20 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <h3>👤 Personal Information</h3>
         <div className="form-group">
           <label htmlFor="year-of-birth">Year of Birth</label>
-          <input
+          <NumberInput
             id="year-of-birth"
-            type="number"
             value={inputs.yearOfBirth}
-            onChange={(e) => handleChange('yearOfBirth', safeParseInt(e.target.value))}
+            onChange={(value) => handleChange('yearOfBirth', value)}
+            allowDecimals={false}
           />
         </div>
         <div className="form-group">
           <label htmlFor="retirement-age">Retirement Age for State Pension</label>
-          <input
+          <NumberInput
             id="retirement-age"
-            type="number"
             value={inputs.retirementAge}
-            onChange={(e) => handleChange('retirementAge', safeParseInt(e.target.value))}
+            onChange={(value) => handleChange('retirementAge', value)}
+            allowDecimals={false}
           />
         </div>
       </div>

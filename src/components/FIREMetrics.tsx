@@ -1,5 +1,6 @@
 import { CalculationResult } from '../types/calculator';
 import { formatCurrency } from '../utils/allocationCalculator';
+import { useState } from 'react';
 
 interface FIREMetricsProps {
   result: CalculationResult;
@@ -8,21 +9,40 @@ interface FIREMetricsProps {
 
 export const FIREMetrics: React.FC<FIREMetricsProps> = ({ result, currentAge }) => {
   const { yearsToFIRE, fireTarget, finalPortfolioValue } = result;
+  const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setCopyFailed(false);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 3000);
+    }
+  };
 
   return (
-    <section className="fire-metrics" aria-labelledby="fire-metrics-heading">
-      <h3 id="fire-metrics-heading">🎯 FIRE Metrics</h3>
+    <div className="fire-metrics">
+      <div className="fire-metrics-header">
+        <h3>🎯 FIRE Metrics</h3>
+        <button className="share-button" onClick={handleShare}>
+          {copied ? '✓ Copied!' : copyFailed ? '✗ Failed' : '🔗 Share'}
+        </button>
+      </div>
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-label">FIRE Target</div>
-          <div className="metric-value" aria-label={`FIRE target: ${formatCurrency(fireTarget)}`}>
-            {formatCurrency(fireTarget)}
-          </div>
+          <div className="metric-value">{formatCurrency(fireTarget)}</div>
         </div>
         
         <div className="metric-card highlight">
           <div className="metric-label">Years to FIRE</div>
-          <div className="metric-value" aria-label={yearsToFIRE >= 0 ? `${yearsToFIRE} years to FIRE` : 'FIRE not achieved'}>
+          <div className="metric-value">
             {yearsToFIRE >= 0 ? `${yearsToFIRE} years` : 'Not achieved'}
           </div>
           {yearsToFIRE >= 0 && (
@@ -34,18 +54,14 @@ export const FIREMetrics: React.FC<FIREMetricsProps> = ({ result, currentAge }) 
 
         <div className="metric-card">
           <div className="metric-label">Final Portfolio Value</div>
-          <div className="metric-value" aria-label={`Final portfolio value: ${formatCurrency(finalPortfolioValue)}`}>
-            {formatCurrency(finalPortfolioValue)}
-          </div>
+          <div className="metric-value">{formatCurrency(finalPortfolioValue)}</div>
         </div>
 
         <div className="metric-card">
           <div className="metric-label">Current Age</div>
-          <div className="metric-value" aria-label={`Current age: ${currentAge} years`}>
-            {currentAge} years
-          </div>
+          <div className="metric-value">{currentAge} years</div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };

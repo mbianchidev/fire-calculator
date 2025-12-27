@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CalculatorInputs, MonteCarloInputs, MonteCarloResult } from '../types/calculator';
 import { runMonteCarloSimulation } from '../utils/monteCarlo';
+import { NumberInput } from './NumberInput';
 
 interface MonteCarloSimulatorProps {
   inputs: CalculatorInputs;
@@ -41,61 +42,43 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
 
       <div className="mc-inputs">
         <div className="form-group">
-          <label htmlFor="num-simulations">Number of Simulations</label>
-          <input
-            id="num-simulations"
-            type="number"
+          <label>Number of Simulations</label>
+          <NumberInput
             value={mcInputs.numSimulations}
-            onChange={(e) => handleInputChange('numSimulations', parseInt(e.target.value) || 100)}
-            min="100"
-            max="10000"
-            step="100"
+            onChange={(value) => handleInputChange('numSimulations', value)}
+            allowDecimals={false}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="stock-volatility">Stock Volatility (% std dev)</label>
-          <input
-            id="stock-volatility"
-            type="number"
+          <label>Stock Volatility (% std dev)</label>
+          <NumberInput
             value={mcInputs.stockVolatility}
-            onChange={(e) => handleInputChange('stockVolatility', parseFloat(e.target.value) || 0)}
-            step="1"
+            onChange={(value) => handleInputChange('stockVolatility', value)}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="bond-volatility">Bond Volatility (% std dev)</label>
-          <input
-            id="bond-volatility"
-            type="number"
+          <label>Bond Volatility (% std dev)</label>
+          <NumberInput
             value={mcInputs.bondVolatility}
-            onChange={(e) => handleInputChange('bondVolatility', parseFloat(e.target.value) || 0)}
-            step="1"
+            onChange={(value) => handleInputChange('bondVolatility', value)}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="black-swan-probability">Black Swan Probability (% per year)</label>
-          <input
-            id="black-swan-probability"
-            type="number"
+          <label>Black Swan Probability (% per year)</label>
+          <NumberInput
             value={mcInputs.blackSwanProbability}
-            onChange={(e) => handleInputChange('blackSwanProbability', parseFloat(e.target.value) || 0)}
-            step="0.5"
-            min="0"
-            max="10"
+            onChange={(value) => handleInputChange('blackSwanProbability', value)}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="black-swan-impact">Black Swan Impact (%)</label>
-          <input
-            id="black-swan-impact"
-            type="number"
+          <label>Black Swan Impact (%)</label>
+          <NumberInput
             value={mcInputs.blackSwanImpact}
-            onChange={(e) => handleInputChange('blackSwanImpact', parseFloat(e.target.value) || 0)}
-            step="5"
+            onChange={(value) => handleInputChange('blackSwanImpact', value)}
           />
         </div>
       </div>
@@ -104,20 +87,17 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
         className="run-simulation-btn" 
         onClick={runSimulation}
         disabled={isRunning}
-        aria-label={isRunning ? 'Running Monte Carlo simulations' : 'Run Monte Carlo simulations'}
       >
         {isRunning ? '⏳ Running Simulations...' : '▶️ Run Simulations'}
       </button>
 
       {result && (
-        <div className="mc-results" role="region" aria-live="polite" aria-label="Monte Carlo simulation results">
+        <div className="mc-results">
           <h3>Simulation Results</h3>
           <div className="results-grid">
             <div className="result-card success">
               <div className="result-label">Success Rate</div>
-              <div className="result-value" aria-label={`Success rate: ${result.successRate.toFixed(1)} percent`}>
-                {result.successRate.toFixed(1)}%
-              </div>
+              <div className="result-value">{result.successRate.toFixed(2)}%</div>
               <div className="result-subtitle">
                 {result.successCount} / {result.successCount + result.failureCount} simulations
               </div>
@@ -141,9 +121,9 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
             </div>
           </div>
 
-          <div className="success-bar" role="progressbar" aria-valuenow={result.successRate} aria-valuemin={0} aria-valuemax={100} aria-label={`Success rate: ${result.successRate.toFixed(1)}%`}>
+          <div className="success-bar">
             <div className="success-bar-fill" style={{ width: `${result.successRate}%` }}>
-              {result.successRate > 10 && <span aria-hidden="true">{result.successRate.toFixed(1)}%</span>}
+              {result.successRate > 10 && `${result.successRate.toFixed(2)}%`}
             </div>
           </div>
         </div>

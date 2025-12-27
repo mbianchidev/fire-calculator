@@ -74,6 +74,8 @@ export const AssetAllocationPage: React.FC = () => {
   const [massEditAssetClass, setMassEditAssetClass] = useState<AssetClass | null>(null);
   // DCA helper dialog state
   const [isDCADialogOpen, setIsDCADialogOpen] = useState(false);
+  // Charts collapse state
+  const [isChartsCollapsed, setIsChartsCollapsed] = useState(false);
 
   const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>) => {
     setAssets(newAssets);
@@ -397,16 +399,11 @@ export const AssetAllocationPage: React.FC = () => {
 
         {/* How to Use - Collapsible at top */}
         <div className="allocation-info collapsible-section">
-          <button 
-            className="collapsible-header" 
-            onClick={() => setIsHowToUseOpen(!isHowToUseOpen)}
-            aria-expanded={isHowToUseOpen}
-            aria-controls="how-to-use-content"
-          >
-            <h4>💡 How to Use <span className="collapse-icon-small" aria-hidden="true">{isHowToUseOpen ? '▼' : '▶'}</span></h4>
-          </button>
+          <div className="collapsible-header" onClick={() => setIsHowToUseOpen(!isHowToUseOpen)}>
+            <h4>💡 How to Use <span className="collapse-icon-small">{isHowToUseOpen ? '▼' : '▶'}</span></h4>
+          </div>
           {isHowToUseOpen && (
-            <ul className="how-to-use-content" id="how-to-use-content">
+            <ul className="how-to-use-content">
               <li><strong>Add Asset:</strong> Click the "Add Asset" button to add a new asset with type selection</li>
               <li><strong>Edit Asset:</strong> Click the edit (✎) button in any row to edit the current value and target %</li>
               <li><strong>Delete Asset:</strong> When editing an asset, click the trash icon (🗑️) to delete it</li>
@@ -424,7 +421,7 @@ export const AssetAllocationPage: React.FC = () => {
         </div>
 
         {!allocation.isValid && (
-          <div className="validation-errors" role="alert" aria-live="polite">
+          <div className="validation-errors">
             <strong>⚠️ Validation Errors:</strong>
             <ul>
               {allocation.validationErrors.map((error, index) => (
@@ -437,12 +434,8 @@ export const AssetAllocationPage: React.FC = () => {
         <div className="allocation-section">
           <div className="section-header-with-actions">
             <h3>Asset Classes</h3>
-            <button 
-              onClick={handleOpenMassEditAssetClass} 
-              className="action-btn reset-btn"
-              aria-label="Mass edit asset class percentages"
-            >
-              ✏️ Mass Edit
+            <button onClick={handleOpenMassEditAssetClass} className="action-btn reset-btn">
+              ✏️ Edit All
             </button>
           </div>
           <EditableAssetClassTable
@@ -456,30 +449,36 @@ export const AssetAllocationPage: React.FC = () => {
           />
         </div>
 
-        <div className="charts-row">
-          <AllocationChart
-            data={assetClassChartData}
-            title="Portfolio Allocation by Asset Class"
-            currency={currency}
-          />
-          
-          {selectedAssetClass && (
-            <AllocationChart
-              data={assetChartData}
-              title={`${formatAssetName(selectedAssetClass.assetClass)} Breakdown`}
-              currency={currency}
-            />
+        <div className="charts-section">
+          <div className="collapsible-header" onClick={() => setIsChartsCollapsed(!isChartsCollapsed)}>
+            <h3>Portfolio Allocation by Asset Class</h3>
+            <span className="collapse-icon-small">{isChartsCollapsed ? '▶' : '▼'}</span>
+          </div>
+          {!isChartsCollapsed && (
+            <div className="charts-row">
+              <AllocationChart
+                data={assetClassChartData}
+                title=""
+                currency={currency}
+              />
+              
+              {selectedAssetClass && (
+                <AllocationChart
+                  data={assetChartData}
+                  title={`${formatAssetName(selectedAssetClass.assetClass)} Breakdown`}
+                  currency={currency}
+                />
+              )}
+            </div>
           )}
         </div>
 
         <div className="class-selector">
-          <label htmlFor="asset-class-selector">View Asset Class Details:</label>
+          <label>View Asset Class Details:</label>
           <select 
-            id="asset-class-selector"
             value={selectedClass || ''} 
             onChange={(e) => setSelectedClass(e.target.value || null)}
             className="class-select"
-            aria-label="Select asset class to view details"
           >
             <option value="">Select Asset Class</option>
             {allocation.assetClasses.map(ac => (
@@ -494,43 +493,25 @@ export const AssetAllocationPage: React.FC = () => {
           <div className="section-header-with-actions">
             <h3>Portfolio Details by Asset Class</h3>
             <div className="table-actions">
-              <button 
-                onClick={() => setIsDCADialogOpen(true)} 
-                className="action-btn dca-btn"
-                aria-label="Open DCA investment calculator"
-              >
+              <button onClick={() => setIsDCADialogOpen(true)} className="action-btn dca-btn">
                 💰 DCA Helper
               </button>
-              <button 
-                onClick={() => setIsDialogOpen(true)} 
-                className="action-btn primary-btn"
-                aria-label="Add new asset"
-              >
+              <button onClick={() => setIsDialogOpen(true)} className="action-btn primary-btn">
                 ➕ Add Asset
               </button>
-              <button 
-                onClick={handleStartFromScratch} 
-                className="action-btn reset-btn"
-                aria-label="Reset portfolio to default"
-              >
+              <button onClick={handleStartFromScratch} className="action-btn reset-btn">
                 🔄 Reset
               </button>
-              <button 
-                onClick={handleExport} 
-                className="action-btn export-btn"
-                aria-label="Export portfolio to CSV file"
-              >
+              <button onClick={handleExport} className="action-btn export-btn">
                 📥 Export CSV
               </button>
-              <label className="action-btn import-btn" htmlFor="csv-import">
+              <label className="action-btn import-btn">
                 📤 Import CSV
                 <input
-                  id="csv-import"
                   type="file"
                   accept=".csv"
                   onChange={handleImport}
                   style={{ display: 'none' }}
-                  aria-label="Import portfolio from CSV file"
                 />
               </label>
             </div>
