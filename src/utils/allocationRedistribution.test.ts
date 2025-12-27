@@ -1440,7 +1440,7 @@ describe('Integration: calculateAllocationDeltas with cash adjustment', () => {
       REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
     };
     
-    // Portfolio value (non-cash): stocks + bonds = 35k + 30k = 65k
+    // Portfolio value (non-cash): stocks (35k) + bonds (15k + 9k + 6k = 30k) = 65k
     const portfolioValue = 35000 + 15000 + 9000 + 6000; // 65k (non-cash)
     
     // Cash delta for distribution: target (5k) - current (10k) = -5k (INVEST)
