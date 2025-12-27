@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { CalculatorInputs, CalculationResult } from './types/calculator';
 import { DEFAULT_INPUTS } from './utils/defaults';
@@ -7,42 +7,75 @@ import { CalculatorInputsForm } from './components/CalculatorInputsForm';
 import { IncomeExpensesChart } from './components/IncomeExpensesChart';
 import { NetWorthChart } from './components/NetWorthChart';
 import { FIREMetrics } from './components/FIREMetrics';
-import { MonteCarloSimulator } from './components/MonteCarloSimulator';
+import { MonteCarloPage } from './components/MonteCarloPage';
 import { AssetAllocationPage } from './components/AssetAllocationPage';
 import { HomePage } from './components/HomePage';
+import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './utils/urlParams';
 import './App.css';
 import './components/AssetAllocationManager.css';
 
 function Navigation() {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
   
   return (
     <nav className="app-nav">
-      <Link 
-        to="/" 
-        className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-      >
-        🏠 Home
-      </Link>
-      <Link 
-        to="/fire-calculator" 
-        className={`nav-link ${location.pathname === '/fire-calculator' ? 'active' : ''}`}
-      >
-        🔥 FIRE Calculator
-      </Link>
-      <Link 
-        to="/asset-allocation" 
-        className={`nav-link ${location.pathname === '/asset-allocation' ? 'active' : ''}`}
-      >
-        📊 Asset Allocation
-      </Link>
+      <button className="nav-toggle" onClick={toggleMenu} aria-label="Toggle navigation">
+        {isOpen ? '✕' : '☰'}
+      </button>
+      <div className={`nav-links ${isOpen ? 'open' : ''}`}>
+        <Link 
+          to="/" 
+          className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+        >
+          🏠 Home
+        </Link>
+        <Link 
+          to="/fire-calculator" 
+          className={`nav-link ${location.pathname === '/fire-calculator' ? 'active' : ''}`}
+        >
+          🔥 FIRE Calculator
+        </Link>
+        <Link 
+          to="/monte-carlo" 
+          className={`nav-link ${location.pathname === '/monte-carlo' ? 'active' : ''}`}
+          onClick={closeMenu}
+        >
+          🎲 Monte Carlo
+        </Link>
+        <Link 
+          to="/asset-allocation" 
+          className={`nav-link ${location.pathname === '/asset-allocation' ? 'active' : ''}`}
+          onClick={closeMenu}
+        >
+          📊 Asset Allocation
+        </Link>
+      </div>
     </nav>
   );
 }
 
 function FIRECalculatorPage() {
-  const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Initialize state from URL if parameters exist, otherwise use defaults
+  const [inputs, setInputs] = useState<CalculatorInputs>(() => {
+    if (hasURLParams(searchParams)) {
+      return deserializeInputsFromURL(searchParams);
+    }
+    return DEFAULT_INPUTS;
+  });
+  
   const [result, setResult] = useState<CalculationResult | null>(null);
+
+  // Update URL when inputs change
+  useEffect(() => {
+    const params = serializeInputsToURL(inputs);
+    setSearchParams(params, { replace: true });
+  }, [inputs, setSearchParams]);
 
   useEffect(() => {
     const calculationResult = calculateFIRE(inputs);
@@ -78,10 +111,6 @@ function FIRECalculatorPage() {
               <NetWorthChart projections={result.projections} fireTarget={result.fireTarget} />
               <IncomeExpensesChart projections={result.projections} />
             </div>
-
-            <div className="separator" />
-
-            <MonteCarloSimulator inputs={inputs} />
           </>
         )}
       </div>
@@ -106,6 +135,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/fire-calculator" element={<FIRECalculatorPage />} />
+          <Route path="/monte-carlo" element={<MonteCarloPage />} />
           <Route path="/asset-allocation" element={<AssetAllocationPage />} />
         </Routes>
 
