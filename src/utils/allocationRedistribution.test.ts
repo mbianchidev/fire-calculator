@@ -1237,22 +1237,8 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
    * - Stocks delta: -35k (sell all stocks to reach 0% target)
    * - Bonds delta: +40k (35k from rebalancing + 5k from cash invest)
    * - Cash delta: -5k (cash target 5k - current 10k = INVEST)
-   * - Total portfolio: 70k (35k stocks + 30k bonds + 5k cash current)
+   * - Total portfolio: 75k (35k stocks + 30k bonds + 10k cash after increase)
    */
-
-  interface AssetClassTarget {
-    targetMode: AllocationMode;
-    targetPercent?: number;
-  }
-
-  interface Asset {
-    id: string;
-    assetClass: AssetClass;
-    targetMode: AllocationMode;
-    targetPercent?: number;
-    targetValue?: number;
-    currentValue: number;
-  }
 
   /**
    * Calculate the total class delta including cash redistribution.
@@ -1321,9 +1307,7 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
     // Portfolio value (non-cash) = stocks + bonds = 65k
     const portfolioValue = stocksCurrent + bondsCurrent; // 65000
     
-    // Total holdings = 70k (35k + 30k + 5k original cash)
-    // But current holdings = 75k (35k + 30k + 10k with added cash)
-    // Actually, the total holdings should be 75k with the new cash amount
+    // Total holdings = 75k (35k stocks + 30k bonds + 10k cash after increase)
     const totalHoldings = stocksCurrent + bondsCurrent + cashCurrent; // 75000
     
     // Cash delta = target - current = 5k - 10k = -5k (INVEST)
