@@ -10,6 +10,8 @@ interface AssetClassTarget {
 interface EditableAssetClassTableProps {
   assetClasses: AssetClassSummary[];
   totalValue: number;
+  totalHoldings: number; // Total including cash
+  cashDeltaAmount: number; // Cash delta for distribution (negative = INVEST, positive = SAVE)
   currency: string;
   assetClassTargets: Record<AssetClass, AssetClassTarget>;
   onUpdateAssetClass: (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => void;
@@ -18,6 +20,8 @@ interface EditableAssetClassTableProps {
 export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = ({
   assetClasses,
   totalValue,
+  totalHoldings,
+  cashDeltaAmount,
   currency,
   assetClassTargets,
   onUpdateAssetClass,
@@ -131,12 +135,39 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
             const classTarget = assetClassTargets[ac.assetClass];
             const displayTargetMode = classTarget?.targetMode ?? ac.targetMode;
             const displayTargetPercent = classTarget?.targetPercent ?? ac.targetPercent;
+            
+            // Calculate cash distribution for non-cash classes
+            let cashAdjustment = 0;
+            if (ac.assetClass !== 'CASH' && cashDeltaAmount !== 0) {
+              // Get total percentage of all non-cash percentage-based classes with positive targets
+              const nonCashPercentageTotal = Object.entries(assetClassTargets)
+                .filter(([cls, target]) => 
+                  cls !== 'CASH' && 
+                  target.targetMode === 'PERCENTAGE' && 
+                  (target.targetPercent || 0) > 0
+                )
+                .reduce((sum, [, target]) => sum + (target.targetPercent || 0), 0);
+              
+              if (nonCashPercentageTotal > 0 && displayTargetMode === 'PERCENTAGE' && (displayTargetPercent || 0) > 0) {
+                const proportion = (displayTargetPercent || 0) / nonCashPercentageTotal;
+                // Negative cash delta = INVEST = add to this class
+                // Positive cash delta = SAVE = subtract from this class
+                cashAdjustment = -cashDeltaAmount * proportion;
+              }
+            }
+            
             // Calculate target total and delta based on assetClassTargets
-            const targetTotal = displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
+            let targetTotal = displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
               ? (displayTargetPercent / 100) * totalValue
               : displayTargetMode === 'SET'
               ? ac.targetTotal
               : undefined;
+            
+            // Add cash adjustment to target for non-cash classes
+            if (targetTotal !== undefined && ac.assetClass !== 'CASH') {
+              targetTotal += cashAdjustment;
+            }
+            
             const delta = (targetTotal ?? 0) - ac.currentTotal;
             
             return (
@@ -223,7 +254,7 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
           <tr className="total-row">
             <td><strong>Total Portfolio</strong></td>
             <td colSpan={3}></td>
-            <td className="currency-value"><strong>{formatCurrency(totalValue, currency)}</strong></td>
+            <td className="currency-value"><strong>{formatCurrency(totalHoldings, currency)}</strong></td>
             <td colSpan={4}></td>
           </tr>
         </tbody>

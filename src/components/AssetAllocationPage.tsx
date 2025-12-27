@@ -436,6 +436,8 @@ export const AssetAllocationPage: React.FC = () => {
           <EditableAssetClassTable
             assetClasses={allocation.assetClasses}
             totalValue={allocation.totalValue}
+            totalHoldings={allocation.totalHoldings}
+            cashDeltaAmount={cashDeltaAmount}
             currency={currency}
             assetClassTargets={assetClassTargets}
             onUpdateAssetClass={handleUpdateAssetClass}

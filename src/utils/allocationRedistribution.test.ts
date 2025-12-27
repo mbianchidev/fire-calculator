@@ -1399,6 +1399,165 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
   });
 });
 
+describe('Asset Classes Table - Correct delta and target with cash distribution', () => {
+  /**
+   * Test case from the issue:
+   * 
+   * Default scenario with 60/40 stocks/bonds and cash at 10k (5k target SET):
+   * - Stocks: 35k current
+   * - Bonds: 30k current
+   * - Cash: 10k current, 5k target (SET) → -5k delta (INVEST)
+   * 
+   * Expected Asset Classes table values:
+   * - Total Portfolio: 70k (including cash)
+   * - Stocks delta: +7k (42k target - 35k current)
+   *   Base target: 60% of 65k = 39k
+   *   Cash adjustment: 60/100 of 5k = 3k
+   *   Final target: 39k + 3k = 42k
+   *   Delta: 42k - 35k = +7k
+   * - Stocks absolute target: 42k
+   * - Bonds delta: -2k (28k target - 30k current)
+   *   Base target: 40% of 65k = 26k
+   *   Cash adjustment: 40/100 of 5k = 2k  
+   *   Final target: 26k + 2k = 28k
+   *   Delta: 28k - 30k = -2k
+   * - Bonds absolute target: 28k
+   * - Cash delta: -5k (this is INVEST, goes to stocks/bonds)
+   */
+
+  /**
+   * Calculate the Asset Classes table display values including cash distribution.
+   * This is what should be shown in the EditableAssetClassTable component.
+   */
+  function calculateAssetClassTableWithCashDistribution(
+    stocksCurrent: number,
+    bondsCurrent: number,
+    cashCurrent: number,
+    cashTargetValue: number,
+    stocksTargetPercent: number,
+    bondsTargetPercent: number
+  ): {
+    totalPortfolio: number;
+    stocksTarget: number;
+    stocksDelta: number;
+    bondsTarget: number;
+    bondsDelta: number;
+    cashDelta: number;
+  } {
+    // Total portfolio value (including cash for display purposes)
+    const totalPortfolio = stocksCurrent + bondsCurrent + cashCurrent;
+    
+    // Portfolio value for target calculations (excluding cash)
+    const portfolioValue = stocksCurrent + bondsCurrent;
+    
+    // Cash delta
+    const cashDelta = cashTargetValue - cashCurrent; // Negative = INVEST
+    
+    // Cash amount to distribute (opposite of delta - INVEST adds to classes)
+    const cashToDistribute = -cashDelta; // 5000 when delta is -5000
+    
+    // Calculate total non-cash percentage
+    const totalNonCashPercent = stocksTargetPercent + bondsTargetPercent;
+    
+    // Base targets (from percentage of portfolio value)
+    const stocksBaseTarget = (stocksTargetPercent / 100) * portfolioValue;
+    const bondsBaseTarget = (bondsTargetPercent / 100) * portfolioValue;
+    
+    // Cash distribution proportional to target percentages
+    let stocksCashAdjustment = 0;
+    let bondsCashAdjustment = 0;
+    
+    if (totalNonCashPercent > 0 && cashToDistribute !== 0) {
+      stocksCashAdjustment = stocksTargetPercent > 0 
+        ? (stocksTargetPercent / totalNonCashPercent) * cashToDistribute 
+        : 0;
+      bondsCashAdjustment = bondsTargetPercent > 0 
+        ? (bondsTargetPercent / totalNonCashPercent) * cashToDistribute 
+        : 0;
+    }
+    
+    // Final targets with cash adjustment
+    const stocksTarget = stocksBaseTarget + stocksCashAdjustment;
+    const bondsTarget = bondsBaseTarget + bondsCashAdjustment;
+    
+    // Deltas
+    const stocksDelta = stocksTarget - stocksCurrent;
+    const bondsDelta = bondsTarget - bondsCurrent;
+    
+    return {
+      totalPortfolio,
+      stocksTarget,
+      stocksDelta,
+      bondsTarget,
+      bondsDelta,
+      cashDelta,
+    };
+  }
+
+  it('should calculate correct Asset Classes table values with 60/40 stocks/bonds and INVEST cash', () => {
+    // Scenario: Cash increased from 5k to 10k (target remains 5k SET)
+    // Total holdings: 35k + 30k + 10k = 75k
+    const result = calculateAssetClassTableWithCashDistribution(
+      35000, // stocksCurrent
+      30000, // bondsCurrent  
+      10000, // cashCurrent (increased from 5k)
+      5000,  // cashTargetValue (SET)
+      60,    // stocksTargetPercent
+      40     // bondsTargetPercent
+    );
+    
+    // Verify total portfolio (including cash)
+    expect(result.totalPortfolio).toBe(75000); // 35k + 30k + 10k
+    
+    // Verify cash delta
+    expect(result.cashDelta).toBe(-5000); // INVEST (target 5k - current 10k)
+    
+    // Verify stocks values with cash distribution
+    // Base: 60% of 65k = 39k
+    // Cash adjustment: 60/100 of 5k = 3k
+    // Final target: 42k
+    // Delta: 42k - 35k = +7k
+    expect(result.stocksTarget).toBe(42000);
+    expect(result.stocksDelta).toBe(7000);
+    
+    // Verify bonds values with cash distribution
+    // Base: 40% of 65k = 26k
+    // Cash adjustment: 40/100 of 5k = 2k
+    // Final target: 28k
+    // Delta: 28k - 30k = -2k
+    expect(result.bondsTarget).toBe(28000);
+    expect(result.bondsDelta).toBe(-2000);
+  });
+
+  it('should handle 100% bonds scenario correctly', () => {
+    // Scenario: Stocks 0%, Bonds 100%
+    const result = calculateAssetClassTableWithCashDistribution(
+      35000, // stocksCurrent
+      30000, // bondsCurrent
+      10000, // cashCurrent (increased from 5k)
+      5000,  // cashTargetValue (SET)
+      0,     // stocksTargetPercent (0% - SELL ALL)
+      100    // bondsTargetPercent (100% - BUY)
+    );
+    
+    // Verify stocks delta (sell all)
+    // Base: 0% of 65k = 0
+    // Cash adjustment: 0/100 of 5k = 0 (no adjustment since 0% target)
+    // Final target: 0
+    // Delta: 0 - 35k = -35k
+    expect(result.stocksTarget).toBe(0);
+    expect(result.stocksDelta).toBe(-35000);
+    
+    // Verify bonds delta (get all cash distribution)
+    // Base: 100% of 65k = 65k
+    // Cash adjustment: 100/100 of 5k = 5k (all goes to bonds)
+    // Final target: 70k
+    // Delta: 70k - 30k = +40k
+    expect(result.bondsTarget).toBe(70000);
+    expect(result.bondsDelta).toBe(40000);
+  });
+});
+
 describe('Integration: calculateAllocationDeltas with cash adjustment', () => {
   /**
    * This test verifies that the actual calculateAllocationDeltas function
