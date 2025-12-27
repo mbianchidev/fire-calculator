@@ -122,18 +122,19 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
   const needsIsin = ISIN_REQUIRED.includes(subAssetType);
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
+    <div className="dialog-overlay" onClick={onClose} role="presentation">
+      <div className="dialog-content" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="add-asset-dialog-title">
         <div className="dialog-header">
-          <h3>➕ Add New Asset</h3>
-          <button className="dialog-close" onClick={onClose}>✕</button>
+          <h3 id="add-asset-dialog-title">➕ Add New Asset</h3>
+          <button className="dialog-close" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="dialog-form">
           <div className="form-row">
             <div className="form-group">
-              <label>Asset Class *</label>
+              <label htmlFor="asset-class-select">Asset Class *</label>
               <select
+                id="asset-class-select"
                 value={assetClass}
                 onChange={(e) => handleAssetClassChange(e.target.value as AssetClass)}
                 className="dialog-select"
@@ -147,8 +148,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
             </div>
 
             <div className="form-group">
-              <label>Type *</label>
+              <label htmlFor="sub-asset-type-select">Type *</label>
               <select
+                id="sub-asset-type-select"
                 value={subAssetType}
                 onChange={(e) => handleSubAssetTypeChange(e.target.value as SubAssetType)}
                 className="dialog-select"
@@ -163,8 +165,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
           </div>
 
           <div className="form-group">
-            <label>Asset Name *</label>
+            <label htmlFor="asset-name-input">Asset Name *</label>
             <input
+              id="asset-name-input"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -176,8 +179,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
 
           <div className="form-row">
             <div className="form-group">
-              <label>{getTickerLabel(subAssetType)}</label>
+              <label htmlFor="ticker-input">{getTickerLabel(subAssetType)}</label>
               <input
+                id="ticker-input"
                 type="text"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
@@ -189,8 +193,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
 
             {needsIsin && (
               <div className="form-group">
-                <label>ISIN Code *</label>
+                <label htmlFor="isin-input">ISIN Code *</label>
                 <input
+                  id="isin-input"
                   type="text"
                   value={isin}
                   onChange={(e) => setIsin(e.target.value)}
@@ -203,8 +208,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
           </div>
 
           <div className="form-group">
-            <label>Current Value (EUR) *</label>
+            <label htmlFor="current-value-input">Current Value (EUR) *</label>
             <input
+              id="current-value-input"
               type="text"
               value={currentValue}
               onChange={(e) => setCurrentValue(e.target.value)}
@@ -215,12 +221,14 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
 
           <div className="form-row">
             <div className="form-group">
-              <label>Target Mode</label>
+              <label htmlFor="target-mode-select">Target Mode</label>
               <select
+                id="target-mode-select"
                 value={targetMode}
                 onChange={(e) => setTargetMode(e.target.value as AllocationMode)}
                 className="dialog-select"
                 disabled={!SET_MODE_ALLOWED.includes(subAssetType)}
+                aria-disabled={!SET_MODE_ALLOWED.includes(subAssetType)}
               >
                 <option value="PERCENTAGE">Percentage (%)</option>
                 {SET_MODE_ALLOWED.includes(subAssetType) && (
@@ -232,8 +240,9 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
 
             {targetMode === 'PERCENTAGE' && (
               <div className="form-group">
-                <label>Target % (of Asset Class) *</label>
+                <label htmlFor="target-percent-input">Target % (of Asset Class) *</label>
                 <input
+                  id="target-percent-input"
                   type="text"
                   value={targetPercent}
                   onChange={(e) => setTargetPercent(e.target.value)}
