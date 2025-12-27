@@ -10,15 +10,19 @@ interface FIREMetricsProps {
 export const FIREMetrics: React.FC<FIREMetricsProps> = ({ result, currentAge }) => {
   const { yearsToFIRE, fireTarget, finalPortfolioValue } = result;
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   const handleShare = async () => {
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      setCopyFailed(false);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy URL:', err);
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 3000);
     }
   };
 
@@ -27,7 +31,7 @@ export const FIREMetrics: React.FC<FIREMetricsProps> = ({ result, currentAge }) 
       <div className="fire-metrics-header">
         <h3>🎯 FIRE Metrics</h3>
         <button className="share-button" onClick={handleShare}>
-          {copied ? '✓ Copied!' : '🔗 Share'}
+          {copied ? '✓ Copied!' : copyFailed ? '✗ Failed' : '🔗 Share'}
         </button>
       </div>
       <div className="metrics-grid">
