@@ -7,7 +7,20 @@ interface CalculatorInputsProps {
 
 export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, onChange }) => {
   const handleChange = (field: keyof CalculatorInputs, value: number | boolean) => {
-    onChange({ ...inputs, [field]: value });
+    const newInputs = { ...inputs, [field]: value };
+    
+    // Auto-calculate savings rate when income or expenses change
+    if (field === 'annualLaborIncome' || field === 'currentAnnualExpenses') {
+      const income = field === 'annualLaborIncome' ? value as number : inputs.annualLaborIncome;
+      const expenses = field === 'currentAnnualExpenses' ? value as number : inputs.currentAnnualExpenses;
+      
+      if (income > 0) {
+        const calculatedSavingsRate = ((income - expenses) / income) * 100;
+        newInputs.savingsRate = Math.max(0, Math.min(100, calculatedSavingsRate));
+      }
+    }
+    
+    onChange(newInputs);
   };
 
   // Safe number parsing that preserves zero and handles NaN gracefully
@@ -147,13 +160,14 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           />
         </div>
         <div className="form-group">
-          <label>Savings Rate (%)</label>
+          <label>Savings Rate (%) <span className="calculated-label">- Auto-calculated</span></label>
           <input
             type="number"
             min="0"
             max="100"
-            value={inputs.savingsRate}
-            onChange={(e) => handleChange('savingsRate', safeParseFloat(e.target.value))}
+            value={inputs.savingsRate.toFixed(1)}
+            readOnly
+            className="calculated-field"
           />
         </div>
       </div>
