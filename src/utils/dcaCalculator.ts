@@ -102,8 +102,10 @@ export function calculateDCAAllocation(
 /**
  * Fetch current asset prices from public API.
  * 
- * For this implementation, we'll use Yahoo Finance API via a public proxy.
+ * For this implementation, we use Yahoo Finance API.
  * Alternative APIs: Alpha Vantage, Finnhub, IEX Cloud
+ * 
+ * API Endpoint: https://query1.finance.yahoo.com/v7/finance/quote
  * 
  * Note: This uses a free public API. For production use, consider:
  * - Rate limiting
@@ -111,6 +113,10 @@ export function calculateDCAAllocation(
  * - Fallback to alternative APIs
  * - User-provided prices as fallback
  */
+
+// Yahoo Finance API endpoint
+const YAHOO_FINANCE_API_URL = 'https://query1.finance.yahoo.com/v7/finance/quote';
+
 export async function fetchAssetPrices(tickers: string[]): Promise<Record<string, number | null>> {
   const prices: Record<string, number | null> = {};
   
@@ -130,7 +136,7 @@ export async function fetchAssetPrices(tickers: string[]): Promise<Record<string
     // Use Yahoo Finance API via public endpoint
     // Format: https://query1.finance.yahoo.com/v7/finance/quote?symbols=TICKER1,TICKER2
     const tickerList = validTickers.join(',');
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickerList}`;
+    const url = `${YAHOO_FINANCE_API_URL}?symbols=${tickerList}`;
     
     const response = await fetch(url, {
       headers: {
@@ -216,12 +222,24 @@ export function formatShares(shares: number): string {
 }
 
 /**
- * Format currency for display.
+ * Format currency for display using Intl.NumberFormat.
  */
 export function formatDCACurrency(amount: number, currency: string = 'EUR'): string {
-  const symbol = currency === 'EUR' ? '€' : '$';
-  return `${symbol}${amount.toLocaleString('en-US', { 
+  // Map currency codes to symbols for backward compatibility
+  const currencySymbols: Record<string, string> = {
+    'EUR': '€',
+    'USD': '$',
+    'GBP': '£',
+    'JPY': '¥',
+  };
+  
+  const symbol = currencySymbols[currency] || currency;
+  
+  // Use Intl.NumberFormat for proper locale formatting
+  const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2 
-  })}`;
+    maximumFractionDigits: 2,
+  }).format(Math.abs(amount));
+  
+  return `${symbol}${formatted}`;
 }

@@ -50,10 +50,18 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
       const tickers = dcaCalc.allocations.map(a => a.ticker).filter(t => t && t.trim());
       const prices = await fetchAssetPrices(tickers);
       
+      // Check if any prices were successfully fetched
+      const successfulFetches = Object.values(prices).filter(p => p !== null).length;
+      
       // Calculate shares based on prices
       const calcWithShares = calculateShares(dcaCalc, prices);
       
       setCalculation(calcWithShares);
+      
+      // Show a warning if no prices could be fetched
+      if (successfulFetches === 0 && tickers.length > 0) {
+        setError('Unable to fetch current prices from Yahoo Finance API. Price data may be unavailable due to network issues or API limitations. You can still see the investment amounts for each asset.');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to calculate DCA allocation');
       console.error('DCA calculation error:', err);

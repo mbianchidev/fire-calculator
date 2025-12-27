@@ -314,6 +314,14 @@ describe('DCA Calculator', () => {
       expect(formatDCACurrency(1234.56, 'USD')).toBe('$1,234.56');
     });
 
+    it('should format GBP currency correctly', () => {
+      expect(formatDCACurrency(1000, 'GBP')).toBe('£1,000.00');
+    });
+
+    it('should format JPY currency correctly', () => {
+      expect(formatDCACurrency(1000, 'JPY')).toBe('¥1,000.00');
+    });
+
     it('should handle large numbers with commas', () => {
       expect(formatDCACurrency(1000000, 'EUR')).toBe('€1,000,000.00');
       expect(formatDCACurrency(1234567.89, 'EUR')).toBe('€1,234,567.89');
@@ -321,6 +329,10 @@ describe('DCA Calculator', () => {
 
     it('should default to EUR if no currency specified', () => {
       expect(formatDCACurrency(1000)).toBe('€1,000.00');
+    });
+
+    it('should handle unknown currencies by using the code as symbol', () => {
+      expect(formatDCACurrency(1000, 'XYZ')).toBe('XYZ1,000.00');
     });
   });
 });
