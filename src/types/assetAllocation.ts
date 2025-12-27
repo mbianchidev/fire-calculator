@@ -72,6 +72,7 @@ export interface ChartData {
   value: number;
   percentage: number;
   color?: string;
+  ticker?: string; // Used as fallback label for long asset names in charts
   [key: string]: string | number | undefined;
 }
 

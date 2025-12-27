@@ -334,7 +334,8 @@ export function prepareAssetChartData(
         value: asset.currentValue,
         percentage,
         color: `hsl(${hue}, 70%, 60%)`,
-        ticker: asset.ticker, // Include ticker for chart label fallback
+        // Ticker is used as fallback label when asset name is too long (>10 chars) in chart display
+        ticker: asset.ticker,
       };
     });
 }

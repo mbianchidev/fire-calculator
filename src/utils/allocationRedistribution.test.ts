@@ -78,6 +78,7 @@ interface Asset {
   assetClass: AssetClass;
   targetMode: AllocationMode;
   targetPercent?: number;
+  targetValue?: number; // For SET mode
   currentValue: number;
 }
 

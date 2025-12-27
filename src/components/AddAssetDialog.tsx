@@ -87,10 +87,15 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
       return;
     }
 
+    // Generate a fallback ticker if not provided (for cash accounts/property that don't need ticker)
+    // Uses first 4 chars of name + timestamp to ensure uniqueness
+    const generatedTicker = ticker.trim().toUpperCase() || 
+      `${name.trim().substring(0, 4).toUpperCase()}${Date.now().toString().slice(-4)}`;
+
     const newAsset: Asset = {
       id: `asset-${Date.now()}`,
       name: name.trim(),
-      ticker: ticker.trim().toUpperCase() || name.trim().substring(0, 4).toUpperCase(),
+      ticker: generatedTicker,
       isin: ISIN_REQUIRED.includes(subAssetType) ? isin.trim().toUpperCase() : undefined,
       assetClass,
       subAssetType,
