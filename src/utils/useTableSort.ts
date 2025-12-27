@@ -2,13 +2,18 @@ import { useState, useMemo } from 'react';
 
 export type SortDirection = 'asc' | 'desc' | null;
 
-export interface SortConfig<T> {
-  key: keyof T | null;
+export interface SortConfig {
+  key: string | null;
   direction: SortDirection;
 }
 
-export function useTableSort<T>(data: T[], defaultKey?: keyof T) {
-  const [sortConfig, setSortConfig] = useState<SortConfig<T>>({
+// Helper function to get nested property value
+function getNestedValue<T>(obj: T, path: string): any {
+  return path.split('.').reduce((current: any, prop) => current?.[prop], obj);
+}
+
+export function useTableSort<T>(data: T[], defaultKey?: string) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: defaultKey || null,
     direction: null,
   });
@@ -19,8 +24,8 @@ export function useTableSort<T>(data: T[], defaultKey?: keyof T) {
     }
 
     const sorted = [...data].sort((a, b) => {
-      const aValue = a[sortConfig.key!];
-      const bValue = b[sortConfig.key!];
+      const aValue = getNestedValue(a, sortConfig.key!);
+      const bValue = getNestedValue(b, sortConfig.key!);
 
       // Handle null/undefined values
       if (aValue == null && bValue == null) return 0;
@@ -40,7 +45,7 @@ export function useTableSort<T>(data: T[], defaultKey?: keyof T) {
     return sorted;
   }, [data, sortConfig]);
 
-  const requestSort = (key: keyof T) => {
+  const requestSort = (key: string) => {
     let direction: SortDirection = 'asc';
     
     if (sortConfig.key === key) {
@@ -54,7 +59,7 @@ export function useTableSort<T>(data: T[], defaultKey?: keyof T) {
     setSortConfig({ key: direction ? key : null, direction });
   };
 
-  const getSortIndicator = (key: keyof T): string => {
+  const getSortIndicator = (key: string): string => {
     if (sortConfig.key !== key) return '⇅';
     if (sortConfig.direction === 'asc') return '↑';
     if (sortConfig.direction === 'desc') return '↓';

@@ -24,7 +24,7 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
   const tableData: TableRow[] = assets.map(asset => ({
     asset,
     delta: deltas.find(d => d.assetId === asset.id)!,
-  })).filter(row => row.delta);
+  })).filter(row => row.delta !== undefined);
 
   const { sortedData, requestSort, getSortIndicator } = useTableSort<TableRow>(tableData);
 
@@ -72,34 +72,34 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
       <table className="allocation-table">
         <thead>
           <tr>
-            <th className="sortable" onClick={() => requestSort('asset')}>
-              Asset / Index <span className="sort-indicator">{getSortIndicator('asset')}</span>
+            <th className="sortable" onClick={() => requestSort('asset.name')}>
+              Asset / Index <span className="sort-indicator">{getSortIndicator('asset.name')}</span>
             </th>
             <th>Ticker</th>
-            <th className="sortable" onClick={() => requestSort('asset')}>
-              Asset Class <span className="sort-indicator">{getSortIndicator('asset')}</span>
+            <th className="sortable" onClick={() => requestSort('asset.assetClass')}>
+              Asset Class <span className="sort-indicator">{getSortIndicator('asset.assetClass')}</span>
             </th>
             <th>Target Mode</th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              % Target <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('asset.targetPercent')}>
+              % Target <span className="sort-indicator">{getSortIndicator('asset.targetPercent')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              % Current (Total) <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.currentPercent')}>
+              % Current (Total) <span className="sort-indicator">{getSortIndicator('delta.currentPercent')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              % Current (Class) <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.currentPercentInClass')}>
+              % Current (Class) <span className="sort-indicator">{getSortIndicator('delta.currentPercentInClass')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              Absolute Current <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.currentValue')}>
+              Absolute Current <span className="sort-indicator">{getSortIndicator('delta.currentValue')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              Absolute Target <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.targetValue')}>
+              Absolute Target <span className="sort-indicator">{getSortIndicator('delta.targetValue')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              Delta <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.delta')}>
+              Delta <span className="sort-indicator">{getSortIndicator('delta.delta')}</span>
             </th>
-            <th className="sortable" onClick={() => requestSort('delta')}>
-              Action <span className="sort-indicator">{getSortIndicator('delta')}</span>
+            <th className="sortable" onClick={() => requestSort('delta.action')}>
+              Action <span className="sort-indicator">{getSortIndicator('delta.action')}</span>
             </th>
           </tr>
         </thead>

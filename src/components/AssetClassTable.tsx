@@ -13,7 +13,7 @@ export const AssetClassTable: React.FC<AssetClassTableProps> = ({
   totalValue,
   currency,
 }) => {
-  const { sortedData, requestSort, getSortIndicator } = useTableSort<AssetClassSummary>(assetClasses);
+  const { sortedData, requestSort, getSortIndicator } = useTableSort(assetClasses);
 
   const getActionColor = (action: string): string => {
     switch (action) {

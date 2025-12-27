@@ -35,7 +35,7 @@ export const MonteCarloPage: React.FC = () => {
               <div key={index} className="validation-error-message">{error}</div>
             ))}
             <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-              Please return to the <a href="/" style={{ color: '#667eea', fontWeight: 'bold' }}>FIRE Calculator</a> to fix these issues.
+              Please return to the FIRE Calculator to fix these issues.
             </p>
           </div>
         )}
