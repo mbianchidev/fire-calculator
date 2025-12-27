@@ -1601,7 +1601,7 @@
     padding: 0.5rem;
   }
 
-  /* Hide less important columns on mobile */
+  /* Hide less important columns on mobile for better readability */
   .assets-table th:nth-child(2),
   .assets-table td:nth-child(2),
   .assets-table th:nth-child(6),
