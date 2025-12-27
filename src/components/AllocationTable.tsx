@@ -99,13 +99,10 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
                 <td>
                   {asset.targetMode === 'PERCENTAGE' ? (
                     <input
-                      type="number"
+                      type="text"
                       value={asset.targetPercent || 0}
                       onChange={(e) => handleTargetPercentChange(asset.id, e.target.value)}
                       className="target-input"
-                      step="0.1"
-                      min="0"
-                      max="100"
                     />
                   ) : asset.targetMode === 'SET' ? (
                     <span className="set-label">SET</span>
@@ -119,12 +116,10 @@ export const AllocationTable: React.FC<AllocationTableProps> = ({
                 <td className="currency-value">
                   {asset.targetMode === 'SET' ? (
                     <input
-                      type="number"
+                      type="text"
                       value={asset.targetValue || 0}
                       onChange={(e) => handleTargetValueChange(asset.id, e.target.value)}
                       className="target-input"
-                      step="100"
-                      min="0"
                     />
                   ) : (
                     formatCurrency(delta.targetValue, currency)

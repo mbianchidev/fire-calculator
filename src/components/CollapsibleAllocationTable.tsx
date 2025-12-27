@@ -365,12 +365,10 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         <td>
                           {isEditing && asset.targetMode === 'PERCENTAGE' ? (
                             <input
-                              type="number"
+                              type="text"
                               value={editValues.targetPercent}
                               onChange={(e) => setEditValues({ ...editValues, targetPercent: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              min="0"
-                              max="100"
                             />
                           ) : asset.targetMode === 'PERCENTAGE' ? (
                             formatPercent(asset.targetPercent || 0)
@@ -385,11 +383,10 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         <td className="currency-value">
                           {isEditing ? (
                             <input
-                              type="number"
+                              type="text"
                               value={editValues.currentValue}
                               onChange={(e) => setEditValues({ ...editValues, currentValue: parseFloat(e.target.value) || 0 })}
                               className="edit-input"
-                              min="0"
                             />
                           ) : (
                             formatCurrency(delta.currentValue, currency)
@@ -398,12 +395,11 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         <td className="currency-value">
                           {asset.targetMode === 'SET' ? (
                             <input
-                              type="number"
+                              type="text"
                               value={asset.targetValue || 0}
                               onChange={(e) => handleTargetValueChange(asset.id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
                               className="target-input"
-                              min="0"
                             />
                           ) : (
                             formatCurrency(delta.targetValue, currency)

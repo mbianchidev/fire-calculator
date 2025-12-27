@@ -43,54 +43,45 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
         <div className="form-group">
           <label>Number of Simulations</label>
           <input
-            type="number"
+            type="text"
             value={mcInputs.numSimulations}
             onChange={(e) => handleInputChange('numSimulations', parseInt(e.target.value) || 100)}
-            min="100"
-            max="10000"
-            step="100"
           />
         </div>
 
         <div className="form-group">
           <label>Stock Volatility (% std dev)</label>
           <input
-            type="number"
+            type="text"
             value={mcInputs.stockVolatility}
             onChange={(e) => handleInputChange('stockVolatility', parseFloat(e.target.value) || 0)}
-            step="1"
           />
         </div>
 
         <div className="form-group">
           <label>Bond Volatility (% std dev)</label>
           <input
-            type="number"
+            type="text"
             value={mcInputs.bondVolatility}
             onChange={(e) => handleInputChange('bondVolatility', parseFloat(e.target.value) || 0)}
-            step="1"
           />
         </div>
 
         <div className="form-group">
           <label>Black Swan Probability (% per year)</label>
           <input
-            type="number"
+            type="text"
             value={mcInputs.blackSwanProbability}
             onChange={(e) => handleInputChange('blackSwanProbability', parseFloat(e.target.value) || 0)}
-            step="0.5"
-            min="0"
-            max="10"
           />
         </div>
 
         <div className="form-group">
           <label>Black Swan Impact (%)</label>
           <input
-            type="number"
+            type="text"
             value={mcInputs.blackSwanImpact}
             onChange={(e) => handleInputChange('blackSwanImpact', parseFloat(e.target.value) || 0)}
-            step="5"
           />
         </div>
       </div>

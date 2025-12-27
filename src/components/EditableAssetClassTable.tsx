@@ -207,13 +207,11 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                 <td>
                   {isEditing && editMode === 'PERCENTAGE' ? (
                     <input
-                      type="number"
+                      type="text"
                       value={editPercent}
                       onChange={(e) => setEditPercent(parseFloat(e.target.value) || 0)}
                       onClick={(e) => e.stopPropagation()}
                       className="edit-input"
-                      min="0"
-                      max="100"
                     />
                   ) : (
                     displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
