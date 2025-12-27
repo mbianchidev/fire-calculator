@@ -226,7 +226,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
         // The cash amount should be distributed based on each non-cash class's target percentage
         let cashAdjustment = 0;
         if (assetClass !== 'CASH' && cashDeltaAmount !== 0 && assetClassTargets) {
-          // Get total percentage of all non-cash percentage-based classes
+          // Get total percentage of all non-cash percentage-based classes with positive targets
           const nonCashPercentageTotal = Object.entries(assetClassTargets)
             .filter(([cls, target]) => 
               cls !== 'CASH' && 
@@ -235,7 +235,12 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
             )
             .reduce((sum, [, target]) => sum + (target.targetPercent || 0), 0);
           
-          if (nonCashPercentageTotal > 0 && classTarget?.targetMode === 'PERCENTAGE' && classTarget.targetPercent) {
+          // Only distribute if there are non-cash classes with positive percentage targets
+          // and this class has a positive target percentage
+          if (nonCashPercentageTotal > 0 && 
+              classTarget?.targetMode === 'PERCENTAGE' && 
+              classTarget.targetPercent && 
+              classTarget.targetPercent > 0) {
             // Distribute cash proportionally based on this class's share of total non-cash targets
             const proportion = classTarget.targetPercent / nonCashPercentageTotal;
             // Negative cash delta = INVEST = add to this class

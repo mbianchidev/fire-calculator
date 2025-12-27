@@ -678,8 +678,9 @@ describe('Asset-Specific Table - Delta Calculation', () => {
 describe('Cash delta distribution to subtables (Issue Scenario)', () => {
   /**
    * This test covers the specific scenario from the issue:
-   * - Cash increases from 5k to 20k, resulting in -15k cash delta (15k to invest)
-   * - The 15k should be distributed 60/40 to stocks/bonds
+   * - Cash current value is 20k, but cash target is 5k (SET mode)
+   * - Cash delta = target - current = 5k - 20k = -15k (negative = INVEST)
+   * - The 15k excess cash should be distributed 60/40 to stocks/bonds
    * - Stocks should get +9000 (60% of 15k)
    * - Bonds should get +6000 (40% of 15k)
    */
@@ -952,21 +953,15 @@ describe('Asset Classes Table - Portfolio Calculations', () => {
   });
 
   it('should handle cash increase scenario with INVEST action', () => {
-    // Scenario: User increases cash from 5k to 20k
-    // This creates a -15k cash delta (INVEST)
+    // Scenario: Cash current is 20k, target is 5k (SET mode)
+    // Cash delta = target - current = 5k - 20k = -15k (INVEST)
     // The 15k should be distributed to stocks (60%) and bonds (40%)
-    
-    // Define the scenario data for reference (not used directly in assertions)
-    const _scenarioData = [
-      { assetClass: 'STOCKS', currentTotal: 35000, targetPercent: 60, targetMode: 'PERCENTAGE' },
-      { assetClass: 'BONDS', currentTotal: 30000, targetPercent: 40, targetMode: 'PERCENTAGE' },
-      { assetClass: 'CASH', currentTotal: 20000, targetMode: 'SET' }, // Increased from 5k
-    ];
-    void _scenarioData; // Suppress unused variable warning
+    // Asset class data: Stocks 35k, Bonds 30k, Cash 20k
     
     // Cash target remains at 5k (SET mode with target value)
     const cashTargetValue = 5000;
-    const cashDelta = cashTargetValue - 20000; // -15000 (INVEST)
+    const cashCurrent = 20000;
+    const cashDelta = cashTargetValue - cashCurrent; // -15000 (INVEST)
     
     expect(cashDelta).toBe(-15000);
     

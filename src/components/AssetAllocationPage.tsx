@@ -192,6 +192,12 @@ export const AssetAllocationPage: React.FC = () => {
     if (newAsset.targetMode === 'PERCENTAGE' && newAsset.targetPercent) {
       const newAssetPercent = newAsset.targetPercent;
       
+      // Validate: new asset percentage must be between 0 and 100
+      if (newAssetPercent <= 0 || newAssetPercent > 100) {
+        updateAllocation([...assets, newAsset]);
+        return;
+      }
+      
       // Get existing percentage-based assets in the same class
       const sameClassAssets = assets.filter(a => 
         a.assetClass === newAsset.assetClass && 
@@ -204,15 +210,16 @@ export const AssetAllocationPage: React.FC = () => {
         
         if (existingTotal > 0) {
           // Calculate how much we need to reduce (to make room for the new asset)
-          // The new total should be 100%, so we need to reduce existing by newAssetPercent
-          // but scaled to their current total
+          // The new total should be 100%, so we reduce existing proportionally
+          // reductionFactor = (100 - newAssetPercent) / existingTotal
+          // This works correctly even if existingTotal != 100
           const reductionFactor = (100 - newAssetPercent) / existingTotal;
           
           // Redistribute: reduce each existing asset proportionally
           const updatedAssets = assets.map(asset => {
             if (asset.assetClass === newAsset.assetClass && asset.targetMode === 'PERCENTAGE') {
               const newPercent = (asset.targetPercent || 0) * reductionFactor;
-              return { ...asset, targetPercent: newPercent };
+              return { ...asset, targetPercent: Math.max(0, newPercent) }; // Ensure non-negative
             }
             return asset;
           });
