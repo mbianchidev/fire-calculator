@@ -278,6 +278,8 @@ export function calculatePortfolioAllocation(
 ): PortfolioAllocation {
   const validation = validateAllocation(assets);
   const totalValue = portfolioValue ?? calculateTotalValue(assets);
+  // Calculate total holdings including all assets (for display purposes)
+  const totalHoldings = assets.reduce((sum, a) => sum + a.currentValue, 0);
   const assetClasses = calculateAssetClassSummaries(assets, totalValue);
   const deltas = calculateAllocationDeltas(assets, totalValue, assetClassTargets);
   
@@ -285,6 +287,7 @@ export function calculatePortfolioAllocation(
     assets,
     assetClasses,
     totalValue,
+    totalHoldings,
     deltas,
     isValid: validation.isValid,
     validationErrors: validation.errors,

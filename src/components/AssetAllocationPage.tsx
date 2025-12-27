@@ -354,7 +354,7 @@ export const AssetAllocationPage: React.FC = () => {
             <span className="portfolio-value">{formatCurrency(portfolioValue, currency)}</span>
           </div>
           <div className="portfolio-value-info">
-            Total holdings (incl. cash): {formatCurrency(allocation.totalValue, currency)}
+            Total holdings (incl. cash): {formatCurrency(allocation.totalHoldings, currency)}
           </div>
         </div>
 

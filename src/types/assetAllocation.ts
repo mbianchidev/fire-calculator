@@ -61,7 +61,8 @@ export interface AllocationDelta {
 export interface PortfolioAllocation {
   assets: Asset[];
   assetClasses: AssetClassSummary[];
-  totalValue: number;
+  totalValue: number; // Portfolio value excluding cash (used for calculations)
+  totalHoldings: number; // Total holdings including cash (for display)
   deltas: AllocationDelta[];
   isValid: boolean;
   validationErrors: string[];
