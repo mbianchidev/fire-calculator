@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AssetClassSummary, AllocationMode, AssetClass } from '../types/assetAllocation';
 import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
+import { NumberInput } from './NumberInput';
 
 interface AssetClassTarget {
   targetMode: AllocationMode;
@@ -206,11 +207,9 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                 </td>
                 <td>
                   {isEditing && editMode === 'PERCENTAGE' ? (
-                    <input
-                      type="text"
+                    <NumberInput
                       value={editPercent}
-                      onChange={(e) => setEditPercent(parseFloat(e.target.value) || 0)}
-                      onClick={(e) => e.stopPropagation()}
+                      onChange={(value) => setEditPercent(value)}
                       className="edit-input"
                     />
                   ) : (
