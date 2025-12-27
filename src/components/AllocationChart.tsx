@@ -26,6 +26,7 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
   }
 
   // Custom label renderer that handles line wrapping for long names
+  // Uses ticker if name is too long
   const renderCustomLabel = (props: {
     cx?: number;
     cy?: number;
@@ -33,8 +34,9 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
     outerRadius?: number;
     name?: string;
     percentage?: number;
+    ticker?: string;
   }) => {
-    const { cx, cy, midAngle, outerRadius, name, percentage } = props;
+    const { cx, cy, midAngle, outerRadius, name, percentage, ticker } = props;
     if (!name || percentage === undefined || !cx || !cy || !midAngle || !outerRadius) return null;
     
     const RADIAN = Math.PI / 180;
@@ -42,8 +44,15 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     
-    // Truncate long names and add percentage
-    const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
+    // Use ticker if name is too long (> 10 chars), otherwise use truncated name
+    let displayName: string;
+    if (name.length > 10 && ticker) {
+      displayName = ticker;
+    } else if (name.length > 15) {
+      displayName = name.substring(0, 12) + '...';
+    } else {
+      displayName = name;
+    }
     const labelText = `${displayName}: ${formatPercent(percentage)}`;
     
     return (
@@ -74,8 +83,14 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
     return null;
   };
 
-  // Custom legend formatter that wraps long names
+  // Custom legend formatter that wraps long names - uses ticker if available
   const renderLegend = (value: string) => {
+    // Try to find the data entry to get ticker
+    const entry = data.find(d => d.name === value);
+    const ticker = entry?.ticker as string | undefined;
+    if (value.length > 15 && ticker) {
+      return ticker;
+    }
     if (value.length > 20) {
       return value.substring(0, 17) + '...';
     }

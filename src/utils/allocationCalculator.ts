@@ -334,6 +334,7 @@ export function prepareAssetChartData(
         value: asset.currentValue,
         percentage,
         color: `hsl(${hue}, 70%, 60%)`,
+        ticker: asset.ticker, // Include ticker for chart label fallback
       };
     });
 }

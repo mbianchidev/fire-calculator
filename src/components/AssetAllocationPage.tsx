@@ -11,10 +11,6 @@ import { MassEditDialog } from './MassEditDialog';
 export const AssetAllocationPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(DEFAULT_ASSETS);
   const [currency] = useState<string>('EUR');
-  // Portfolio value - can be edited manually
-  const [portfolioValue, setPortfolioValue] = useState<number>(DEFAULT_PORTFOLIO_VALUE);
-  const [isEditingPortfolioValue, setIsEditingPortfolioValue] = useState(false);
-  const [editPortfolioValue, setEditPortfolioValue] = useState<number>(DEFAULT_PORTFOLIO_VALUE);
   // Store asset class level targets independently for display in the Asset Classes table
   const [assetClassTargets, setAssetClassTargets] = useState<Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>>({
     STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 60 },
@@ -23,6 +19,12 @@ export const AssetAllocationPage: React.FC = () => {
     CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
     REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
   });
+  
+  // Calculate portfolio value as sum of all non-cash assets
+  const portfolioValue = assets
+    .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
+    .reduce((sum, a) => sum + a.currentValue, 0);
+  
   const [allocation, setAllocation] = useState<PortfolioAllocation>(() =>
     calculatePortfolioAllocation(DEFAULT_ASSETS, {
       STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 60 },
@@ -40,10 +42,13 @@ export const AssetAllocationPage: React.FC = () => {
   const [massEditMode, setMassEditMode] = useState<'assetClass' | 'asset'>('assetClass');
   const [massEditAssetClass, setMassEditAssetClass] = useState<AssetClass | null>(null);
 
-  const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>, newPortfolioValue?: number) => {
+  const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>) => {
     setAssets(newAssets);
     const targets = newAssetClassTargets ?? assetClassTargets;
-    const pValue = newPortfolioValue ?? portfolioValue;
+    // Calculate portfolio value from non-cash assets
+    const pValue = newAssets
+      .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
+      .reduce((sum, a) => sum + a.currentValue, 0);
     const newAllocation = calculatePortfolioAllocation(newAssets, targets, pValue);
     setAllocation(newAllocation);
   };
@@ -108,9 +113,6 @@ export const AssetAllocationPage: React.FC = () => {
   };
 
   const handleUpdateAssetClass = (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => {
-    console.log('[handleUpdateAssetClass] Updating asset class:', assetClass);
-    console.log('[handleUpdateAssetClass] Updates:', updates);
-    
     // Update the asset class level target independently
     const updatedTargets = {
       ...assetClassTargets,
@@ -123,18 +125,13 @@ export const AssetAllocationPage: React.FC = () => {
     // If updating a percentage-based asset class, redistribute other percentage-based classes
     if (updates.targetMode === 'PERCENTAGE' || (!updates.targetMode && assetClassTargets[assetClass]?.targetMode === 'PERCENTAGE')) {
       if (updates.targetPercent !== undefined) {
-        console.log('[handleUpdateAssetClass] Redistributing percentages, new percent for', assetClass, ':', updates.targetPercent);
-        
         // Get all percentage-based asset classes except the one being edited
         const otherPercentageClasses = Object.keys(updatedTargets).filter(
           (key) => key !== assetClass && updatedTargets[key as AssetClass].targetMode === 'PERCENTAGE'
         ) as AssetClass[];
         
-        console.log('[handleUpdateAssetClass] Other percentage classes:', otherPercentageClasses);
-        
         if (otherPercentageClasses.length > 0) {
           const remainingPercent = 100 - updates.targetPercent;
-          console.log('[handleUpdateAssetClass] Remaining percent to distribute:', remainingPercent);
           
           // Get total of other classes' current percentages
           const otherClassesTotal = otherPercentageClasses.reduce(
@@ -142,12 +139,9 @@ export const AssetAllocationPage: React.FC = () => {
             0
           );
           
-          console.log('[handleUpdateAssetClass] Total of other classes before redistribution:', otherClassesTotal);
-          
           if (otherClassesTotal === 0) {
             // Distribute equally
             const equalPercent = remainingPercent / otherPercentageClasses.length;
-            console.log('[handleUpdateAssetClass] Distributing equally:', equalPercent, '% each');
             otherPercentageClasses.forEach((cls) => {
               updatedTargets[cls] = {
                 ...updatedTargets[cls],
@@ -156,11 +150,9 @@ export const AssetAllocationPage: React.FC = () => {
             });
           } else {
             // Distribute proportionally
-            console.log('[handleUpdateAssetClass] Distributing proportionally');
             otherPercentageClasses.forEach((cls) => {
               const proportion = (updatedTargets[cls].targetPercent || 0) / otherClassesTotal;
               const newPercent = proportion * remainingPercent;
-              console.log('[handleUpdateAssetClass]', cls, 'proportion:', proportion, 'new percent:', newPercent);
               updatedTargets[cls] = {
                 ...updatedTargets[cls],
                 targetPercent: newPercent,
@@ -171,11 +163,13 @@ export const AssetAllocationPage: React.FC = () => {
       }
     }
     
-    console.log('[handleUpdateAssetClass] Final updated targets:', updatedTargets);
     setAssetClassTargets(updatedTargets);
     
     // Recalculate allocation with updated targets
-    const newAllocation = calculatePortfolioAllocation(assets, updatedTargets, portfolioValue);
+    const pValue = assets
+      .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
+      .reduce((sum, a) => sum + a.currentValue, 0);
+    const newAllocation = calculatePortfolioAllocation(assets, updatedTargets, pValue);
     setAllocation(newAllocation);
     
     // Only update targetMode for assets in this class, not targetPercent
@@ -252,22 +246,6 @@ export const AssetAllocationPage: React.FC = () => {
     return 0;
   })();
 
-  // Portfolio value handlers
-  const handleStartEditPortfolioValue = () => {
-    setEditPortfolioValue(portfolioValue);
-    setIsEditingPortfolioValue(true);
-  };
-
-  const handleSavePortfolioValue = () => {
-    setPortfolioValue(editPortfolioValue);
-    updateAllocation(assets, assetClassTargets, editPortfolioValue);
-    setIsEditingPortfolioValue(false);
-  };
-
-  const handleCancelEditPortfolioValue = () => {
-    setIsEditingPortfolioValue(false);
-  };
-
   // Mass edit handlers
   const handleOpenMassEditAssetClass = () => {
     setMassEditMode('assetClass');
@@ -326,32 +304,14 @@ export const AssetAllocationPage: React.FC = () => {
       </div>
 
       <div className="asset-allocation-manager">
-        {/* Portfolio Value */}
+        {/* Portfolio Value - calculated from non-cash assets */}
         <div className="portfolio-value-section">
           <div className="portfolio-value-label">
-            <strong>Target Portfolio Value:</strong>
-            {isEditingPortfolioValue ? (
-              <div className="portfolio-value-edit">
-                <input
-                  type="number"
-                  value={editPortfolioValue}
-                  onChange={(e) => setEditPortfolioValue(parseFloat(e.target.value) || 0)}
-                  className="portfolio-value-input"
-                  min="0"
-                />
-                <span className="currency-symbol">{currency}</span>
-                <button onClick={handleSavePortfolioValue} className="btn-save" title="Save">✓</button>
-                <button onClick={handleCancelEditPortfolioValue} className="btn-cancel-edit" title="Cancel">✕</button>
-              </div>
-            ) : (
-              <div className="portfolio-value-display" onClick={handleStartEditPortfolioValue}>
-                <span className="portfolio-value">{formatCurrency(portfolioValue, currency)}</span>
-                <button className="btn-edit" title="Edit Portfolio Value">✎</button>
-              </div>
-            )}
+            <strong>Portfolio Value (excl. Cash):</strong>
+            <span className="portfolio-value">{formatCurrency(portfolioValue, currency)}</span>
           </div>
           <div className="portfolio-value-info">
-            Current holdings: {formatCurrency(allocation.totalValue, currency)}
+            Total holdings (incl. cash): {formatCurrency(allocation.totalValue, currency)}
           </div>
         </div>
 
@@ -392,7 +352,7 @@ export const AssetAllocationPage: React.FC = () => {
         <div className="allocation-section">
           <div className="section-header-with-actions">
             <h3>Asset Classes</h3>
-            <button onClick={handleOpenMassEditAssetClass} className="action-btn add-btn">
+            <button onClick={handleOpenMassEditAssetClass} className="action-btn reset-btn">
               ✏️ Mass Edit
             </button>
           </div>

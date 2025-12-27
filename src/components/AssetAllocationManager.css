@@ -42,16 +42,16 @@
   color: white;
 }
 
-/* Primary action button (Add Asset) - more prominent */
+/* Primary action button (Add Asset) - more prominent with teal color */
 .primary-btn {
-  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  background: linear-gradient(135deg, #009688 0%, #00796B 100%);
   color: white;
   font-weight: 700;
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 150, 136, 0.4);
 }
 
 /* Reset button styling */
@@ -1114,4 +1114,50 @@
 .portfolio-value-info {
   color: #666;
   font-size: 0.95rem;
+}
+
+/* Ticker with ISIN copy functionality */
+.ticker-cell {
+  position: relative;
+}
+
+.ticker-with-isin {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.ticker-with-isin:hover {
+  background-color: #f0f0f0;
+}
+
+.ticker-with-isin .copy-icon {
+  font-size: 0.85em;
+  opacity: 0.5;
+}
+
+.ticker-with-isin:hover .copy-icon {
+  opacity: 1;
+}
+
+.ticker-with-isin.copied {
+  background-color: #e8f5e9;
+}
+
+.copied-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
 }

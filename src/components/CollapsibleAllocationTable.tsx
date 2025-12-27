@@ -14,20 +14,23 @@ interface CollapsibleAllocationTableProps {
   onMassEdit?: (assetClass: AssetClass) => void; // Handler for opening mass edit dialog
 }
 
+// Sub-types that require ISIN code (clicking ticker should copy ISIN)
+const ISIN_TYPES = ['ETF', 'SINGLE_STOCK', 'SINGLE_BOND', 'REIT', 'MONEY_ETF'];
+
 export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProps> = ({
   assets,
   deltas,
   currency,
   cashDeltaAmount = 0,
-  // These props are available for future use when we need class-level targeting in subtables
-  // assetClassTargets,
-  // portfolioValue,
+  assetClassTargets,
+  portfolioValue,
   onUpdateAsset,
   onDeleteAsset,
   onMassEdit,
 }) => {
   // Initialize with all classes collapsed
   const allClasses = new Set(assets.map(a => a.assetClass));
+  const [copiedIsin, setCopiedIsin] = useState<string | null>(null);
   const [collapsedClasses, setCollapsedClasses] = useState<Set<AssetClass>>(allClasses);
   const [editingAsset, setEditingAsset] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ name: string; currentValue: number; targetPercent: number }>({
@@ -189,6 +192,15 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     onUpdateAsset(assetId, { targetValue: val });
   };
 
+  const copyIsinToClipboard = (asset: Asset) => {
+    if (asset.isin) {
+      navigator.clipboard.writeText(asset.isin).then(() => {
+        setCopiedIsin(asset.id);
+        setTimeout(() => setCopiedIsin(null), 2000);
+      });
+    }
+  };
+
   return (
     <div className="collapsible-allocation-table" ref={tableRef}>
       {Object.entries(groupedAssets).map(([assetClass, classAssets]) => {
@@ -196,14 +208,24 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
         const classTotal = classAssets.reduce((sum, asset) => 
           sum + (asset.targetMode === 'OFF' ? 0 : asset.currentValue), 0
         );
-        const classDeltas = classAssets.map(asset => deltas.find(d => d.assetId === asset.id)!).filter(Boolean);
-        const classTargetTotal = classDeltas.reduce((sum, delta) => sum + delta.targetValue, 0);
+        
+        // Calculate class target value based on assetClassTargets and portfolioValue
+        const classTarget = assetClassTargets?.[assetClass as AssetClass];
+        let classTargetValue = 0;
+        if (classTarget?.targetMode === 'PERCENTAGE' && classTarget.targetPercent !== undefined && portfolioValue) {
+          classTargetValue = (classTarget.targetPercent / 100) * portfolioValue;
+        } else if (classTarget?.targetMode === 'SET') {
+          // For SET mode, sum up the target values of assets in this class
+          classTargetValue = classAssets.reduce((sum, asset) => 
+            sum + (asset.targetMode === 'SET' ? (asset.targetValue || 0) : 0), 0
+          );
+        }
         
         // Calculate class delta with cash adjustment for non-cash classes
         // Cash delta: positive = SAVE (subtract from other classes), negative = INVEST (add to other classes)
         // For non-cash classes: add -cashDeltaAmount (so INVEST adds, SAVE subtracts)
         const cashAdjustment = assetClass !== 'CASH' ? -cashDeltaAmount : 0;
-        const classDelta = classTargetTotal - classTotal + cashAdjustment;
+        const classDelta = classTargetValue - classTotal + cashAdjustment;
 
         return (
           <div key={assetClass} className="asset-class-group">
@@ -287,7 +309,24 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                             {formatAssetName(asset.subAssetType)}
                           </span>
                         </td>
-                        <td>{asset.ticker}</td>
+                        <td className="ticker-cell">
+                          {ISIN_TYPES.includes(asset.subAssetType) && asset.isin ? (
+                            <span 
+                              className={`ticker-with-isin ${copiedIsin === asset.id ? 'copied' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyIsinToClipboard(asset);
+                              }}
+                              title={`Click to copy ISIN: ${asset.isin}`}
+                            >
+                              {asset.ticker}
+                              <span className="copy-icon">📋</span>
+                              {copiedIsin === asset.id && <span className="copied-tooltip">Copied!</span>}
+                            </span>
+                          ) : (
+                            asset.ticker
+                          )}
+                        </td>
                         <td>
                           <select
                             value={asset.targetMode}

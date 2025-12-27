@@ -23,6 +23,7 @@ export interface Asset {
   id: string;
   name: string;
   ticker: string;
+  isin?: string; // ISIN code (required for ETF, SINGLE_STOCK, SINGLE_BOND, REIT, MONEY_ETF)
   assetClass: AssetClass;
   subAssetType: SubAssetType;
   currentValue: number;

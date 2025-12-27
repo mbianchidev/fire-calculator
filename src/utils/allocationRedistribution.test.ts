@@ -478,3 +478,198 @@ describe('Asset-Specific Table - Target Allocation Redistribution', () => {
     });
   });
 });
+
+describe('Asset-Specific Table - Delta Calculation', () => {
+  /**
+   * Tests for ensuring the delta in subtables reflects the class-level target correctly
+   * when the class target percentage changes.
+   */
+
+  interface AssetClassTarget {
+    targetMode: AllocationMode;
+    targetPercent?: number;
+  }
+
+  /**
+   * Calculate the class delta based on asset class targets and portfolio value.
+   * This mimics the logic in CollapsibleAllocationTable.
+   */
+  function calculateClassDelta(
+    assets: Asset[],
+    assetClass: AssetClass,
+    assetClassTargets: Record<AssetClass, AssetClassTarget>,
+    portfolioValue: number,
+    cashDeltaAmount: number = 0
+  ): number {
+    const classAssets = assets.filter(a => a.assetClass === assetClass);
+    const classTotal = classAssets.reduce((sum, asset) => 
+      sum + (asset.targetMode === 'OFF' ? 0 : asset.currentValue), 0
+    );
+    
+    // Calculate class target value based on assetClassTargets and portfolioValue
+    const classTarget = assetClassTargets[assetClass];
+    let classTargetValue = 0;
+    if (classTarget?.targetMode === 'PERCENTAGE' && classTarget.targetPercent !== undefined) {
+      classTargetValue = (classTarget.targetPercent / 100) * portfolioValue;
+    } else if (classTarget?.targetMode === 'SET') {
+      // For SET mode, sum up the target values of assets in this class
+      classTargetValue = classAssets.reduce((sum, asset) => 
+        sum + (asset.targetMode === 'SET' ? (asset.targetValue || 0) : 0), 0
+      );
+    }
+    
+    // Cash adjustment for non-cash classes
+    const cashAdjustment = assetClass !== 'CASH' ? -cashDeltaAmount : 0;
+    return classTargetValue - classTotal + cashAdjustment;
+  }
+
+  describe('Delta reflects class target changes', () => {
+    it('should show correct delta when stocks target changes from 60% to 10%', () => {
+      // Portfolio: 30k stocks (60%), stocks target changed to 10%
+      // Portfolio value (non-cash): 50k
+      // Expected stocks target: 10% of 50k = 5k
+      // Current stocks: 30k
+      // Delta: 5k - 30k = -25k (SELL)
+      
+      const assets: Asset[] = [
+        { id: 'stock1', assetClass: 'STOCKS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 30000 },
+        { id: 'bond1', assetClass: 'BONDS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 20000 },
+      ];
+      
+      const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
+        STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 10 },
+        BONDS: { targetMode: 'PERCENTAGE', targetPercent: 90 },
+        CASH: { targetMode: 'SET' },
+        CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      };
+      
+      const portfolioValue = 50000;
+      const stocksDelta = calculateClassDelta(assets, 'STOCKS', assetClassTargets, portfolioValue);
+      
+      // Stocks target: 10% of 50k = 5k
+      // Current: 30k
+      // Delta: 5k - 30k = -25k
+      expect(stocksDelta).toBe(-25000);
+    });
+
+    it('should show correct delta when stocks target changes from 60% to 30%', () => {
+      // Portfolio: 30k stocks, target changed to 30%
+      // Portfolio value (non-cash): 50k
+      // Expected stocks target: 30% of 50k = 15k
+      // Current stocks: 30k
+      // Delta: 15k - 30k = -15k (SELL)
+      
+      const assets: Asset[] = [
+        { id: 'stock1', assetClass: 'STOCKS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 30000 },
+        { id: 'bond1', assetClass: 'BONDS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 20000 },
+      ];
+      
+      const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
+        STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 30 },
+        BONDS: { targetMode: 'PERCENTAGE', targetPercent: 70 },
+        CASH: { targetMode: 'SET' },
+        CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      };
+      
+      const portfolioValue = 50000;
+      const stocksDelta = calculateClassDelta(assets, 'STOCKS', assetClassTargets, portfolioValue);
+      
+      // Stocks target: 30% of 50k = 15k
+      // Current: 30k
+      // Delta: 15k - 30k = -15k
+      expect(stocksDelta).toBe(-15000);
+    });
+
+    it('should include cash adjustment in non-cash class delta', () => {
+      // If cash is marked INVEST (negative delta), it should ADD to other classes
+      // If cash is marked SAVE (positive delta), it should SUBTRACT from other classes
+      
+      const assets: Asset[] = [
+        { id: 'stock1', assetClass: 'STOCKS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 30000 },
+        { id: 'cash1', assetClass: 'CASH', targetMode: 'SET', targetValue: 2500, currentValue: 5000 },
+      ];
+      
+      const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
+        STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 100 },
+        BONDS: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        CASH: { targetMode: 'SET' },
+        CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      };
+      
+      const portfolioValue = 30000; // Non-cash only
+      
+      // Cash delta: target 2.5k - current 5k = -2.5k (INVEST)
+      // This -2.5k should be added to stocks (so INVEST cash goes to stocks)
+      const cashDeltaAmount = -2500; // Negative = INVEST
+      
+      const stocksDelta = calculateClassDelta(assets, 'STOCKS', assetClassTargets, portfolioValue, cashDeltaAmount);
+      
+      // Stocks target: 100% of 30k = 30k
+      // Current: 30k
+      // Base delta: 30k - 30k = 0
+      // Cash adjustment: -(-2500) = +2500 (INVEST adds to stocks)
+      // Final delta: 0 + 2500 = 2500
+      expect(stocksDelta).toBe(2500);
+    });
+
+    it('should subtract cash SAVE from non-cash class delta', () => {
+      const assets: Asset[] = [
+        { id: 'stock1', assetClass: 'STOCKS', targetMode: 'PERCENTAGE', targetPercent: 100, currentValue: 30000 },
+        { id: 'cash1', assetClass: 'CASH', targetMode: 'SET', targetValue: 7500, currentValue: 5000 },
+      ];
+      
+      const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
+        STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 100 },
+        BONDS: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        CASH: { targetMode: 'SET' },
+        CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      };
+      
+      const portfolioValue = 30000; // Non-cash only
+      
+      // Cash delta: target 7.5k - current 5k = +2.5k (SAVE)
+      // This +2.5k should be subtracted from stocks
+      const cashDeltaAmount = 2500; // Positive = SAVE
+      
+      const stocksDelta = calculateClassDelta(assets, 'STOCKS', assetClassTargets, portfolioValue, cashDeltaAmount);
+      
+      // Stocks target: 100% of 30k = 30k
+      // Current: 30k
+      // Base delta: 30k - 30k = 0
+      // Cash adjustment: -(+2500) = -2500 (SAVE subtracts from stocks)
+      // Final delta: 0 - 2500 = -2500
+      expect(stocksDelta).toBe(-2500);
+    });
+
+    it('should calculate bonds delta with negative class target delta', () => {
+      // Example: 3 bonds at 33.33%, delta of -30000
+      const assets: Asset[] = [
+        { id: 'bnd', assetClass: 'BONDS', targetMode: 'PERCENTAGE', targetPercent: 33.33, currentValue: 20000 },
+        { id: 'tip', assetClass: 'BONDS', targetMode: 'PERCENTAGE', targetPercent: 33.33, currentValue: 20000 },
+        { id: 'bndx', assetClass: 'BONDS', targetMode: 'PERCENTAGE', targetPercent: 33.33, currentValue: 20000 },
+      ];
+      
+      // Current bonds total: 60k
+      // Target should be 30k for this delta (-30k)
+      const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
+        STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        BONDS: { targetMode: 'PERCENTAGE', targetPercent: 50 }, // 50% of 60k = 30k target
+        CASH: { targetMode: 'SET' },
+        CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      };
+      
+      const portfolioValue = 60000;
+      const bondsDelta = calculateClassDelta(assets, 'BONDS', assetClassTargets, portfolioValue);
+      
+      // Bonds target: 50% of 60k = 30k
+      // Current: 60k
+      // Delta: 30k - 60k = -30k (SELL)
+      expect(bondsDelta).toBe(-30000);
+    });
+  });
+});

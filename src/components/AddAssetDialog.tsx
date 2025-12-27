@@ -19,11 +19,29 @@ const SUB_ASSET_TYPES: Record<AssetClass, SubAssetType[]> = {
 // Only these sub-types can use SET mode
 const SET_MODE_ALLOWED: SubAssetType[] = ['SAVINGS_ACCOUNT', 'CHECKING_ACCOUNT', 'BROKERAGE_ACCOUNT', 'MONEY_ETF'];
 
+// Sub-types that require ISIN code
+const ISIN_REQUIRED: SubAssetType[] = ['ETF', 'SINGLE_STOCK', 'SINGLE_BOND', 'REIT', 'MONEY_ETF'];
+
+// Sub-types that don't need ticker (use descriptive name instead)
+const NO_TICKER_REQUIRED: SubAssetType[] = ['SAVINGS_ACCOUNT', 'CHECKING_ACCOUNT', 'BROKERAGE_ACCOUNT', 'PROPERTY'];
+
+// Get ticker label based on sub-asset type
+const getTickerLabel = (subAssetType: SubAssetType): string => {
+  if (subAssetType === 'SINGLE_BOND') {
+    return 'Nation Code *';
+  }
+  if (NO_TICKER_REQUIRED.includes(subAssetType)) {
+    return 'Reference (optional)';
+  }
+  return 'Ticker/Symbol *';
+};
+
 export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose, onAdd }) => {
   const [assetClass, setAssetClass] = useState<AssetClass>('STOCKS');
   const [subAssetType, setSubAssetType] = useState<SubAssetType>('ETF');
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
+  const [isin, setIsin] = useState('');
   const [currentValue, setCurrentValue] = useState<number>(0);
   const [targetMode, setTargetMode] = useState<AllocationMode>('PERCENTAGE');
   const [targetPercent, setTargetPercent] = useState<number>(0);
@@ -35,20 +53,45 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     if (availableSubTypes.length > 0) {
       setSubAssetType(availableSubTypes[0]);
     }
+    // Reset ISIN when changing asset class
+    setIsin('');
+  };
+
+  const handleSubAssetTypeChange = (newType: SubAssetType) => {
+    setSubAssetType(newType);
+    // Reset ISIN and ticker when changing sub-type
+    setIsin('');
+    if (NO_TICKER_REQUIRED.includes(newType)) {
+      setTicker('');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !ticker.trim()) {
-      alert('Please fill in all required fields');
+    if (!name.trim()) {
+      alert('Please enter an asset name');
+      return;
+    }
+
+    // Check if ticker is required
+    const needsTicker = !NO_TICKER_REQUIRED.includes(subAssetType);
+    if (needsTicker && !ticker.trim()) {
+      alert(`Please enter a ${subAssetType === 'SINGLE_BOND' ? 'nation code' : 'ticker/symbol'}`);
+      return;
+    }
+
+    // Check if ISIN is required
+    if (ISIN_REQUIRED.includes(subAssetType) && !isin.trim()) {
+      alert('Please enter an ISIN code');
       return;
     }
 
     const newAsset: Asset = {
       id: `asset-${Date.now()}`,
       name: name.trim(),
-      ticker: ticker.trim().toUpperCase(),
+      ticker: ticker.trim().toUpperCase() || name.trim().substring(0, 4).toUpperCase(),
+      isin: ISIN_REQUIRED.includes(subAssetType) ? isin.trim().toUpperCase() : undefined,
       assetClass,
       subAssetType,
       currentValue,
@@ -62,12 +105,16 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     // Reset form
     setName('');
     setTicker('');
+    setIsin('');
     setCurrentValue(0);
     setTargetPercent(0);
     onClose();
   };
 
   if (!isOpen) return null;
+
+  const needsTicker = !NO_TICKER_REQUIRED.includes(subAssetType);
+  const needsIsin = ISIN_REQUIRED.includes(subAssetType);
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
@@ -98,7 +145,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
               <label>Type *</label>
               <select
                 value={subAssetType}
-                onChange={(e) => setSubAssetType(e.target.value as SubAssetType)}
+                onChange={(e) => handleSubAssetTypeChange(e.target.value as SubAssetType)}
                 className="dialog-select"
               >
                 {SUB_ASSET_TYPES[assetClass].map(type => (
@@ -122,16 +169,32 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
             />
           </div>
 
-          <div className="form-group">
-            <label>Ticker/Symbol *</label>
-            <input
-              type="text"
-              value={ticker}
-              onChange={(e) => setTicker(e.target.value)}
-              placeholder="e.g., SPY"
-              className="dialog-input"
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label>{getTickerLabel(subAssetType)}</label>
+              <input
+                type="text"
+                value={ticker}
+                onChange={(e) => setTicker(e.target.value)}
+                placeholder={subAssetType === 'SINGLE_BOND' ? 'e.g., US, DE, IT' : needsTicker ? 'e.g., SPY' : 'Optional'}
+                className="dialog-input"
+                required={needsTicker}
+              />
+            </div>
+
+            {needsIsin && (
+              <div className="form-group">
+                <label>ISIN Code *</label>
+                <input
+                  type="text"
+                  value={isin}
+                  onChange={(e) => setIsin(e.target.value)}
+                  placeholder="e.g., US78462F1030"
+                  className="dialog-input"
+                  required
+                />
+              </div>
+            )}
           </div>
 
           <div className="form-group">
