@@ -140,6 +140,26 @@ body {
   font-size: 0.9rem;
 }
 
+.validation-error-banner {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #856404;
+}
+
+.validation-error-banner strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.validation-error-message {
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+
 .fire-metrics {
   margin-bottom: 2rem;
 }
