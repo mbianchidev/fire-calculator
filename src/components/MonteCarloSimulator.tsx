@@ -141,9 +141,9 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
             </div>
           </div>
 
-          <div className="success-bar" role="progressbar" aria-valuenow={result.successRate} aria-valuemin={0} aria-valuemax={100} aria-label={`Success rate progress bar: ${result.successRate.toFixed(1)}%`}>
+          <div className="success-bar" role="progressbar" aria-valuenow={result.successRate} aria-valuemin={0} aria-valuemax={100} aria-label={`Success rate: ${result.successRate.toFixed(1)}%`}>
             <div className="success-bar-fill" style={{ width: `${result.successRate}%` }}>
-              {result.successRate > 10 && `${result.successRate.toFixed(1)}%`}
+              {result.successRate > 10 && <span aria-hidden="true">{result.successRate.toFixed(1)}%</span>}
             </div>
           </div>
         </div>

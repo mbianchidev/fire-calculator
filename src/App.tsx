@@ -20,18 +20,16 @@ function Navigation() {
       <Link 
         to="/asset-allocation" 
         className={`nav-link ${location.pathname === '/asset-allocation' ? 'active' : ''}`}
-        aria-label="Asset Allocation page"
         aria-current={location.pathname === '/asset-allocation' ? 'page' : undefined}
       >
-        📊 Asset Allocation
+        <span aria-hidden="true">📊</span> Asset Allocation
       </Link>
       <Link 
         to="/" 
         className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-        aria-label="FIRE Calculator page"
         aria-current={location.pathname === '/' ? 'page' : undefined}
       >
-        🔥 FIRE Calculator
+        <span aria-hidden="true">🔥</span> FIRE Calculator
       </Link>
     </nav>
   );

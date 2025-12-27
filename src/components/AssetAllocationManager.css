@@ -783,10 +783,6 @@
   font: inherit;
 }
 
-.collapsible-header:hover {
-  opacity: 0.8;
-}
-
 .collapsible-header h4 {
   margin: 0;
   display: flex;
