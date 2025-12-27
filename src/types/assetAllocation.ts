@@ -12,6 +12,7 @@ export type SubAssetType =
   | 'SINGLE_BOND' 
   | 'SAVINGS_ACCOUNT'
   | 'CHECKING_ACCOUNT'
+  | 'BROKERAGE_ACCOUNT'
   | 'MONEY_ETF'
   | 'COIN'
   | 'PROPERTY'
@@ -22,6 +23,7 @@ export interface Asset {
   id: string;
   name: string;
   ticker: string;
+  isin?: string; // ISIN code (required for ETF, SINGLE_STOCK, SINGLE_BOND, REIT, MONEY_ETF)
   assetClass: AssetClass;
   subAssetType: SubAssetType;
   currentValue: number;
@@ -59,7 +61,8 @@ export interface AllocationDelta {
 export interface PortfolioAllocation {
   assets: Asset[];
   assetClasses: AssetClassSummary[];
-  totalValue: number;
+  totalValue: number; // Portfolio value excluding cash (used for calculations)
+  totalHoldings: number; // Total holdings including cash (for display)
   deltas: AllocationDelta[];
   isValid: boolean;
   validationErrors: string[];
@@ -70,6 +73,7 @@ export interface ChartData {
   value: number;
   percentage: number;
   color?: string;
+  ticker?: string; // Used as fallback label for long asset names in charts
   [key: string]: string | number | undefined;
 }
 

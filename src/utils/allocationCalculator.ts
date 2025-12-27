@@ -126,18 +126,79 @@ export function determineAction(
 
 /**
  * Calculate allocation deltas for each asset
+ * Note: targetPercent in assets is relative to the class (should sum to 100% within each class)
+ * The delta calculation uses the class target value to determine each asset's target value
+ * 
+ * @param assets - Array of assets
+ * @param totalValue - Portfolio value (typically excluding cash)
+ * @param assetClassTargets - Class-level target configurations
+ * @param cashDeltaAmount - Cash delta (positive = SAVE/subtract from other classes, negative = INVEST/add to other classes)
  */
 export function calculateAllocationDeltas(
   assets: Asset[],
-  totalValue: number
+  totalValue: number,
+  assetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>,
+  cashDeltaAmount?: number
 ): AllocationDelta[] {
   const deltas: AllocationDelta[] = [];
   const grouped = groupAssetsByClass(assets);
+  
+  // Calculate total non-cash percentage for proportional cash distribution
+  let nonCashPercentageTotal = 0;
+  if (assetClassTargets && cashDeltaAmount && cashDeltaAmount !== 0) {
+    nonCashPercentageTotal = Object.entries(assetClassTargets)
+      .filter(([cls, target]) => 
+        cls !== 'CASH' && 
+        target.targetMode === 'PERCENTAGE' && 
+        (target.targetPercent || 0) > 0
+      )
+      .reduce((sum, [, target]) => sum + (target.targetPercent || 0), 0);
+  }
   
   grouped.forEach((classAssets, assetClass) => {
     const classTotal = classAssets.reduce((sum, asset) => {
       return sum + (asset.targetMode === 'OFF' ? 0 : asset.currentValue);
     }, 0);
+    
+    // Get the class target value from assetClassTargets if provided
+    let classTargetValue = 0;
+    if (assetClassTargets && assetClassTargets[assetClass]) {
+      const classTarget = assetClassTargets[assetClass];
+      if (classTarget.targetMode === 'PERCENTAGE' && classTarget.targetPercent !== undefined) {
+        classTargetValue = (classTarget.targetPercent / 100) * totalValue;
+      } else if (classTarget.targetMode === 'SET') {
+        // For SET mode, use the sum of SET target values from assets
+        classTargetValue = classAssets.reduce((sum, asset) => {
+          if (asset.targetMode === 'SET') {
+            return sum + (asset.targetValue || 0);
+          }
+          return sum;
+        }, 0);
+      }
+    } else {
+      // Fallback: calculate from assets
+      classTargetValue = classAssets.reduce((sum, asset) => {
+        if (asset.targetMode === 'SET') {
+          return sum + (asset.targetValue || 0);
+        } else if (asset.targetMode === 'PERCENTAGE') {
+          return sum + ((asset.targetPercent || 0) / 100) * totalValue;
+        }
+        return sum;
+      }, 0);
+    }
+    
+    // Add cash adjustment for non-cash classes
+    // Cash delta: positive = SAVE (subtract from other classes), negative = INVEST (add to other classes)
+    if (assetClass !== 'CASH' && cashDeltaAmount && cashDeltaAmount !== 0 && nonCashPercentageTotal > 0 && assetClassTargets) {
+      const classTarget = assetClassTargets[assetClass];
+      if (classTarget?.targetMode === 'PERCENTAGE' && classTarget.targetPercent && classTarget.targetPercent > 0) {
+        const proportion = classTarget.targetPercent / nonCashPercentageTotal;
+        // Negative cash delta = INVEST = add to this class
+        // Positive cash delta = SAVE = subtract from this class
+        const cashAdjustment = -cashDeltaAmount * proportion;
+        classTargetValue += cashAdjustment;
+      }
+    }
     
     classAssets.forEach(asset => {
       if (asset.targetMode === 'OFF') {
@@ -165,8 +226,10 @@ export function calculateAllocationDeltas(
         targetValue = asset.targetValue || 0;
         targetPercent = totalValue > 0 ? (targetValue / totalValue) * 100 : 0;
       } else if (asset.targetMode === 'PERCENTAGE' && asset.targetPercent !== undefined) {
-        targetPercent = asset.targetPercent;
-        targetValue = (targetPercent / 100) * totalValue;
+        // targetPercent is the percentage within the class (should sum to 100% in class)
+        // Calculate target value based on class target value
+        targetValue = (asset.targetPercent / 100) * classTargetValue;
+        targetPercent = totalValue > 0 ? (targetValue / totalValue) * 100 : 0;
       }
       
       const delta = targetValue - asset.currentValue;
@@ -192,23 +255,28 @@ export function calculateAllocationDeltas(
 
 /**
  * Validate portfolio allocation
+ * Note: Asset percentages should sum to 100% within each asset class (not total portfolio)
  */
 export function validateAllocation(assets: Asset[]): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
-  // Get assets with percentage targets
-  const percentageAssets = assets.filter(a => a.targetMode === 'PERCENTAGE');
+  // Group assets by class and validate each class's percentages sum to 100%
+  const grouped = groupAssetsByClass(assets);
   
-  if (percentageAssets.length > 0) {
-    const totalPercent = percentageAssets.reduce((sum, asset) => {
-      return sum + (asset.targetPercent || 0);
-    }, 0);
+  grouped.forEach((classAssets, assetClass) => {
+    const percentageAssets = classAssets.filter(a => a.targetMode === 'PERCENTAGE');
     
-    // Allow small floating point tolerance
-    if (Math.abs(totalPercent - 100) > 0.1) {
-      errors.push(`Target allocation percentages must sum to 100% (current: ${totalPercent.toFixed(2)}%)`);
+    if (percentageAssets.length > 0) {
+      const totalPercent = percentageAssets.reduce((sum, asset) => {
+        return sum + (asset.targetPercent || 0);
+      }, 0);
+      
+      // Allow small floating point tolerance
+      if (Math.abs(totalPercent - 100) > 0.1) {
+        errors.push(`${assetClass} target percentages must sum to 100% within the class (current: ${totalPercent.toFixed(2)}%)`);
+      }
     }
-  }
+  });
   
   // Check for negative values
   assets.forEach(asset => {
@@ -233,17 +301,30 @@ export function validateAllocation(assets: Asset[]): { isValid: boolean; errors:
 
 /**
  * Calculate portfolio allocation with all details
+ * 
+ * @param assets - Array of assets
+ * @param assetClassTargets - Class-level target configurations
+ * @param portfolioValue - Portfolio value (typically excluding cash)
+ * @param cashDeltaAmount - Cash delta (positive = SAVE, negative = INVEST)
  */
-export function calculatePortfolioAllocation(assets: Asset[]): PortfolioAllocation {
+export function calculatePortfolioAllocation(
+  assets: Asset[],
+  assetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>,
+  portfolioValue?: number,
+  cashDeltaAmount?: number
+): PortfolioAllocation {
   const validation = validateAllocation(assets);
-  const totalValue = calculateTotalValue(assets);
+  const totalValue = portfolioValue ?? calculateTotalValue(assets);
+  // Calculate total holdings including all assets (for display purposes)
+  const totalHoldings = assets.reduce((sum, a) => sum + a.currentValue, 0);
   const assetClasses = calculateAssetClassSummaries(assets, totalValue);
-  const deltas = calculateAllocationDeltas(assets, totalValue);
+  const deltas = calculateAllocationDeltas(assets, totalValue, assetClassTargets, cashDeltaAmount);
   
   return {
     assets,
     assetClasses,
     totalValue,
+    totalHoldings,
     deltas,
     isValid: validation.isValid,
     validationErrors: validation.errors,
@@ -293,6 +374,8 @@ export function prepareAssetChartData(
         value: asset.currentValue,
         percentage,
         color: `hsl(${hue}, 70%, 60%)`,
+        // Ticker is used as fallback label when asset name is too long (>10 chars) in chart display
+        ticker: asset.ticker,
       };
     });
 }

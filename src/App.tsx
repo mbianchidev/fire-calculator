@@ -18,16 +18,16 @@ function Navigation() {
   return (
     <nav className="app-nav">
       <Link 
-        to="/" 
-        className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-      >
-        🔥 FIRE Calculator
-      </Link>
-      <Link 
         to="/asset-allocation" 
         className={`nav-link ${location.pathname === '/asset-allocation' ? 'active' : ''}`}
       >
         📊 Asset Allocation
+      </Link>
+      <Link 
+        to="/" 
+        className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+      >
+        🔥 FIRE Calculator
       </Link>
     </nav>
   );

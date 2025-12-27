@@ -42,6 +42,29 @@
   color: white;
 }
 
+/* Primary action button (Add Asset) - more prominent with teal color */
+.primary-btn {
+  background: linear-gradient(135deg, #009688 0%, #00796B 100%);
+  color: white;
+  font-weight: 700;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 150, 136, 0.4);
+}
+
+/* Reset button styling */
+.reset-btn {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
 .export-btn {
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
@@ -600,6 +623,11 @@
   border-color: #764ba2;
 }
 
+/* Asset name edit input - wider for text */
+.edit-name-input {
+  width: 180px;
+}
+
 .edit-actions {
   display: flex;
   gap: 0.5rem;
@@ -893,4 +921,243 @@
 
 .section-header-with-actions h3 {
   color: white;
+}
+
+/* Mass Edit Button */
+.btn-mass-edit {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: all 0.3s;
+  margin-left: 0.5rem;
+}
+
+.btn-mass-edit:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mass Edit Dialog */
+.mass-edit-dialog {
+  max-width: 500px;
+}
+
+.mass-edit-instructions {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.mass-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.mass-edit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.mass-edit-row .asset-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.mass-edit-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mass-edit-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: right;
+}
+
+.mass-edit-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.percent-sign {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.mass-edit-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.mass-edit-total.valid {
+  background: #e8f5e9;
+  color: #388E3C;
+}
+
+.mass-edit-total.invalid {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.mass-edit-total .total-value {
+  font-size: 1.2rem;
+}
+
+.valid-icon {
+  color: #4CAF50;
+  font-size: 1.2rem;
+}
+
+.invalid-icon {
+  color: #f44336;
+  font-size: 1.2rem;
+}
+
+.mass-edit-error {
+  color: #f44336;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.btn-submit:disabled {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Portfolio Value Section */
+.portfolio-value-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.portfolio-value-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.portfolio-value-label strong {
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.portfolio-value-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.portfolio-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.portfolio-value-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portfolio-value-input {
+  width: 150px;
+  padding: 0.5rem;
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+.portfolio-value-input:focus {
+  outline: none;
+  border-color: #764ba2;
+}
+
+.currency-symbol {
+  color: #666;
+  font-size: 1rem;
+}
+
+.portfolio-value-info {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* Ticker with ISIN copy functionality */
+.ticker-cell {
+  position: relative;
+}
+
+.ticker-with-isin {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.ticker-with-isin:hover {
+  background-color: #f0f0f0;
+}
+
+.ticker-with-isin .copy-icon {
+  font-size: 0.85em;
+  opacity: 0.5;
+}
+
+.ticker-with-isin:hover .copy-icon {
+  opacity: 1;
+}
+
+.ticker-with-isin.copied {
+  background-color: #e8f5e9;
+}
+
+.copied-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
 }

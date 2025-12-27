@@ -2,17 +2,28 @@ import { useState, useEffect, useRef } from 'react';
 import { AssetClassSummary, AllocationMode, AssetClass } from '../types/assetAllocation';
 import { formatCurrency, formatPercent, formatAssetName } from '../utils/allocationCalculator';
 
+interface AssetClassTarget {
+  targetMode: AllocationMode;
+  targetPercent?: number;
+}
+
 interface EditableAssetClassTableProps {
   assetClasses: AssetClassSummary[];
   totalValue: number;
+  totalHoldings: number; // Total including cash
+  cashDeltaAmount: number; // Cash delta for distribution (negative = INVEST, positive = SAVE)
   currency: string;
+  assetClassTargets: Record<AssetClass, AssetClassTarget>;
   onUpdateAssetClass: (assetClass: AssetClass, updates: { targetMode?: AllocationMode; targetPercent?: number }) => void;
 }
 
 export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = ({
   assetClasses,
   totalValue,
+  totalHoldings,
+  cashDeltaAmount,
   currency,
+  assetClassTargets,
   onUpdateAssetClass,
 }) => {
   const [editingClass, setEditingClass] = useState<AssetClass | null>(null);
@@ -37,6 +48,8 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
     }
   }, [editingClass, editMode, editPercent]);
 
+  const ACTION_THRESHOLD = 100;
+
   const getActionColor = (action: string): string => {
     switch (action) {
       case 'BUY':
@@ -54,13 +67,31 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
     }
   };
 
+  const getAction = (assetClass: AssetClass, delta: number, targetMode: AllocationMode): string => {
+    if (targetMode === 'OFF') {
+      return 'EXCLUDED';
+    }
+    
+    if (Math.abs(delta) < ACTION_THRESHOLD) {
+      return 'HOLD';
+    }
+    
+    if (assetClass === 'CASH') {
+      return delta > 0 ? 'SAVE' : 'INVEST';
+    }
+    
+    return delta > 0 ? 'BUY' : 'SELL';
+  };
+
   const startEditing = (ac: AssetClassSummary) => {
+    // Use assetClassTargets for editing values, not computed values from assets
+    const classTarget = assetClassTargets[ac.assetClass];
     console.log('[Asset Classes Table] Starting to edit:', ac.assetClass);
-    console.log('[Asset Classes Table] Current target mode:', ac.targetMode);
-    console.log('[Asset Classes Table] Current target percent:', ac.targetPercent);
+    console.log('[Asset Classes Table] Current target mode from assetClassTargets:', classTarget?.targetMode);
+    console.log('[Asset Classes Table] Current target percent from assetClassTargets:', classTarget?.targetPercent);
     setEditingClass(ac.assetClass);
-    setEditMode(ac.targetMode);
-    setEditPercent(ac.targetPercent || 0);
+    setEditMode(classTarget?.targetMode || ac.targetMode);
+    setEditPercent(classTarget?.targetPercent ?? ac.targetPercent ?? 0);
   };
 
   const saveEditing = () => {
@@ -98,13 +129,52 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
           </tr>
         </thead>
         <tbody>
-          {assetClasses.map(ac => {
+          {/* Pre-calculate nonCashPercentageTotal outside the loop for efficiency */}
+          {(() => {
+            const nonCashPercentageTotal = Object.entries(assetClassTargets)
+              .filter(([cls, target]) => 
+                cls !== 'CASH' && 
+                target.targetMode === 'PERCENTAGE' && 
+                (target.targetPercent || 0) > 0
+              )
+              .reduce((sum, [, target]) => sum + (target.targetPercent || 0), 0);
+            
+            return assetClasses.map(ac => {
             const isEditing = editingClass === ac.assetClass;
+            // Use assetClassTargets for display, fall back to computed values
+            const classTarget = assetClassTargets[ac.assetClass];
+            const displayTargetMode = classTarget?.targetMode ?? ac.targetMode;
+            const displayTargetPercent = classTarget?.targetPercent ?? ac.targetPercent;
+            
+            // Calculate cash distribution for non-cash classes
+            let cashAdjustment = 0;
+            if (ac.assetClass !== 'CASH' && cashDeltaAmount !== 0) {
+              if (nonCashPercentageTotal > 0 && displayTargetMode === 'PERCENTAGE' && (displayTargetPercent || 0) > 0) {
+                const proportion = (displayTargetPercent || 0) / nonCashPercentageTotal;
+                // Negative cash delta = INVEST = add to this class
+                // Positive cash delta = SAVE = subtract from this class
+                cashAdjustment = -cashDeltaAmount * proportion;
+              }
+            }
+            
+            // Calculate target total and delta based on assetClassTargets
+            let targetTotal = displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
+              ? (displayTargetPercent / 100) * totalValue
+              : displayTargetMode === 'SET'
+              ? ac.targetTotal
+              : undefined;
+            
+            // Add cash adjustment to target for non-cash classes
+            if (targetTotal !== undefined && ac.assetClass !== 'CASH') {
+              targetTotal += cashAdjustment;
+            }
+            
+            const delta = (targetTotal ?? 0) - ac.currentTotal;
             
             return (
               <tr 
                 key={ac.assetClass} 
-                className={`${ac.targetMode === 'OFF' ? 'excluded-row' : ''} ${isEditing ? 'editing-row' : ''}`}
+                className={`${displayTargetMode === 'OFF' ? 'excluded-row' : ''} ${isEditing ? 'editing-row' : ''}`}
                 onClick={() => !isEditing && startEditing(ac)}
               >
                 <td>
@@ -125,9 +195,9 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       <option value="OFF">OFF</option>
                     </select>
                   ) : (
-                    ac.targetMode === 'SET' ? (
+                    displayTargetMode === 'SET' ? (
                       <span className="set-label">SET</span>
-                    ) : ac.targetMode === 'OFF' ? (
+                    ) : displayTargetMode === 'OFF' ? (
                       <span className="off-label">OFF</span>
                     ) : (
                       <span>%</span>
@@ -142,14 +212,13 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                       onChange={(e) => setEditPercent(parseFloat(e.target.value) || 0)}
                       onClick={(e) => e.stopPropagation()}
                       className="edit-input"
-                      step="0.1"
                       min="0"
                       max="100"
                     />
                   ) : (
-                    ac.targetMode === 'PERCENTAGE' && ac.targetPercent !== undefined
-                      ? formatPercent(ac.targetPercent)
-                      : ac.targetMode === 'SET'
+                    displayTargetMode === 'PERCENTAGE' && displayTargetPercent !== undefined
+                      ? formatPercent(displayTargetPercent)
+                      : displayTargetMode === 'SET'
                       ? 'SET'
                       : 'OFF'
                   )}
@@ -157,17 +226,17 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                 <td>{formatPercent(ac.currentPercent)}</td>
                 <td className="currency-value">{formatCurrency(ac.currentTotal, currency)}</td>
                 <td className="currency-value">
-                  {ac.targetTotal !== undefined ? formatCurrency(ac.targetTotal, currency) : '-'}
+                  {targetTotal !== undefined ? formatCurrency(targetTotal, currency) : '-'}
                 </td>
-                <td className={`currency-value ${ac.delta > 0 ? 'positive' : ac.delta < 0 ? 'negative' : ''}`}>
-                  {ac.delta > 0 ? '+' : ''}{formatCurrency(ac.delta, currency)}
+                <td className={`currency-value ${delta > 0 ? 'positive' : delta < 0 ? 'negative' : ''}`}>
+                  {delta > 0 ? '+' : delta < 0 ? '-' : ''}{formatCurrency(Math.abs(delta), currency)}
                 </td>
                 <td>
                   <span 
                     className="action-badge"
-                    style={{ backgroundColor: getActionColor(ac.action) }}
+                    style={{ backgroundColor: getActionColor(getAction(ac.assetClass, delta, displayTargetMode)) }}
                   >
-                    {ac.action}
+                    {getAction(ac.assetClass, delta, displayTargetMode)}
                   </span>
                 </td>
                 <td>
@@ -182,11 +251,12 @@ export const EditableAssetClassTable: React.FC<EditableAssetClassTableProps> = (
                 </td>
               </tr>
             );
-          })}
+          });
+          })()}
           <tr className="total-row">
             <td><strong>Total Portfolio</strong></td>
             <td colSpan={3}></td>
-            <td className="currency-value"><strong>{formatCurrency(totalValue, currency)}</strong></td>
+            <td className="currency-value"><strong>{formatCurrency(totalHoldings, currency)}</strong></td>
             <td colSpan={4}></td>
           </tr>
         </tbody>
