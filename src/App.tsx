@@ -16,18 +16,20 @@ function Navigation() {
   const location = useLocation();
   
   return (
-    <nav className="app-nav">
+    <nav className="app-nav" aria-label="Main navigation">
       <Link 
         to="/asset-allocation" 
         className={`nav-link ${location.pathname === '/asset-allocation' ? 'active' : ''}`}
+        aria-current={location.pathname === '/asset-allocation' ? 'page' : undefined}
       >
-        📊 Asset Allocation
+        <span aria-hidden="true">📊</span> Asset Allocation
       </Link>
       <Link 
         to="/" 
         className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+        aria-current={location.pathname === '/' ? 'page' : undefined}
       >
-        🔥 FIRE Calculator
+        <span aria-hidden="true">🔥</span> FIRE Calculator
       </Link>
     </nav>
   );
@@ -49,13 +51,13 @@ function FIRECalculatorPage() {
 
   return (
     <div className="app-container">
-      <div className="sidebar">
+      <aside className="sidebar" role="complementary" aria-label="Calculator input controls">
         <CalculatorInputsForm inputs={inputs} onChange={setInputs} />
-      </div>
+      </aside>
 
-      <div className="main-content">
+      <main className="main-content" id="main-content">
         {hasValidationErrors && (
-          <div className="validation-error-banner">
+          <div className="validation-error-banner" role="alert" aria-live="assertive">
             <strong>⚠️ Validation Error</strong>
             {result.validationErrors?.map((error, index) => (
               <div key={index} className="validation-error-message">{error}</div>
@@ -77,7 +79,7 @@ function FIRECalculatorPage() {
             <MonteCarloSimulator inputs={inputs} />
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }
@@ -89,6 +91,8 @@ function App() {
   return (
     <Router basename={basename}>
       <div className="app">
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        
         <header className="app-header">
           <h1>🔥 FIRE Calculator</h1>
           <p>Financial Independence Retire Early - Plan Your Path to Freedom</p>
@@ -101,7 +105,7 @@ function App() {
           <Route path="/asset-allocation" element={<AssetAllocationPage />} />
         </Routes>
 
-        <footer className="app-footer">
+        <footer className="app-footer" role="contentinfo">
           <p>
             FIRE Calculator - Disclaimer: This is for educational purposes only. 
             Consult with a financial advisor for professional advice.
