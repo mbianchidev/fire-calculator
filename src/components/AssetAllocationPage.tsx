@@ -8,6 +8,33 @@ import { AddAssetDialog } from './AddAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
 import { MassEditDialog } from './MassEditDialog';
 
+/**
+ * Calculate cash delta from assets and targets.
+ * Positive = SAVE (cash target > current), Negative = INVEST (cash target < current)
+ */
+function calculateCashDelta(
+  assets: Asset[],
+  assetClassTargets: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>
+): number {
+  const cashTarget = assetClassTargets.CASH;
+  if (cashTarget?.targetMode !== 'SET') {
+    return 0;
+  }
+  
+  // Calculate cash current total
+  const cashCurrentTotal = assets
+    .filter(a => a.assetClass === 'CASH' && a.targetMode !== 'OFF')
+    .reduce((sum, a) => sum + a.currentValue, 0);
+  
+  // Calculate cash target total (sum of SET target values for cash assets)
+  const cashTargetTotal = assets
+    .filter(a => a.assetClass === 'CASH' && a.targetMode === 'SET')
+    .reduce((sum, a) => sum + (a.targetValue || 0), 0);
+  
+  // Delta = target - current (negative = INVEST, positive = SAVE)
+  return cashTargetTotal - cashCurrentTotal;
+}
+
 export const AssetAllocationPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(DEFAULT_ASSETS);
   const [currency] = useState<string>('EUR');
@@ -25,15 +52,18 @@ export const AssetAllocationPage: React.FC = () => {
     .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
     .reduce((sum, a) => sum + a.currentValue, 0);
   
-  const [allocation, setAllocation] = useState<PortfolioAllocation>(() =>
-    calculatePortfolioAllocation(DEFAULT_ASSETS, {
-      STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 60 },
-      BONDS: { targetMode: 'PERCENTAGE', targetPercent: 40 },
-      CASH: { targetMode: 'SET' },
-      CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-      REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-    }, DEFAULT_PORTFOLIO_VALUE)
-  );
+  const defaultTargets = {
+    STOCKS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 60 },
+    BONDS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 40 },
+    CASH: { targetMode: 'SET' as AllocationMode },
+    CRYPTO: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+    REAL_ESTATE: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+  };
+  
+  const [allocation, setAllocation] = useState<PortfolioAllocation>(() => {
+    const defaultCashDelta = calculateCashDelta(DEFAULT_ASSETS, defaultTargets);
+    return calculatePortfolioAllocation(DEFAULT_ASSETS, defaultTargets, DEFAULT_PORTFOLIO_VALUE, defaultCashDelta);
+  });
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
@@ -49,7 +79,9 @@ export const AssetAllocationPage: React.FC = () => {
     const pValue = newAssets
       .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
       .reduce((sum, a) => sum + a.currentValue, 0);
-    const newAllocation = calculatePortfolioAllocation(newAssets, targets, pValue);
+    // Calculate cash delta to pass to allocation calculation
+    const cashDelta = calculateCashDelta(newAssets, targets);
+    const newAllocation = calculatePortfolioAllocation(newAssets, targets, pValue, cashDelta);
     setAllocation(newAllocation);
   };
 
@@ -169,7 +201,8 @@ export const AssetAllocationPage: React.FC = () => {
     const pValue = assets
       .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
       .reduce((sum, a) => sum + a.currentValue, 0);
-    const newAllocation = calculatePortfolioAllocation(assets, updatedTargets, pValue);
+    const cashDelta = calculateCashDelta(assets, updatedTargets);
+    const newAllocation = calculatePortfolioAllocation(assets, updatedTargets, pValue, cashDelta);
     setAllocation(newAllocation);
     
     // Only update targetMode for assets in this class, not targetPercent
@@ -314,7 +347,8 @@ export const AssetAllocationPage: React.FC = () => {
       });
       setAssetClassTargets(newTargets);
       // Recalculate allocation with new targets
-      const newAllocation = calculatePortfolioAllocation(assets, newTargets, portfolioValue);
+      const cashDelta = calculateCashDelta(assets, newTargets);
+      const newAllocation = calculatePortfolioAllocation(assets, newTargets, portfolioValue, cashDelta);
       setAllocation(newAllocation);
     } else if (massEditMode === 'asset' && massEditAssetClass) {
       // Update asset percentages directly (no redistribution)

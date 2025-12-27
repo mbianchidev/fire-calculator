@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { AllocationMode, AssetClass } from '../types/assetAllocation';
+import { AllocationMode, AssetClass, Asset as TypedAsset } from '../types/assetAllocation';
+import { calculateAllocationDeltas } from './allocationCalculator';
 
 /**
  * Tests for target allocation redistribution logic.
@@ -1307,9 +1308,6 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
     // Portfolio value (non-cash) = stocks + bonds = 65k
     const portfolioValue = stocksCurrent + bondsCurrent; // 65000
     
-    // Total holdings = 75k (35k stocks + 30k bonds + 10k cash after increase)
-    const totalHoldings = stocksCurrent + bondsCurrent + cashCurrent; // 75000
-    
     // Cash delta = target - current = 5k - 10k = -5k (INVEST)
     const cashDeltaAmount = cashTarget - cashCurrent; // -5000
     
@@ -1338,14 +1336,6 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
   });
 
   it('should correctly distribute cash to bonds when stocks is 0%', () => {
-    const assetClassTargets: Record<AssetClass, AssetClassTarget> = {
-      STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-      BONDS: { targetMode: 'PERCENTAGE', targetPercent: 100 },
-      CASH: { targetMode: 'SET' },
-      CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-      REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-    };
-    
     const cashDeltaAmount = -5000; // 5k to invest
     
     // Stocks should get 0% of cash since its target is 0%
@@ -1375,5 +1365,114 @@ describe('Issue Scenario: Cash increase + 100% Bonds target', () => {
     
     expect(portfolioValueExclCash).toBe(65000);
     expect(totalHoldings).toBe(70000);
+  });
+
+  it('should distribute bonds delta (40k) correctly to individual bond assets (50/30/20 split)', () => {
+    /**
+     * Scenario from the issue:
+     * - Total bonds delta: +40k (35k from rebalancing + 5k from cash invest)
+     * - Bond allocations within class: BND 50%, TIP 30%, BNDX 20%
+     * - Expected individual deltas:
+     *   - BND: 50% of 40k = +20k
+     *   - TIP: 30% of 40k = +12k
+     *   - BNDX: 20% of 40k = +8k
+     */
+    
+    const totalBondsDelta = 40000; // Total delta including cash adjustment
+    
+    // Internal allocation percentages within bonds class
+    const bndPercent = 50;
+    const tipPercent = 30;
+    const bndxPercent = 20;
+    
+    // Calculate individual deltas based on internal allocation
+    const bndDelta = (bndPercent / 100) * totalBondsDelta;
+    const tipDelta = (tipPercent / 100) * totalBondsDelta;
+    const bndxDelta = (bndxPercent / 100) * totalBondsDelta;
+    
+    expect(bndDelta).toBe(20000);
+    expect(tipDelta).toBe(12000);
+    expect(bndxDelta).toBe(8000);
+    
+    // Total should equal the class delta
+    expect(bndDelta + tipDelta + bndxDelta).toBe(40000);
+  });
+});
+
+describe('Integration: calculateAllocationDeltas with cash adjustment', () => {
+  /**
+   * This test verifies that the actual calculateAllocationDeltas function
+   * correctly incorporates cash adjustments into individual asset deltas.
+   * 
+   * Scenario:
+   * - Stocks: 35k current, 0% target → -35k delta (SELL all)
+   * - Bonds: 30k current, 100% target
+   *   - Base delta: 65k - 30k = +35k
+   *   - Cash adjustment: +5k (from -5k cash delta being INVEST)
+   *   - Total bonds delta: +40k
+   * - Cash: 10k current, 5k target (SET) → -5k delta (INVEST)
+   * 
+   * Bond assets (50/30/20 split):
+   * - BND: 50% of 40k = +20k
+   * - TIP: 30% of 40k = +12k  
+   * - BNDX: 20% of 40k = +8k
+   */
+
+  it('should include cash adjustment in individual bond asset deltas', () => {
+    // Create test assets
+    const testAssets: TypedAsset[] = [
+      // Stocks
+      { id: 'stock1', name: 'Stock ETF', ticker: 'VTI', assetClass: 'STOCKS', subAssetType: 'ETF', currentValue: 35000, targetMode: 'PERCENTAGE', targetPercent: 100 },
+      // Bonds (50/30/20 split)
+      { id: 'bnd', name: 'BND', ticker: 'BND', assetClass: 'BONDS', subAssetType: 'ETF', currentValue: 15000, targetMode: 'PERCENTAGE', targetPercent: 50 },
+      { id: 'tip', name: 'TIP', ticker: 'TIP', assetClass: 'BONDS', subAssetType: 'ETF', currentValue: 9000, targetMode: 'PERCENTAGE', targetPercent: 30 },
+      { id: 'bndx', name: 'BNDX', ticker: 'BNDX', assetClass: 'BONDS', subAssetType: 'ETF', currentValue: 6000, targetMode: 'PERCENTAGE', targetPercent: 20 },
+      // Cash
+      { id: 'cash1', name: 'Cash', ticker: '', assetClass: 'CASH', subAssetType: 'SAVINGS_ACCOUNT', currentValue: 10000, targetMode: 'SET', targetValue: 5000 },
+    ];
+    
+    // Asset class targets: Stocks 0%, Bonds 100%, Cash SET
+    const assetClassTargets: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }> = {
+      STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      BONDS: { targetMode: 'PERCENTAGE', targetPercent: 100 },
+      CASH: { targetMode: 'SET' },
+      CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+      REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
+    };
+    
+    // Portfolio value (non-cash): stocks + bonds = 35k + 30k = 65k
+    const portfolioValue = 35000 + 15000 + 9000 + 6000; // 65k (non-cash)
+    
+    // Cash delta for distribution: target (5k) - current (10k) = -5k (INVEST)
+    const cashDeltaAmount = 5000 - 10000; // -5000
+    
+    // Calculate deltas WITH cash adjustment
+    const deltas = calculateAllocationDeltas(testAssets, portfolioValue, assetClassTargets, cashDeltaAmount);
+    
+    // Find bond asset deltas
+    const bndDelta = deltas.find(d => d.assetId === 'bnd');
+    const tipDelta = deltas.find(d => d.assetId === 'tip');
+    const bndxDelta = deltas.find(d => d.assetId === 'bndx');
+    
+    // Expected: Total bonds delta = 40k (35k rebalancing + 5k from cash)
+    // Individual deltas based on 50/30/20 split:
+    // BND: 50% of 40k = 20k → target value should be 15k + 20k = 35k (but delta is relative to target - current)
+    // Let's verify the deltas directly
+    
+    // Bonds class target value = 100% of 65k = 65k
+    // Cash adjustment for bonds = -(-5000) * (100/100) = +5k
+    // Adjusted bonds class target = 65k + 5k = 70k
+    
+    // BND target: 50% of 70k = 35k, current = 15k, delta = 35k - 15k = +20k
+    // TIP target: 30% of 70k = 21k, current = 9k, delta = 21k - 9k = +12k
+    // BNDX target: 20% of 70k = 14k, current = 6k, delta = 14k - 6k = +8k
+    
+    expect(bndDelta?.delta).toBe(20000);
+    expect(tipDelta?.delta).toBe(12000);
+    expect(bndxDelta?.delta).toBe(8000);
+    
+    // Verify total bond deltas = 40k
+    const totalBondDeltas = (bndDelta?.delta || 0) + (tipDelta?.delta || 0) + (bndxDelta?.delta || 0);
+    expect(totalBondDeltas).toBe(40000);
   });
 });
