@@ -187,7 +187,7 @@ function FIRECalculatorPage() {
 
 function App() {
   // Use base path only in production (for GitHub Pages), not in local development
-  const basename = import.meta.env.MODE === 'production' ? '/fire-calculator' : '/';
+  const basename = import.meta.env.MODE === 'production' ? '/fire-tools' : '/';
   
   // Load settings from localStorage
   const [settings, setSettings] = useState<UserSettings>(() => loadSettings());

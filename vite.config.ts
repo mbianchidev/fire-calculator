@@ -9,19 +9,19 @@ export default defineConfig(({ mode }) => ({
       name: 'handle-trailing-slash',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          // Handle /fire-calculator?params by rewriting to /fire-calculator/?params
-          // Only process exact /fire-calculator or /fire-calculator? paths
-          if (req.url === '/fire-calculator') {
-            req.url = '/fire-calculator/';
-          } else if (req.url?.startsWith('/fire-calculator?')) {
-            req.url = '/fire-calculator/' + req.url.slice('/fire-calculator'.length);
+          // Handle /fire-tools?params by rewriting to /fire-tools/?params
+          // Only process exact /fire-tools or /fire-tools? paths
+          if (req.url === '/fire-tools') {
+            req.url = '/fire-tools/';
+          } else if (req.url?.startsWith('/fire-tools?')) {
+            req.url = '/fire-tools/' + req.url.slice('/fire-tools'.length);
           }
           next();
         });
       },
     },
   ],
-  base: mode === 'production' ? '/fire-calculator/' : '/',
+  base: mode === 'production' ? '/fire-tools/' : '/',
   test: {
     globals: true,
     environment: 'jsdom',
