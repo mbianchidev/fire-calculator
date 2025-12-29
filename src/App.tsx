@@ -11,13 +11,16 @@ import { MonteCarloPage } from './components/MonteCarloPage';
 import { AssetAllocationPage } from './components/AssetAllocationPage';
 import { HomePage } from './components/HomePage';
 import { DataManagement } from './components/DataManagement';
+import { ProfileMenu } from './components/ProfileMenu';
+import { SettingsPage } from './components/SettingsPage';
 import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './utils/urlParams';
 import { saveFireCalculatorInputs, loadFireCalculatorInputs, clearAllData } from './utils/localStorage';
 import { exportFireCalculatorToCSV, importFireCalculatorFromCSV } from './utils/csvExport';
+import { loadSettings, type UserSettings } from './utils/settings';
 import './App.css';
 import './components/AssetAllocationManager.css';
 
-function Navigation() {
+function Navigation({ accountName }: { accountName: string }) {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   
@@ -57,6 +60,7 @@ function Navigation() {
           📊 Asset Allocation
         </Link>
       </div>
+      <ProfileMenu accountName={accountName} />
     </nav>
   );
 }
@@ -183,6 +187,13 @@ function App() {
   // Use base path only in production (for GitHub Pages), not in local development
   const basename = import.meta.env.MODE === 'production' ? '/fire-tools' : '/';
   
+  // Load settings from localStorage
+  const [settings, setSettings] = useState<UserSettings>(() => loadSettings());
+  
+  const handleSettingsChange = (newSettings: UserSettings) => {
+    setSettings(newSettings);
+  };
+  
   return (
     <Router basename={basename}>
       <div className="app">
@@ -191,13 +202,14 @@ function App() {
           <p>Financial Independence Retire Early - Plan Your Path to Freedom</p>
         </header>
 
-        <Navigation />
+        <Navigation accountName={settings.accountName} />
 
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/fire-calculator" element={<FIRECalculatorPage />} />
           <Route path="/monte-carlo" element={<MonteCarloPage />} />
           <Route path="/asset-allocation" element={<AssetAllocationPage />} />
+          <Route path="/settings" element={<SettingsPage onSettingsChange={handleSettingsChange} />} />
         </Routes>
 
         <footer className="app-footer">

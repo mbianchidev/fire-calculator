@@ -6,7 +6,7 @@ import {
   formatCurrencyValue,
   isValidCurrency,
 } from './currencyConverter';
-import { DEFAULT_FALLBACK_RATES, SupportedCurrency } from '../types/currency';
+import { DEFAULT_FALLBACK_RATES } from '../types/currency';
 
 describe('Currency Converter', () => {
   describe('convertToEUR', () => {
