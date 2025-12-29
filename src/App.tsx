@@ -173,8 +173,8 @@ function FIRECalculatorPage() {
             <FIREMetrics result={result} currentAge={currentAge} />
             
             <div className="charts-section">
-              <NetWorthChart projections={result.projections} fireTarget={result.fireTarget} />
-              <IncomeExpensesChart projections={result.projections} />
+              <NetWorthChart projections={result.projections} fireTarget={result.fireTarget} currentAge={currentAge} />
+              <IncomeExpensesChart projections={result.projections} currentAge={currentAge} />
             </div>
           </>
         )}
