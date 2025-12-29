@@ -41,7 +41,8 @@ export function decryptData(ciphertext: string): string | null {
     const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
     
     // If decryption results in an empty string, it likely failed
-    if (plaintext === '') {
+    // Also check if the result contains only non-printable characters
+    if (plaintext === '' || /^[\x00-\x1F\x7F-\x9F]+$/.test(plaintext)) {
       return null;
     }
     
