@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
-import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, exportToCSV, importFromCSV, formatAssetName, formatCurrency } from '../utils/allocationCalculator';
+import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, formatAssetName, formatCurrency } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
+import { saveAssetAllocation, loadAssetAllocation, clearAllData } from '../utils/localStorage';
+import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
 import { MassEditDialog } from './MassEditDialog';
 import { DCAHelperDialog } from './DCAHelperDialog';
+import { DataManagement } from './DataManagement';
 
 /**
  * Calculate cash delta from assets and targets.
@@ -37,22 +40,6 @@ function calculateCashDelta(
 }
 
 export const AssetAllocationPage: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>(DEFAULT_ASSETS);
-  const [currency] = useState<string>('EUR');
-  // Store asset class level targets independently for display in the Asset Classes table
-  const [assetClassTargets, setAssetClassTargets] = useState<Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>>({
-    STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 60 },
-    BONDS: { targetMode: 'PERCENTAGE', targetPercent: 40 },
-    CASH: { targetMode: 'SET' },
-    CRYPTO: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-    REAL_ESTATE: { targetMode: 'PERCENTAGE', targetPercent: 0 },
-  });
-  
-  // Calculate portfolio value as sum of all non-cash assets
-  const portfolioValue = assets
-    .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
-    .reduce((sum, a) => sum + a.currentValue, 0);
-  
   const defaultTargets = {
     STOCKS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 60 },
     BONDS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 40 },
@@ -60,10 +47,30 @@ export const AssetAllocationPage: React.FC = () => {
     CRYPTO: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
     REAL_ESTATE: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
   };
+
+  // Initialize from localStorage if available, otherwise use defaults
+  const [assets, setAssets] = useState<Asset[]>(() => {
+    const saved = loadAssetAllocation();
+    return saved.assets || DEFAULT_ASSETS;
+  });
+  const [currency] = useState<string>('EUR');
+  // Store asset class level targets independently for display in the Asset Classes table
+  const [assetClassTargets, setAssetClassTargets] = useState<Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>>(() => {
+    const saved = loadAssetAllocation();
+    return saved.assetClassTargets || defaultTargets;
+  });
+  
+  // Calculate portfolio value as sum of all non-cash assets
+  const portfolioValue = assets
+    .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
+    .reduce((sum, a) => sum + a.currentValue, 0);
   
   const [allocation, setAllocation] = useState<PortfolioAllocation>(() => {
-    const defaultCashDelta = calculateCashDelta(DEFAULT_ASSETS, defaultTargets);
-    return calculatePortfolioAllocation(DEFAULT_ASSETS, defaultTargets, DEFAULT_PORTFOLIO_VALUE, defaultCashDelta);
+    const saved = loadAssetAllocation();
+    const initialAssets = saved.assets || DEFAULT_ASSETS;
+    const initialTargets = saved.assetClassTargets || defaultTargets;
+    const defaultCashDelta = calculateCashDelta(initialAssets, initialTargets);
+    return calculatePortfolioAllocation(initialAssets, initialTargets, DEFAULT_PORTFOLIO_VALUE, defaultCashDelta);
   });
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -76,6 +83,11 @@ export const AssetAllocationPage: React.FC = () => {
   const [isDCADialogOpen, setIsDCADialogOpen] = useState(false);
   // Charts collapse state
   const [isChartsCollapsed, setIsChartsCollapsed] = useState(false);
+
+  // Auto-save to localStorage when assets or targets change
+  useEffect(() => {
+    saveAssetAllocation(assets, assetClassTargets);
+  }, [assets, assetClassTargets]);
 
   const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>) => {
     setAssets(newAssets);
@@ -286,7 +298,7 @@ export const AssetAllocationPage: React.FC = () => {
   };
 
   const handleExport = () => {
-    const csv = exportToCSV(allocation);
+    const csv = exportAssetAllocationToCSV(assets, assetClassTargets);
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -306,13 +318,26 @@ export const AssetAllocationPage: React.FC = () => {
     reader.onload = (e) => {
       try {
         const csv = e.target?.result as string;
-        const importedAssets = importFromCSV(csv);
-        updateAllocation(importedAssets);
+        const imported = importAssetAllocationFromCSV(csv);
+        setAssets(imported.assets);
+        setAssetClassTargets(imported.assetClassTargets);
+        updateAllocation(imported.assets, imported.assetClassTargets);
       } catch (error) {
         alert(`Error importing CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
     reader.readAsText(file);
+    // Reset the input value so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const handleResetData = () => {
+    if (confirm('Are you sure you want to reset all data? This will clear all saved data from localStorage and reset to defaults.')) {
+      clearAllData();
+      setAssets(DEFAULT_ASSETS);
+      setAssetClassTargets(defaultTargets);
+      updateAllocation(DEFAULT_ASSETS, defaultTargets);
+    }
   };
 
   // Calculate cash delta (positive = SAVE, negative = INVEST)
@@ -427,6 +452,14 @@ export const AssetAllocationPage: React.FC = () => {
           )}
         </div>
 
+        {/* Data Management Section - After "How to Use" */}
+        <DataManagement
+          onExport={handleExport}
+          onImport={handleImport}
+          onReset={handleResetData}
+          defaultOpen={false}
+        />
+
         {!allocation.isValid && (
           <div className="validation-errors">
             <strong>⚠️ Validation Errors:</strong>
@@ -441,7 +474,7 @@ export const AssetAllocationPage: React.FC = () => {
         <div className="allocation-section">
           <div className="section-header-with-actions">
             <h3>Asset Classes</h3>
-            <button onClick={handleOpenMassEditAssetClass} className="action-btn reset-btn">
+            <button onClick={handleOpenMassEditAssetClass} className="btn-mass-edit" style={{ marginLeft: '1rem' }}>
               ✏️ Edit All
             </button>
           </div>
@@ -500,27 +533,15 @@ export const AssetAllocationPage: React.FC = () => {
           <div className="section-header-with-actions">
             <h3>Portfolio Details by Asset Class</h3>
             <div className="table-actions">
-              <button onClick={() => setIsDCADialogOpen(true)} className="action-btn dca-btn">
+              <button onClick={() => setIsDCADialogOpen(true)} className="action-btn" style={{ background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)', color: 'white' }}>
                 💰 DCA Helper
               </button>
               <button onClick={() => setIsDialogOpen(true)} className="action-btn primary-btn">
                 ➕ Add Asset
               </button>
-              <button onClick={handleStartFromScratch} className="action-btn reset-btn">
-                🔄 Reset
+              <button onClick={handleStartFromScratch} className="action-btn" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white' }}>
+                🔄 Reset Assets
               </button>
-              <button onClick={handleExport} className="action-btn export-btn">
-                📥 Export CSV
-              </button>
-              <label className="action-btn import-btn">
-                📤 Import CSV
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleImport}
-                  style={{ display: 'none' }}
-                />
-              </label>
             </div>
           </div>
           <CollapsibleAllocationTable
