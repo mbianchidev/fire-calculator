@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Asset, AssetClass, SubAssetType, AllocationMode } from '../types/assetAllocation';
+import { SupportedCurrency, SUPPORTED_CURRENCIES } from '../types/currency';
 import { formatAssetName } from '../utils/allocationCalculator';
+import { convertToEUR } from '../utils/currencyConverter';
+import { loadSettings } from '../utils/settings';
 
 interface AddAssetDialogProps {
   isOpen: boolean;
@@ -43,8 +46,12 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
   const [ticker, setTicker] = useState('');
   const [isin, setIsin] = useState('');
   const [currentValue, setCurrentValue] = useState<string>('0');
+  const [currency, setCurrency] = useState<SupportedCurrency>('EUR');
   const [targetMode, setTargetMode] = useState<AllocationMode>('PERCENTAGE');
   const [targetPercent, setTargetPercent] = useState<string>('0');
+
+  // Get fallback rates from settings
+  const settings = loadSettings();
 
   const handleAssetClassChange = (newClass: AssetClass) => {
     setAssetClass(newClass);
@@ -92,6 +99,12 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     const generatedTicker = ticker.trim().toUpperCase() || 
       `${name.trim().substring(0, 4).toUpperCase()}${Date.now().toString().slice(-4)}`;
 
+    // Convert value to EUR if entered in another currency
+    const originalValue = parseFloat(currentValue) || 0;
+    const valueInEUR = currency === 'EUR' 
+      ? originalValue 
+      : convertToEUR(originalValue, currency, settings.currencySettings.fallbackRates);
+
     const newAsset: Asset = {
       id: `asset-${Date.now()}`,
       name: name.trim(),
@@ -99,10 +112,12 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
       isin: ISIN_REQUIRED.includes(subAssetType) ? isin.trim().toUpperCase() : undefined,
       assetClass,
       subAssetType,
-      currentValue: parseFloat(currentValue) || 0,
+      currentValue: valueInEUR,
+      originalCurrency: currency !== 'EUR' ? currency : undefined,
+      originalValue: currency !== 'EUR' ? originalValue : undefined,
       targetMode,
       targetPercent: targetMode === 'PERCENTAGE' ? (parseFloat(targetPercent) || 0) : undefined,
-      targetValue: targetMode === 'SET' ? (parseFloat(currentValue) || 0) : undefined,
+      targetValue: targetMode === 'SET' ? valueInEUR : undefined,
     };
 
     onAdd(newAsset);
@@ -112,6 +127,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     setTicker('');
     setIsin('');
     setCurrentValue('0');
+    setCurrency('EUR');
     setTargetPercent('0');
     onClose();
   };
@@ -202,16 +218,41 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
             )}
           </div>
 
-          <div className="form-group">
-            <label>Current Value (EUR) *</label>
-            <input
-              type="text"
-              value={currentValue}
-              onChange={(e) => setCurrentValue(e.target.value)}
-              className="dialog-input"
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label>Current Value *</label>
+              <input
+                type="text"
+                value={currentValue}
+                onChange={(e) => setCurrentValue(e.target.value)}
+                className="dialog-input"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
+                className="dialog-select"
+              >
+                {SUPPORTED_CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+
+          {currency !== 'EUR' && (
+            <div className="currency-conversion-note">
+              💱 Value will be converted to EUR using the current exchange rate.
+              <br />
+              <small>Rate: 1 {currency} = {settings.currencySettings.fallbackRates[currency]} EUR</small>
+            </div>
+          )}
 
           <div className="form-row">
             <div className="form-group">

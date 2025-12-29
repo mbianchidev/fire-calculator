@@ -1697,6 +1697,31 @@ select:disabled {
   font-size: 0.9rem;
 }
 
+/* Currency conversion note */
+.currency-conversion-note {
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #1565c0;
+  margin-top: -0.5rem;
+}
+
+.currency-conversion-note small {
+  color: #1976d2;
+  font-weight: 500;
+}
+
+/* Currency indicator in tables */
+.currency-indicator {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+  display: block;
+  margin-top: 2px;
+}
+
 /* Override for Firefox */
 @-moz-document url-prefix() {
   select {
