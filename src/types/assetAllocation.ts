@@ -2,6 +2,8 @@
  * Asset Allocation Manager Types
  */
 
+import { SupportedCurrency } from './currency';
+
 export type AllocationMode = 'PERCENTAGE' | 'OFF' | 'SET';
 
 export type AssetClass = 'STOCKS' | 'BONDS' | 'CASH' | 'CRYPTO' | 'REAL_ESTATE';
@@ -26,9 +28,11 @@ export interface Asset {
   isin?: string; // ISIN code (required for ETF, SINGLE_STOCK, SINGLE_BOND, REIT, MONEY_ETF)
   assetClass: AssetClass;
   subAssetType: SubAssetType;
-  currentValue: number;
+  currentValue: number; // Value in EUR (converted if entered in another currency)
+  originalCurrency?: SupportedCurrency; // The currency the value was originally entered in (defaults to EUR)
+  originalValue?: number; // The original value before conversion to EUR
   targetMode: AllocationMode;
-  targetValue?: number; // For SET mode (fixed amount)
+  targetValue?: number; // For SET mode (fixed amount in EUR)
   targetPercent?: number; // For PERCENTAGE mode
 }
 
