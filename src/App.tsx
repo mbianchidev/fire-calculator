@@ -11,7 +11,7 @@ import { MonteCarloPage } from './components/MonteCarloPage';
 import { AssetAllocationPage } from './components/AssetAllocationPage';
 import { HomePage } from './components/HomePage';
 import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './utils/urlParams';
-import { saveFireCalculatorInputs, loadFireCalculatorInputs } from './utils/localStorage';
+import { saveFireCalculatorInputs, loadFireCalculatorInputs, clearAllData } from './utils/localStorage';
 import { exportFireCalculatorToCSV, importFireCalculatorFromCSV } from './utils/csvExport';
 import './App.css';
 import './components/AssetAllocationManager.css';
@@ -133,6 +133,13 @@ function FIRECalculatorPage() {
     event.target.value = '';
   };
 
+  const handleResetData = () => {
+    if (confirm('Are you sure you want to reset all data? This will clear all saved data from localStorage and reset to defaults.')) {
+      clearAllData();
+      setInputs(DEFAULT_INPUTS);
+    }
+  };
+
   return (
     <div className="app-container">
       <div className="sidebar">
@@ -143,7 +150,7 @@ function FIRECalculatorPage() {
           <button onClick={handleExportCSV} className="action-btn export-btn" style={{ width: '100%', marginBottom: '8px' }}>
             📥 Export CSV
           </button>
-          <label className="action-btn import-btn" style={{ width: '100%', display: 'block', textAlign: 'center', cursor: 'pointer' }}>
+          <label className="action-btn import-btn" style={{ width: '100%', display: 'block', textAlign: 'center', cursor: 'pointer', marginBottom: '8px' }}>
             📤 Import CSV
             <input
               type="file"
@@ -152,6 +159,9 @@ function FIRECalculatorPage() {
               style={{ display: 'none' }}
             />
           </label>
+          <button onClick={handleResetData} className="action-btn reset-btn" style={{ width: '100%', backgroundColor: '#ef4444', color: 'white' }}>
+            🔄 Reset All Data
+          </button>
         </div>
       </div>
 

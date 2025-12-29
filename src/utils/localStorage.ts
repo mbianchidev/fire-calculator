@@ -158,6 +158,15 @@ export function clearFireCalculatorInputs(): void {
 }
 
 /**
+ * Clear all FIRE Calculator data from localStorage
+ * This includes both Asset Allocation and FIRE Calculator inputs
+ */
+export function clearAllData(): void {
+  clearAssetAllocation();
+  clearFireCalculatorInputs();
+}
+
+/**
  * Check if localStorage is available and working
  */
 export function isLocalStorageAvailable(): boolean {
