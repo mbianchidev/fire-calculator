@@ -7,6 +7,23 @@ import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs
 import { DEFAULT_INPUTS } from '../utils/defaults';
 import './SettingsPage.css';
 
+// Helper to format number with decimal separator
+const formatWithSeparator = (value: number, decimalSeparator: '.' | ','): string => {
+  const str = value.toString();
+  if (decimalSeparator === ',') {
+    return str.replace('.', ',');
+  }
+  return str;
+};
+
+// Helper to parse number with decimal separator
+const parseWithSeparator = (value: string, decimalSeparator: '.' | ','): number => {
+  if (decimalSeparator === ',') {
+    return parseFloat(value.replace(',', '.'));
+  }
+  return parseFloat(value);
+};
+
 interface SettingsPageProps {
   onSettingsChange?: (settings: UserSettings) => void;
 }
@@ -16,6 +33,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [rateTextValues, setRateTextValues] = useState<Record<string, string>>({});
+
+  // Initialize rate text values when settings load or decimal separator changes
+  useEffect(() => {
+    const textValues: Record<string, string> = {};
+    SUPPORTED_CURRENCIES.filter(c => c.code !== 'EUR').forEach((currency) => {
+      const rate = settings.currencySettings.fallbackRates[currency.code] ?? DEFAULT_FALLBACK_RATES[currency.code];
+      textValues[currency.code] = formatWithSeparator(rate, settings.decimalSeparator);
+    });
+    setRateTextValues(textValues);
+  }, [settings.currencySettings.fallbackRates, settings.decimalSeparator]);
 
   // Load settings on mount
   useEffect(() => {
@@ -60,6 +88,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
     saveSettings(newSettings);
     onSettingsChange?.(newSettings);
     showMessage('success', `${currency} rate updated!`);
+  };
+
+  // Handle rate text input change (while typing)
+  const handleRateTextChange = (currency: SupportedCurrency, textValue: string) => {
+    setRateTextValues(prev => ({ ...prev, [currency]: textValue }));
+  };
+
+  // Handle rate text input blur (commit change)
+  const handleRateTextBlur = (currency: SupportedCurrency) => {
+    const textValue = rateTextValues[currency] || '';
+    const parsed = parseWithSeparator(textValue, settings.decimalSeparator);
+    
+    if (isNaN(parsed) || parsed <= 0) {
+      // Reset to current value on invalid input
+      const currentRate = settings.currencySettings.fallbackRates[currency] ?? DEFAULT_FALLBACK_RATES[currency];
+      setRateTextValues(prev => ({ 
+        ...prev, 
+        [currency]: formatWithSeparator(currentRate, settings.decimalSeparator) 
+      }));
+      if (isNaN(parsed)) {
+        showMessage('error', 'Please enter a valid number');
+      } else {
+        showMessage('error', 'Rate must be a positive number');
+      }
+      return;
+    }
+    
+    handleFallbackRateChange(currency, parsed);
   };
 
   // Reset fallback rates to defaults
@@ -238,11 +294,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                   <span className="rate-prefix">1 {currency.code} =</span>
                   <input
                     id={`rate-${currency.code}`}
-                    type="number"
-                    step="0.0001"
-                    min="0.0001"
-                    value={settings.currencySettings.fallbackRates[currency.code] ?? DEFAULT_FALLBACK_RATES[currency.code]}
-                    onChange={(e) => handleFallbackRateChange(currency.code, parseFloat(e.target.value))}
+                    type="text"
+                    value={rateTextValues[currency.code] ?? formatWithSeparator(
+                      settings.currencySettings.fallbackRates[currency.code] ?? DEFAULT_FALLBACK_RATES[currency.code],
+                      settings.decimalSeparator
+                    )}
+                    onChange={(e) => handleRateTextChange(currency.code, e.target.value)}
+                    onBlur={() => handleRateTextBlur(currency.code)}
                   />
                   <span className="rate-suffix">EUR</span>
                 </div>
