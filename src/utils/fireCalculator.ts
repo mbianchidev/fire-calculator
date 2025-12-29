@@ -15,6 +15,41 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
     validationErrors.push(`Asset allocation must sum to 100%, currently ${allocationSum.toFixed(2)}%`);
   }
   
+  // Validate withdrawal rate (must not be negative)
+  if (inputs.desiredWithdrawalRate < 0) {
+    validationErrors.push('Withdrawal rate cannot be negative');
+  }
+  
+  // Validate reasonable ranges for inputs to prevent calculation errors
+  if (inputs.currentAnnualExpenses < 0) {
+    validationErrors.push('Current annual expenses cannot be negative');
+  }
+  
+  if (inputs.fireAnnualExpenses < 0) {
+    validationErrors.push('FIRE annual expenses cannot be negative');
+  }
+  
+  if (inputs.annualLaborIncome < 0) {
+    validationErrors.push('Annual labor income cannot be negative');
+  }
+  
+  if (inputs.maxAge < currentAge) {
+    validationErrors.push('Maximum age must be greater than or equal to current age');
+  }
+  
+  if (inputs.maxAge > 150) {
+    validationErrors.push('Maximum age must be 150 or less');
+  }
+  
+  // Check for extreme values that could cause calculation issues
+  const MAX_SAFE_VALUE = Number.MAX_SAFE_INTEGER / 1000; // Conservative limit
+  if (inputs.initialSavings > MAX_SAFE_VALUE || 
+      inputs.currentAnnualExpenses > MAX_SAFE_VALUE ||
+      inputs.fireAnnualExpenses > MAX_SAFE_VALUE ||
+      inputs.annualLaborIncome > MAX_SAFE_VALUE) {
+    validationErrors.push('Input values are too large for calculation');
+  }
+  
   // If there are validation errors, return early with empty projections
   if (validationErrors.length > 0) {
     return {
@@ -27,24 +62,38 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
   }
   
   // Calculate FIRE target based on desired withdrawal rate
-  if (inputs.desiredWithdrawalRate <= 0) {
-    throw new Error('desiredWithdrawalRate must be greater than 0');
+  // Special case: if withdrawal rate is 0, FIRE is achieved immediately
+  let fireTarget: number;
+  if (inputs.desiredWithdrawalRate === 0) {
+    fireTarget = 0; // FIRE is achieved with any amount if withdrawal rate is 0
+  } else {
+    fireTarget = inputs.fireAnnualExpenses / (inputs.desiredWithdrawalRate / 100);
+    // Check if fireTarget is reasonable
+    if (!isFinite(fireTarget) || fireTarget > MAX_SAFE_VALUE) {
+      validationErrors.push('FIRE target calculation resulted in an invalid value');
+      return {
+        projections: [],
+        yearsToFIRE: -1,
+        fireTarget: 0,
+        finalPortfolioValue: 0,
+        validationErrors,
+      };
+    }
   }
-  const fireTarget = inputs.fireAnnualExpenses / (inputs.desiredWithdrawalRate / 100);
   
   let portfolioValue = inputs.initialSavings;
   let laborIncome = inputs.annualLaborIncome;
-  let isFIREAchieved = false;
-  let yearsToFIRE = -1;
+  let isFIREAchieved = inputs.desiredWithdrawalRate === 0; // FIRE achieved immediately if withdrawal rate is 0
+  let yearsToFIRE = inputs.desiredWithdrawalRate === 0 ? 0 : -1;
   
-  // Project up to 50 years or until age 100
-  const maxYears = Math.min(50, 100 - currentAge);
+  // Project from current age to maxAge
+  const maxYears = Math.max(0, inputs.maxAge - currentAge + 1);
   
   for (let i = 0; i < maxYears; i++) {
     const year = currentYear + i;
     const age = currentAge + i;
     
-    // Check if FIRE is achieved
+    // Check if FIRE is achieved (skip if already achieved at start due to withdrawal rate = 0)
     const justAchievedFIRE = !isFIREAchieved && portfolioValue >= fireTarget;
     if (justAchievedFIRE) {
       isFIREAchieved = true;
@@ -102,9 +151,19 @@ export function calculateFIRE(inputs: CalculatorInputs): CalculationResult {
     // Update portfolio for next year
     portfolioValue = portfolioValue + portfolioChange;
     
+    // Safety check: if portfolio value becomes too large or invalid, stop calculation
+    const MAX_SAFE_VALUE = Number.MAX_SAFE_INTEGER / 1000;
+    if (!isFinite(portfolioValue) || Math.abs(portfolioValue) > MAX_SAFE_VALUE) {
+      break;
+    }
+    
     // Grow labor income
     if (isWorking) {
       laborIncome = laborIncome * (1 + inputs.laborIncomeGrowthRate / 100);
+      // Safety check for labor income growth
+      if (!isFinite(laborIncome) || laborIncome > MAX_SAFE_VALUE) {
+        laborIncome = MAX_SAFE_VALUE;
+      }
     }
     
     // Stop if portfolio is significantly depleted
