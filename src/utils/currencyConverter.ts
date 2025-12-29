@@ -26,9 +26,11 @@ export function convertToEUR(
     return amount;
   }
   
+  // First try custom rates, then fallback to defaults
   const rate = rates[fromCurrency] ?? DEFAULT_FALLBACK_RATES[fromCurrency];
-  if (rate === undefined) {
-    console.warn(`No exchange rate found for ${fromCurrency}, returning original amount`);
+  if (rate === undefined || rate <= 0) {
+    // This should never happen for SupportedCurrency types, but handle gracefully
+    console.error(`Invalid exchange rate for ${fromCurrency}. Using 1:1 conversion as fallback.`);
     return amount;
   }
   
