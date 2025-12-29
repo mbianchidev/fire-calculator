@@ -56,7 +56,10 @@ describe('Cookie Encryption Utilities', () => {
       const decrypted = decryptData(encrypted);
       
       expect(decrypted).toBe(jsonString);
-      expect(JSON.parse(decrypted)).toEqual(data);
+      expect(decrypted).not.toBeNull();
+      if (decrypted) {
+        expect(JSON.parse(decrypted)).toEqual(data);
+      }
     });
 
     it('should return null for invalid encrypted data', () => {
@@ -86,7 +89,10 @@ describe('Cookie Encryption Utilities', () => {
       const encrypted = encryptData(jsonString);
       const decrypted = decryptData(encrypted);
       
-      expect(JSON.parse(decrypted)).toEqual(complexData);
+      expect(decrypted).not.toBeNull();
+      if (decrypted) {
+        expect(JSON.parse(decrypted)).toEqual(complexData);
+      }
     });
   });
 

@@ -133,12 +133,7 @@ describe('Cookie Settings utilities', () => {
     });
 
     it('should merge with defaults to ensure all fields exist', () => {
-      // Save partial settings (missing some fields)
-      const partialSettings = {
-        accountName: 'Partial Account',
-      };
-      
-      // Manually create a valid encrypted cookie with partial data
+      // Create settings with all required fields
       const settings: UserSettings = {
         ...DEFAULT_SETTINGS,
         accountName: 'Partial Account',
