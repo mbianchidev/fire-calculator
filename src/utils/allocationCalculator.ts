@@ -39,17 +39,26 @@ export function groupAssetsByClass(assets: Asset[]): Map<AssetClass, Asset[]> {
  */
 export function calculateAssetClassSummaries(
   assets: Asset[],
-  totalValue: number
+  totalValue: number,
+  totalHoldings?: number,
+  assetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>
 ): AssetClassSummary[] {
   const grouped = groupAssetsByClass(assets);
   const summaries: AssetClassSummary[] = [];
+  
+  // Use totalHoldings for current percentage display if provided, otherwise fall back to totalValue
+  // totalHoldings represents all assets including cash (for display)
+  // totalValue represents portfolio value excluding cash (for target calculations)
+  const percentageBase = totalHoldings ?? totalValue;
   
   grouped.forEach((classAssets, assetClass) => {
     const currentTotal = classAssets.reduce((sum, asset) => {
       return sum + (asset.targetMode === 'OFF' ? 0 : asset.currentValue);
     }, 0);
     
-    const currentPercent = totalValue > 0 ? (currentTotal / totalValue) * 100 : 0;
+    // currentPercent should be based on total holdings (all assets) for accurate display
+    // This fixes the bug where percentages could exceed 100% when cash was excluded from denominator
+    const currentPercent = percentageBase > 0 ? (currentTotal / percentageBase) * 100 : 0;
     
     // Determine class-level target
     let targetMode: AllocationMode = 'PERCENTAGE';
@@ -68,8 +77,18 @@ export function calculateAssetClassSummaries(
         }
         return sum;
       }, 0);
+    } else if (assetClassTargets && assetClassTargets[assetClass]) {
+      // Use class-level target from assetClassTargets if provided (preferred path)
+      const classTarget = assetClassTargets[assetClass];
+      targetMode = classTarget.targetMode;
+      targetPercent = classTarget.targetPercent;
+      if (targetMode === 'PERCENTAGE' && targetPercent !== undefined) {
+        targetTotal = totalValue > 0 ? (targetPercent / 100) * totalValue : 0;
+      }
     } else {
-      // Calculate percentage target
+      // Fallback: Calculate percentage target from individual assets
+      // This path is for backward compatibility when assetClassTargets is not provided
+      // Note: Individual asset percentages sum to 100% within the class, not the portfolio
       targetPercent = classAssets.reduce((sum, asset) => {
         if (asset.targetMode === 'PERCENTAGE') {
           return sum + (asset.targetPercent || 0);
@@ -133,15 +152,20 @@ export function determineAction(
  * @param totalValue - Portfolio value (typically excluding cash)
  * @param assetClassTargets - Class-level target configurations
  * @param cashDeltaAmount - Cash delta (positive = SAVE/subtract from other classes, negative = INVEST/add to other classes)
+ * @param totalHoldings - Total holdings including cash (for currentPercent display)
  */
 export function calculateAllocationDeltas(
   assets: Asset[],
   totalValue: number,
   assetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>,
-  cashDeltaAmount?: number
+  cashDeltaAmount?: number,
+  totalHoldings?: number
 ): AllocationDelta[] {
   const deltas: AllocationDelta[] = [];
   const grouped = groupAssetsByClass(assets);
+  
+  // Use totalHoldings for current percentage display if provided, otherwise fall back to totalValue
+  const percentageBase = totalHoldings ?? totalValue;
   
   // Calculate total non-cash percentage for proportional cash distribution
   let nonCashPercentageTotal = 0;
@@ -216,7 +240,8 @@ export function calculateAllocationDeltas(
         return;
       }
       
-      const currentPercent = totalValue > 0 ? (asset.currentValue / totalValue) * 100 : 0;
+      // currentPercent should be based on totalHoldings (all assets) for accurate display
+      const currentPercent = percentageBase > 0 ? (asset.currentValue / percentageBase) * 100 : 0;
       const currentPercentInClass = classTotal > 0 ? (asset.currentValue / classTotal) * 100 : 0;
       
       let targetValue = 0;
@@ -315,10 +340,11 @@ export function calculatePortfolioAllocation(
 ): PortfolioAllocation {
   const validation = validateAllocation(assets);
   const totalValue = portfolioValue ?? calculateTotalValue(assets);
-  // Calculate total holdings including all assets (for display purposes)
+  // Calculate total holdings including all assets (for display purposes and currentPercent calculation)
   const totalHoldings = assets.reduce((sum, a) => sum + a.currentValue, 0);
-  const assetClasses = calculateAssetClassSummaries(assets, totalValue);
-  const deltas = calculateAllocationDeltas(assets, totalValue, assetClassTargets, cashDeltaAmount);
+  // Pass totalHoldings and assetClassTargets so calculations are correct
+  const assetClasses = calculateAssetClassSummaries(assets, totalValue, totalHoldings, assetClassTargets);
+  const deltas = calculateAllocationDeltas(assets, totalValue, assetClassTargets, cashDeltaAmount, totalHoldings);
   
   return {
     assets,
