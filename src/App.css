@@ -4,6 +4,17 @@
   padding: 0;
 }
 
+/* Global focus styles for keyboard accessibility */
+*:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Remove focus styles for mouse users (keeps them for keyboard) */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -88,6 +99,11 @@ body {
   transform: scale(1.1);
 }
 
+.nav-toggle:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
 .nav-toggle:active {
   transform: scale(0.95);
 }
@@ -121,6 +137,11 @@ body {
 .nav-link:hover {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.nav-link:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
 }
 
 .nav-link.active {
@@ -224,7 +245,8 @@ body {
 
 .form-group input[type="number"]:focus,
 .form-group input[type="text"]:focus {
-  outline: none;
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
   border-color: #667eea;
 }
 
@@ -377,6 +399,11 @@ body {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
+.share-button:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
 .share-button:active {
   transform: translateY(0);
 }
@@ -502,6 +529,11 @@ body {
 .run-simulation-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.run-simulation-btn:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
 }
 
 .run-simulation-btn:disabled {
@@ -766,6 +798,18 @@ body {
 
   .main-content {
     padding: 3rem;
+  }
+}
+
+/* Reduced motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
