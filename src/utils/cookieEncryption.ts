@@ -52,8 +52,9 @@ export function decryptData(ciphertext: string): string | null {
     }
     
     return plaintext;
-  } catch (error) {
-    console.error('Failed to decrypt data:', error);
+  } catch {
+    // Silently return null for invalid/corrupted encrypted data
+    // This is expected behavior when data format is incorrect
     return null;
   }
 }
