@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { AllocationMode, AssetClass, Asset as TypedAsset } from '../types/assetAllocation';
-import { calculateAllocationDeltas } from './allocationCalculator';
+import { calculateAllocationDeltas, calculateAssetClassSummaries, calculatePortfolioAllocation } from './allocationCalculator';
 
 /**
  * Tests for target allocation redistribution logic.
@@ -1887,5 +1887,284 @@ describe('Integration: calculateAllocationDeltas with cash adjustment', () => {
     // Verify total bond deltas = 40k
     const totalBondDeltas = (bndDelta?.delta || 0) + (tipDelta?.delta || 0) + (bndxDelta?.delta || 0);
     expect(totalBondDeltas).toBe(40000);
+  });
+});
+
+/**
+ * Bug fix tests for allocation percentage calculations
+ * 
+ * Bug 1: Allocation percentages can exceed 100%
+ * The sum of current allocation percentages should never exceed 100%
+ * because they represent the proportion of each class relative to total holdings.
+ */
+describe('Allocation Percentage Bug Fixes', () => {
+  describe('Bug 1: Current allocation percentages must sum to 100% or less', () => {
+    it('should calculate currentPercent based on total holdings, not portfolio value', () => {
+      // This test replicates the bug scenario from the issue:
+      // Portfolio with €220,000 total holdings after DCA
+      // - STOCKS: €170,000 
+      // - BONDS: €45,000
+      // - CASH: €5,000
+      
+      const assets: TypedAsset[] = [
+        // Stocks
+        {
+          id: 'spy',
+          name: 'S&P 500 Index ETF',
+          ticker: 'SPY',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 68000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 40,
+        },
+        {
+          id: 'vti',
+          name: 'Vanguard Total Stock Market',
+          ticker: 'VTI',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 45900,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 27,
+        },
+        {
+          id: 'vxus',
+          name: 'International Developed Markets',
+          ticker: 'VXUS',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 28900,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 17,
+        },
+        {
+          id: 'vwo',
+          name: 'Emerging Markets ETF',
+          ticker: 'VWO',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 17000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 10,
+        },
+        {
+          id: 'vbr',
+          name: 'Small Cap Value',
+          ticker: 'VBR',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 10200,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 6,
+        },
+        // Bonds
+        {
+          id: 'bnd',
+          name: 'Total Bond Market',
+          ticker: 'BND',
+          assetClass: 'BONDS',
+          subAssetType: 'ETF',
+          currentValue: 25000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 50,
+        },
+        {
+          id: 'tip',
+          name: 'Treasury Inflation Protected',
+          ticker: 'TIP',
+          assetClass: 'BONDS',
+          subAssetType: 'ETF',
+          currentValue: 12000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 30,
+        },
+        {
+          id: 'bndx',
+          name: 'International Bonds',
+          ticker: 'BNDX',
+          assetClass: 'BONDS',
+          subAssetType: 'ETF',
+          currentValue: 8000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 20,
+        },
+        // Cash
+        {
+          id: 'cash1',
+          name: 'Emergency Fund',
+          ticker: 'CASH',
+          assetClass: 'CASH',
+          subAssetType: 'SAVINGS_ACCOUNT',
+          currentValue: 5000,
+          targetMode: 'SET',
+          targetValue: 5000,
+        },
+      ];
+      
+      // Total holdings = 68000 + 45900 + 28900 + 17000 + 10200 + 25000 + 12000 + 8000 + 5000 = 220000
+      const totalHoldings = assets.reduce((sum, a) => sum + a.currentValue, 0);
+      expect(totalHoldings).toBe(220000);
+      
+      // Portfolio value (excl. cash) = 215000
+      const portfolioValue = assets
+        .filter(a => a.assetClass !== 'CASH' && a.targetMode !== 'OFF')
+        .reduce((sum, a) => sum + a.currentValue, 0);
+      expect(portfolioValue).toBe(215000);
+      
+      // Calculate asset class summaries
+      // Pass totalHoldings (220k) so currentPercent is calculated correctly
+      const summaries = calculateAssetClassSummaries(assets, portfolioValue, totalHoldings);
+      
+      // Find the summaries by asset class
+      const stocksSummary = summaries.find(s => s.assetClass === 'STOCKS')!;
+      const bondsSummary = summaries.find(s => s.assetClass === 'BONDS')!;
+      const cashSummary = summaries.find(s => s.assetClass === 'CASH')!;
+      
+      // Verify current totals
+      expect(stocksSummary.currentTotal).toBe(170000);
+      expect(bondsSummary.currentTotal).toBe(45000);
+      expect(cashSummary.currentTotal).toBe(5000);
+      
+      // THE KEY TEST: Current percentages should be based on total holdings (220k)
+      // and should sum to 100% (or less if some assets are OFF)
+      const totalCurrentPercent = stocksSummary.currentPercent + bondsSummary.currentPercent + cashSummary.currentPercent;
+      
+      // This should be 100% (or very close due to rounding)
+      expect(totalCurrentPercent).toBeLessThanOrEqual(100.01);
+      expect(totalCurrentPercent).toBeGreaterThanOrEqual(99.99);
+      
+      // Individual percentages should be correct
+      expect(stocksSummary.currentPercent).toBeCloseTo(77.27, 1); // 170000/220000
+      expect(bondsSummary.currentPercent).toBeCloseTo(20.45, 1);  // 45000/220000
+      expect(cashSummary.currentPercent).toBeCloseTo(2.27, 1);    // 5000/220000
+    });
+    
+    it('should have currentPercent sum to 100% in calculatePortfolioAllocation', () => {
+      // Simple portfolio with different allocations
+      const assets: TypedAsset[] = [
+        {
+          id: 'stock1',
+          name: 'Stock ETF',
+          ticker: 'VTI',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 60000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 100,
+        },
+        {
+          id: 'bond1',
+          name: 'Bond ETF',
+          ticker: 'BND',
+          assetClass: 'BONDS',
+          subAssetType: 'ETF',
+          currentValue: 30000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 100,
+        },
+        {
+          id: 'cash1',
+          name: 'Cash',
+          ticker: 'CASH',
+          assetClass: 'CASH',
+          subAssetType: 'SAVINGS_ACCOUNT',
+          currentValue: 10000,
+          targetMode: 'SET',
+          targetValue: 10000,
+        },
+      ];
+      
+      const assetClassTargets = {
+        STOCKS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 60 },
+        BONDS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 40 },
+        CASH: { targetMode: 'SET' as AllocationMode },
+        CRYPTO: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+      };
+      
+      // Total holdings = 100000
+      // Portfolio value (excl. cash) = 90000
+      const portfolioValue = 90000;
+      
+      const allocation = calculatePortfolioAllocation(assets, assetClassTargets, portfolioValue);
+      
+      // Total holdings should be 100000
+      expect(allocation.totalHoldings).toBe(100000);
+      
+      // Sum of currentPercent across all asset classes should be 100% (or less if some are OFF)
+      const totalCurrentPercent = allocation.assetClasses.reduce(
+        (sum, ac) => sum + ac.currentPercent, 
+        0
+      );
+      
+      expect(totalCurrentPercent).toBeLessThanOrEqual(100.01);
+      expect(totalCurrentPercent).toBeGreaterThanOrEqual(99.99);
+    });
+    
+    it('should calculate correct currentPercent for individual assets using total holdings', () => {
+      const assets: TypedAsset[] = [
+        {
+          id: 'stock1',
+          name: 'Stock ETF',
+          ticker: 'VTI',
+          assetClass: 'STOCKS',
+          subAssetType: 'ETF',
+          currentValue: 50000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 100,
+        },
+        {
+          id: 'bond1',
+          name: 'Bond ETF',
+          ticker: 'BND',
+          assetClass: 'BONDS',
+          subAssetType: 'ETF',
+          currentValue: 40000,
+          targetMode: 'PERCENTAGE',
+          targetPercent: 100,
+        },
+        {
+          id: 'cash1',
+          name: 'Cash',
+          ticker: 'CASH',
+          assetClass: 'CASH',
+          subAssetType: 'SAVINGS_ACCOUNT',
+          currentValue: 10000,
+          targetMode: 'SET',
+          targetValue: 10000,
+        },
+      ];
+      
+      const assetClassTargets = {
+        STOCKS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 60 },
+        BONDS: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 40 },
+        CASH: { targetMode: 'SET' as AllocationMode },
+        CRYPTO: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+        REAL_ESTATE: { targetMode: 'PERCENTAGE' as AllocationMode, targetPercent: 0 },
+      };
+      
+      // Portfolio value (excl. cash) = 90000
+      const portfolioValue = 90000;
+      
+      const allocation = calculatePortfolioAllocation(assets, assetClassTargets, portfolioValue);
+      
+      // Find deltas
+      const stockDelta = allocation.deltas.find(d => d.assetId === 'stock1')!;
+      const bondDelta = allocation.deltas.find(d => d.assetId === 'bond1')!;
+      const cashDelta = allocation.deltas.find(d => d.assetId === 'cash1')!;
+      
+      // Current percentages should be based on total holdings (100k)
+      // Stock: 50000/100000 = 50%
+      // Bond: 40000/100000 = 40%
+      // Cash: 10000/100000 = 10%
+      expect(stockDelta.currentPercent).toBeCloseTo(50, 1);
+      expect(bondDelta.currentPercent).toBeCloseTo(40, 1);
+      expect(cashDelta.currentPercent).toBeCloseTo(10, 1);
+      
+      // Sum should be 100%
+      const totalPercent = stockDelta.currentPercent + bondDelta.currentPercent + cashDelta.currentPercent;
+      expect(totalPercent).toBeCloseTo(100, 1);
+    });
   });
 });
