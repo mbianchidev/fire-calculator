@@ -43,18 +43,16 @@ export const MonteCarloChart: React.FC<MonteCarloChartProps> = ({ result }) => {
     const binSize = Math.ceil(range / binCount) || 1;
     
     const bins: DistributionBin[] = [];
-    for (let i = 0; i <= binCount; i++) {
+    for (let i = 0; i < binCount; i++) {
       const binStart = minYears + (i * binSize);
       const binEnd = binStart + binSize - 1;
       const count = successfulYears.filter(y => y >= binStart && y <= binEnd).length;
       
-      if (count > 0 || i < binCount) {
-        bins.push({
-          range: binSize === 1 ? `${binStart}` : `${binStart}-${binEnd}`,
-          count,
-          isMedian: result.medianYearsToFIRE >= binStart && result.medianYearsToFIRE <= binEnd,
-        });
-      }
+      bins.push({
+        range: binSize === 1 ? `${binStart}` : `${binStart}-${binEnd}`,
+        count,
+        isMedian: result.medianYearsToFIRE >= binStart && result.medianYearsToFIRE <= binEnd,
+      });
     }
 
     // Calculate statistics
@@ -147,17 +145,18 @@ export const MonteCarloChart: React.FC<MonteCarloChartProps> = ({ result }) => {
               fill="#4CAF50" 
               name="Simulations"
             />
-            {distributionData.stats && (
-              <ReferenceLine 
-                x={distributionData.bins.findIndex(b => b.isMedian) >= 0 
-                  ? distributionData.bins[distributionData.bins.findIndex(b => b.isMedian)].range 
-                  : undefined}
-                stroke="#ff9800" 
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                label={{ value: 'Median', position: 'top', fill: '#ff9800' }}
-              />
-            )}
+            {distributionData.stats && (() => {
+              const medianBinIndex = distributionData.bins.findIndex(b => b.isMedian);
+              return medianBinIndex >= 0 ? (
+                <ReferenceLine 
+                  x={distributionData.bins[medianBinIndex].range}
+                  stroke="#ff9800" 
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  label={{ value: 'Median', position: 'top', fill: '#ff9800' }}
+                />
+              ) : null;
+            })()}
           </BarChart>
         </ResponsiveContainer>
 
