@@ -153,6 +153,12 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
             ...prev,
             [assetId]: { ...confirmed, isConfirmed: false }, // Keep unconfirmed but show deviation
           }));
+        } else {
+          // Clear invalid entries
+          setConfirmedAllocations(prev => {
+            const { [assetId]: _, ...rest } = prev;
+            return rest;
+          });
         }
       }
     }
@@ -182,6 +188,12 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
             ...prev,
             [assetId]: { ...confirmed, isConfirmed: false }, // Keep unconfirmed but show deviation
           }));
+        } else {
+          // Clear invalid entries
+          setConfirmedAllocations(prev => {
+            const { [assetId]: _, ...rest } = prev;
+            return rest;
+          });
         }
       }
     }
