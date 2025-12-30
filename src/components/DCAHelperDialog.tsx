@@ -14,6 +14,13 @@ import {
 } from '../utils/dcaCalculator';
 import { formatAssetName } from '../utils/allocationCalculator';
 
+// Constants for deviation feedback thresholds
+const DEVIATION_CLOSE_THRESHOLD = 2; // Deviation <= 2% is considered "close"
+const DEVIATION_FAR_THRESHOLD = 10; // Deviation > 10% is considered "far"
+
+// Minimum fractional share increment for input
+const SHARES_INPUT_STEP = 0.000001;
+
 interface DCAHelperDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -315,7 +322,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                                   <div className="actual-shares-input-group">
                                     <input
                                       type="number"
-                                      step="0.000001"
+                                      step={SHARES_INPUT_STEP}
                                       min="0"
                                       className="actual-shares-input"
                                       value={actualSharesInputs[allocation.assetId] || ''}
@@ -362,7 +369,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                       <td className="amount-cell">
                         <strong>{formatDCACurrency(calculation.totalAllocated, currency)}</strong>
                       </td>
-                      <td colSpan={isConfirmMode ? 2 : 2}></td>
+                      <td colSpan={2}></td>
                       {isConfirmMode && totalDeviation && (
                         <>
                           <td className="amount-cell">
@@ -386,7 +393,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
 
               {/* Confirmation Summary */}
               {isConfirmMode && allConfirmed && totalDeviation && (
-                <div className={`confirmation-summary ${totalDeviation.deviationPercent === 0 ? 'exact' : Math.abs(totalDeviation.deviationPercent) <= 5 ? 'close' : 'far'}`}>
+                <div className={`confirmation-summary ${totalDeviation.deviationPercent === 0 ? 'exact' : Math.abs(totalDeviation.deviationPercent) <= DEVIATION_FAR_THRESHOLD / 2 ? 'close' : 'far'}`}>
                   <h4>📊 Investment Summary</h4>
                   <p>
                     <strong>Suggested Total:</strong> {formatDCACurrency(totalDeviation.totalSuggested, currency)}
@@ -400,13 +407,13 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                       {formatDeviation(totalDeviation.deviationPercent)}
                     </span>
                   </p>
-                  {Math.abs(totalDeviation.deviationPercent) <= 2 && (
+                  {Math.abs(totalDeviation.deviationPercent) <= DEVIATION_CLOSE_THRESHOLD && (
                     <p className="success-message">✅ Great job! Your investments closely match the suggested allocation.</p>
                   )}
-                  {Math.abs(totalDeviation.deviationPercent) > 2 && Math.abs(totalDeviation.deviationPercent) <= 10 && (
+                  {Math.abs(totalDeviation.deviationPercent) > DEVIATION_CLOSE_THRESHOLD && Math.abs(totalDeviation.deviationPercent) <= DEVIATION_FAR_THRESHOLD && (
                     <p className="info-message">ℹ️ Your investments are reasonably close to the suggested allocation.</p>
                   )}
-                  {Math.abs(totalDeviation.deviationPercent) > 10 && (
+                  {Math.abs(totalDeviation.deviationPercent) > DEVIATION_FAR_THRESHOLD && (
                     <p className="warning-message">⚠️ Your investments deviate significantly from the suggestion. Consider adjusting future investments.</p>
                   )}
                 </div>

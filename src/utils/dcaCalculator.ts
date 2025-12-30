@@ -269,6 +269,9 @@ export interface ConfirmedDCAAssetAllocation extends DCAAssetAllocation {
   deviation?: InvestmentDeviationResult;
 }
 
+// Threshold for considering a deviation as "exact" (0.01% = essentially zero)
+const EXACT_DEVIATION_THRESHOLD = 0.01;
+
 /**
  * Calculate the deviation between actual and suggested investment.
  * 
@@ -281,7 +284,7 @@ export function calculateInvestmentDeviation(
   const { actualShares, suggestedAmount, currentPrice } = input;
   
   // Handle missing current price
-  if (currentPrice === undefined || currentPrice === null) {
+  if (currentPrice === undefined) {
     return {
       status: 'unknown',
     };
@@ -304,7 +307,7 @@ export function calculateInvestmentDeviation(
   
   // Determine status
   let status: InvestmentDeviationStatus;
-  if (Math.abs(deviationPercent) < 0.01) {
+  if (Math.abs(deviationPercent) < EXACT_DEVIATION_THRESHOLD) {
     status = 'exact';
   } else if (deviationPercent > 0) {
     status = 'over';
