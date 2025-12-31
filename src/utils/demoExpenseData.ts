@@ -343,7 +343,7 @@ function generateMonthlyExpenses(year: number, month: number): ExpenseEntry[] {
     });
   }
   
-  // Occasional expenses (always occur now to reach €40k target)
+  // Occasional expenses (always occur now to reach ~€40k annual expenses target)
   const occasionalTemplates = EXPENSE_TEMPLATES.filter(t => t.frequency === 'occasional');
   for (const template of occasionalTemplates) {
     // Generate 1-2 of each occasional expense per month
@@ -365,10 +365,10 @@ function generateMonthlyExpenses(year: number, month: number): ExpenseEntry[] {
     }
   }
   
-  // Rare expenses (20% chance, seasonal for some)
+  // Rare expenses (35% chance, seasonal for some)
   const rareTemplates = EXPENSE_TEMPLATES.filter(t => t.frequency === 'rare');
   for (const template of rareTemplates) {
-    let shouldInclude = Math.random() < 0.35; // Increased from 0.2 to 0.35
+    let shouldInclude = Math.random() < 0.35;
     
     // Special handling for holiday expenses
     if (template.category === 'HOLIDAYS') {
