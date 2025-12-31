@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { generateDemoExpenseData } from './demoExpenseData';
-import { ExpenseTrackerData } from '../types/expenseTracker';
 
 describe('generateDemoExpenseData', () => {
   it('should generate expense tracker data with current year', () => {

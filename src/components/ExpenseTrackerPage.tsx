@@ -36,6 +36,7 @@ import {
   exportExpenseTrackerToCSV,
   importExpenseTrackerFromCSV,
 } from '../utils/csvExport';
+import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { DataManagement } from './DataManagement';
 import { ExpenseBreakdownChart } from './ExpenseBreakdownChart';
 import { SpendingTrendChart } from './SpendingTrendChart';
@@ -527,6 +528,16 @@ export function ExpenseTrackerPage() {
     }
   };
 
+  // Load demo data
+  const handleLoadDemo = () => {
+    if (confirm('Load demo expense data for the current year? This will replace existing data for the current year.')) {
+      const demoData = generateDemoExpenseData();
+      setData(demoData);
+      setSelectedYear(demoData.currentYear);
+      setSelectedMonth(demoData.currentMonth);
+    }
+  };
+
   // Available years for selector - include years from data plus a range for new years
   const availableYears = useMemo(() => {
     const now = new Date();
@@ -592,6 +603,7 @@ export function ExpenseTrackerPage() {
           onExport={handleExport}
           onImport={handleImport}
           onReset={handleResetData}
+          onLoadDemo={handleLoadDemo}
           defaultOpen={false}
         />
 
