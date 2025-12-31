@@ -99,7 +99,7 @@
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
@@ -568,7 +568,8 @@
 
 .budget-stats {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.25rem;
   font-size: 0.85rem;
   color: #666;
 }

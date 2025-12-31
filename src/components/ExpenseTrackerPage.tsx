@@ -40,6 +40,7 @@ import { DataManagement } from './DataManagement';
 import { ExpenseBreakdownChart } from './ExpenseBreakdownChart';
 import { SpendingTrendChart } from './SpendingTrendChart';
 import { MonthlyComparisonChart } from './MonthlyComparisonChart';
+import { ValidatedNumberInput } from './ValidatedNumberInput';
 import './ExpenseTrackerPage.css';
 
 // Month names for display
@@ -248,15 +249,35 @@ export function ExpenseTrackerPage() {
     return sortTransactions(filtered, sort);
   }, [currentMonthData, filter, sort]);
 
-  // Monthly comparison data
-  const monthlyComparisonData = useMemo(() => {
-    return calculateMonthlyComparison(allMonthsData);
-  }, [allMonthsData]);
+  // Get filtered months data based on analytics view
+  const filteredMonthsData = useMemo(() => {
+    switch (analyticsView) {
+      case 'monthly':
+        return currentMonthData ? [currentMonthData] : [];
+      case 'quarterly': {
+        // Filter months for the selected quarter
+        const quarterStartMonth = (selectedQuarter - 1) * 3 + 1;
+        const quarterEndMonth = selectedQuarter * 3;
+        return allMonthsData.filter(m => m.month >= quarterStartMonth && m.month <= quarterEndMonth);
+      }
+      case 'ytd':
+        // Filter months from beginning of year to selected month
+        return allMonthsData.filter(m => m.month <= selectedMonth);
+      case 'yearly':
+      default:
+        return allMonthsData;
+    }
+  }, [analyticsView, selectedQuarter, selectedMonth, currentMonthData, allMonthsData]);
 
-  // Category trends data
+  // Monthly comparison data - uses filtered months based on analytics view
+  const monthlyComparisonData = useMemo(() => {
+    return calculateMonthlyComparison(filteredMonthsData);
+  }, [filteredMonthsData]);
+
+  // Category trends data - uses filtered months based on analytics view
   const categoryTrendsData = useMemo(() => {
-    return calculateCategoryTrends(allMonthsData);
-  }, [allMonthsData]);
+    return calculateCategoryTrends(filteredMonthsData);
+  }, [filteredMonthsData]);
 
   // Add income - combines month creation and income addition in one update
   const handleAddIncome = useCallback((income: Omit<IncomeEntry, 'id' | 'type'>) => {
@@ -886,13 +907,11 @@ export function ExpenseTrackerPage() {
                     <div className="budget-details">
                       <div className="budget-input-row">
                         <label htmlFor={`budget-${category.id}`}>Budget:</label>
-                        <input
-                          id={`budget-${category.id}`}
-                          type="number"
-                          min="0"
-                          value={budgeted || ''}
+                        <ValidatedNumberInput
+                          value={budgeted}
+                          onChange={(value) => handleUpdateBudget(category.id, value)}
+                          validation={{ min: 0, allowDecimals: true }}
                           placeholder="0"
-                          onChange={(e) => handleUpdateBudget(category.id, Number(e.target.value) || 0)}
                         />
                       </div>
                       <div className="budget-stats">
