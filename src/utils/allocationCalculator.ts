@@ -362,7 +362,7 @@ export function calculatePortfolioAllocation(
  */
 export function prepareAssetClassChartData(assetClasses: AssetClassSummary[]): ChartData[] {
   const colors: Record<AssetClass, string> = {
-    STOCKS: '#667eea',
+    STOCKS: '#5568d4',
     BONDS: '#764ba2',
     CASH: '#4CAF50',
     CRYPTO: '#FF9800',
