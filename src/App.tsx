@@ -68,7 +68,7 @@ function Navigation({ accountName }: { accountName: string }) {
           onClick={closeMenu}
           aria-current={location.pathname === '/expense-tracker' ? 'page' : undefined}
         >
-          <span aria-hidden="true">💰</span> Cashflow Tracker
+          <span aria-hidden="true" className="nav-emoji">💰</span> Cashflow
         </Link>
         <Link 
           to="/net-worth-tracker" 
@@ -76,7 +76,7 @@ function Navigation({ accountName }: { accountName: string }) {
           onClick={closeMenu}
           aria-current={location.pathname === '/net-worth-tracker' ? 'page' : undefined}
         >
-          <span aria-hidden="true">📈</span> Net Worth Tracker
+          <span aria-hidden="true" className="nav-emoji">📈</span> Net Worth
         </Link>
         <Link 
           to="/fire-calculator" 

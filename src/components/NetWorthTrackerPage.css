@@ -237,6 +237,19 @@
   flex-wrap: wrap;
 }
 
+.chart-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.chart-toggle input[type="checkbox"] {
+  margin-right: 0.25rem;
+}
+
 .chart-currency-toggle {
   display: flex;
   gap: 0.5rem;

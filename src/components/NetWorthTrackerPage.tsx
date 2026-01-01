@@ -209,7 +209,7 @@ export function NetWorthTrackerPage() {
     return monthlyVariations.find(v => v.month === `${SHORT_MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`);
   }, [monthlyVariations, selectedMonth, selectedYear]);
 
-  // Ensure month exists (for "Add This Month" button)
+  // Ensure month exists (for "Log This Month" button)
   const handleAddMonth = useCallback(() => {
     setData(prev => {
       const newData = deepCloneData(prev);
@@ -557,10 +557,10 @@ export function NetWorthTrackerPage() {
           </button>
           {isHowToUseOpen && (
             <ul id="how-to-use-content" className="how-to-use-content">
-              <li><strong>Add Assets:</strong> Track stocks, ETFs, bonds with share count and price</li>
-              <li><strong>Add Cash:</strong> Record bank accounts, brokerage cash, credit cards</li>
-              <li><strong>Add Pensions:</strong> Track state, private, and employer pensions</li>
-              <li><strong>Add Operations:</strong> Log dividends, purchases, sales, taxes, etc.</li>
+              <li><strong>Log Assets:</strong> Track stocks, ETFs, bonds with share count and price</li>
+              <li><strong>Log Cash:</strong> Record bank accounts, brokerage cash, credit cards</li>
+              <li><strong>Log Pensions:</strong> Track state, private, and employer pensions</li>
+              <li><strong>Log Operations:</strong> Record dividends, purchases, sales, taxes, etc.</li>
               <li><strong>Monthly Snapshot:</strong> Update values at month end for historical tracking</li>
               <li><strong>View History:</strong> Navigate between months to see historical data</li>
             </ul>
@@ -607,7 +607,7 @@ export function NetWorthTrackerPage() {
               className="btn-add-month"
               onClick={handleAddMonth}
             >
-              <span aria-hidden="true">➕</span> Add This Month
+              <span aria-hidden="true">➕</span> Log This Month
             </button>
             {isViewingPastPeriod && (
               <button
@@ -681,16 +681,16 @@ export function NetWorthTrackerPage() {
             <h3>Monthly Data Entry</h3>
             <div className="entry-actions">
               <button className="btn-entry asset" onClick={() => setShowAssetDialog(true)}>
-                <span aria-hidden="true">📊</span> Add Asset
+                <span aria-hidden="true">📊</span> Log Asset
               </button>
               <button className="btn-entry cash" onClick={() => setShowCashDialog(true)}>
-                <span aria-hidden="true">💵</span> Add Cash
+                <span aria-hidden="true">💵</span> Log Cash
               </button>
               <button className="btn-entry pension" onClick={() => setShowPensionDialog(true)}>
-                <span aria-hidden="true">🧓</span> Add Pension
+                <span aria-hidden="true">🧓</span> Log Pension
               </button>
               <button className="btn-entry operation" onClick={() => setShowOperationDialog(true)}>
-                <span aria-hidden="true">📝</span> Add Operation
+                <span aria-hidden="true">📝</span> Log Operation
               </button>
             </div>
           </div>
@@ -744,7 +744,7 @@ export function NetWorthTrackerPage() {
                 </table>
               ) : (
                 <div className="empty-state">
-                  <p>No assets recorded for this month. Click "Add Asset" to start tracking.</p>
+                  <p>No assets recorded for this month. Click "Log Asset" to start tracking.</p>
                 </div>
               )}
             </div>
@@ -790,7 +790,7 @@ export function NetWorthTrackerPage() {
                 </table>
               ) : (
                 <div className="empty-state">
-                  <p>No cash entries recorded for this month. Click "Add Cash" to start tracking.</p>
+                  <p>No cash entries recorded for this month. Click "Log Cash" to start tracking.</p>
                 </div>
               )}
             </div>
@@ -836,7 +836,7 @@ export function NetWorthTrackerPage() {
                 </table>
               ) : (
                 <div className="empty-state">
-                  <p>No pensions recorded for this month. Click "Add Pension" to start tracking.</p>
+                  <p>No pensions recorded for this month. Click "Log Pension" to start tracking.</p>
                 </div>
               )}
             </div>
@@ -882,7 +882,7 @@ export function NetWorthTrackerPage() {
                 </table>
               ) : (
                 <div className="empty-state">
-                  <p>No operations recorded for this month. Click "Add Operation" to log financial activity.</p>
+                  <p>No operations recorded for this month. Click "Log Operation" to record financial activity.</p>
                 </div>
               )}
             </div>
@@ -1036,7 +1036,7 @@ function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency }: AssetD
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="dialog-header">
-          <h2>{initialData ? 'Edit' : 'Add'} Asset</h2>
+          <h2>{initialData ? 'Edit' : 'Log'} Asset</h2>
           <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
         </div>
         
@@ -1135,7 +1135,7 @@ function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency }: AssetD
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Add'} Asset</button>
+            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Log'} Asset</button>
           </div>
         </form>
       </div>
@@ -1180,7 +1180,7 @@ function CashDialog({ initialData, onSubmit, onClose, defaultCurrency }: CashDia
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="dialog-header">
-          <h2>{initialData ? 'Edit' : 'Add'} Cash Entry</h2>
+          <h2>{initialData ? 'Edit' : 'Log'} Cash Entry</h2>
           <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
         </div>
         
@@ -1251,7 +1251,7 @@ function CashDialog({ initialData, onSubmit, onClose, defaultCurrency }: CashDia
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Add'} Cash Entry</button>
+            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Log'} Cash Entry</button>
           </div>
         </form>
       </div>
@@ -1296,7 +1296,7 @@ function PensionDialog({ initialData, onSubmit, onClose, defaultCurrency }: Pens
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="dialog-header">
-          <h2>{initialData ? 'Edit' : 'Add'} Pension</h2>
+          <h2>{initialData ? 'Edit' : 'Log'} Pension</h2>
           <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
         </div>
         
@@ -1368,7 +1368,7 @@ function PensionDialog({ initialData, onSubmit, onClose, defaultCurrency }: Pens
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Add'} Pension</button>
+            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Log'} Pension</button>
           </div>
         </form>
       </div>
@@ -1416,7 +1416,7 @@ function OperationDialog({ onSubmit, onClose, defaultCurrency, defaultDate }: Op
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="dialog-header">
-          <h2>Add Financial Operation</h2>
+          <h2>Log Financial Operation</h2>
           <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
         </div>
         
@@ -1499,7 +1499,7 @@ function OperationDialog({ onSubmit, onClose, defaultCurrency, defaultDate }: Op
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">Add Operation</button>
+            <button type="submit" className="btn-submit">Log Operation</button>
           </div>
         </form>
       </div>
