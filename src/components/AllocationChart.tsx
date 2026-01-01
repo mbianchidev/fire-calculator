@@ -114,7 +114,7 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ data, title, c
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color || '#667eea'} />
+              <Cell key={`cell-${index}`} fill={entry.color || '#5568d4'} />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
