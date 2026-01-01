@@ -16,9 +16,9 @@ interface ValidationErrors {
   blackSwanImpact?: string;
 }
 
-// Format currency for display
+// Format currency for display (using de-DE locale for EUR formatting)
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 0,
@@ -41,7 +41,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
 
   // Calculate derived values for display
   const currentYear = new Date().getFullYear();
-  const currentAge = currentYear - inputs.yearOfBirth;
+  const currentAge = currentYear - inputs.yearOfBirth; // Approximate age based on year of birth
   const fireTarget = inputs.fireAnnualExpenses / (inputs.desiredWithdrawalRate / 100);
 
   // Validation logic
@@ -186,7 +186,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
                 <h4 className="mc-data-group-title">Personal & Expenses</h4>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Current Age</span>
-                  <span className="mc-data-value">{currentAge} years</span>
+                  <span className="mc-data-value">~{currentAge} years</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">FIRE Annual Expenses</span>
