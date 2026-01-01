@@ -619,3 +619,16 @@
     grid-column: span 1;
   }
 }
+
+/* Error styles for form validation */
+.net-worth-dialog .input-error {
+  border-color: #f44336;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+}
+
+.net-worth-dialog .error-message {
+  color: #f44336;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}

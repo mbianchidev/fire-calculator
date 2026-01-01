@@ -4,7 +4,7 @@ import { loadSettings, saveSettings, DEFAULT_SETTINGS, type UserSettings } from 
 import { SUPPORTED_CURRENCIES, DEFAULT_FALLBACK_RATES, type SupportedCurrency } from '../types/currency';
 import { exportFireCalculatorToCSV, exportAssetAllocationToCSV, importFireCalculatorFromCSV, importAssetAllocationFromCSV, exportExpenseTrackerToCSV, importExpenseTrackerFromCSV, exportNetWorthTrackerToJSON, importNetWorthTrackerFromJSON } from '../utils/csvExport';
 import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs, saveAssetAllocation, clearAllData, loadExpenseTrackerData, saveExpenseTrackerData, loadNetWorthTrackerData, saveNetWorthTrackerData } from '../utils/cookieStorage';
-import { DEFAULT_INPUTS } from '../utils/defaults';
+import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoCashflowData, getDemoAssetAllocationData } from '../utils/defaults';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import './SettingsPage.css';
 
@@ -260,6 +260,32 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
     }
   };
 
+  // Load demo data
+  const handleLoadDemoData = () => {
+    if (confirm('This will overwrite your current data with demo data. Are you sure you want to continue?')) {
+      try {
+        // Load demo FIRE Calculator data
+        saveFireCalculatorInputs(DEFAULT_INPUTS);
+        
+        // Load demo Asset Allocation data
+        const { assets, assetClassTargets } = getDemoAssetAllocationData();
+        saveAssetAllocation(assets, assetClassTargets);
+        
+        // Load demo Cashflow Tracker data
+        const cashflowData = getDemoCashflowData();
+        saveExpenseTrackerData(cashflowData);
+        
+        // Load demo Net Worth Tracker data
+        const netWorthData = getDemoNetWorthData();
+        saveNetWorthTrackerData(netWorthData);
+        
+        showMessage('success', 'Demo data loaded successfully! Refresh the page to see the changes.');
+      } catch (error) {
+        showMessage('error', `Failed to load demo data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+  };
+
   if (isLoading) {
     return <div className="settings-page loading">Loading settings...</div>;
   }
@@ -397,6 +423,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 <input type="file" accept=".json" onChange={handleImportNetWorth} hidden />
               </label>
             </div>
+          </div>
+
+          <div className="data-management-group">
+            <h3>📦 Demo Data</h3>
+            <p className="setting-help">Load sample data to explore the application</p>
+            <button className="secondary-btn" onClick={handleLoadDemoData}>
+              🎮 Load Demo Data
+            </button>
           </div>
 
           <div className="data-management-group danger-zone">

@@ -272,6 +272,7 @@ export function NetWorthTrackerPage() {
   }, []);
 
   // Ensure month exists (for "Log This Month" button), inherit assets from previous period
+  // Uses name as unique identifier - won't duplicate assets with the same name
   const handleAddMonth = useCallback(() => {
     setData(prev => {
       const newData = deepCloneData(prev);
@@ -289,33 +290,84 @@ export function NetWorthTrackerPage() {
       if (!monthData) {
         // Create new month with empty data
         monthData = createEmptyMonthlySnapshot(selectedYear, selectedMonth);
-        
-        // Inherit assets, cash, and pensions from previous period
-        const prevMonthData = getPreviousMonthData(prev, selectedYear, selectedMonth);
-        if (prevMonthData) {
-          // Deep clone and assign new IDs to inherited items
-          monthData.assets = prevMonthData.assets.map(asset => ({
-            ...asset,
-            id: generateNetWorthId(),
-          }));
-          monthData.cashEntries = prevMonthData.cashEntries.map(cash => ({
-            ...cash,
-            id: generateNetWorthId(),
-          }));
-          monthData.pensions = prevMonthData.pensions.map(pension => ({
-            ...pension,
-            id: generateNetWorthId(),
-          }));
-          // Note: operations are NOT inherited - they are specific to each month
-        }
-        
         yearData.months.push(monthData);
         yearData.months.sort((a, b) => a.month - b.month);
+      }
+      
+      // Inherit assets, cash, and pensions from previous period
+      // Use name as unique identifier - only add items that don't already exist
+      const prevMonthData = getPreviousMonthData(prev, selectedYear, selectedMonth);
+      if (prevMonthData) {
+        // Get existing names for deduplication
+        const existingAssetNames = new Set(monthData.assets.map(a => a.name.toLowerCase()));
+        const existingCashNames = new Set(monthData.cashEntries.map(c => c.accountName.toLowerCase()));
+        const existingPensionNames = new Set(monthData.pensions.map(p => p.name.toLowerCase()));
+        
+        // Add assets that don't already exist (by name)
+        for (const asset of prevMonthData.assets) {
+          if (!existingAssetNames.has(asset.name.toLowerCase())) {
+            monthData.assets.push({
+              ...asset,
+              id: generateNetWorthId(),
+            });
+            existingAssetNames.add(asset.name.toLowerCase());
+          }
+        }
+        
+        // Add cash entries that don't already exist (by account name)
+        for (const cash of prevMonthData.cashEntries) {
+          if (!existingCashNames.has(cash.accountName.toLowerCase())) {
+            monthData.cashEntries.push({
+              ...cash,
+              id: generateNetWorthId(),
+            });
+            existingCashNames.add(cash.accountName.toLowerCase());
+          }
+        }
+        
+        // Add pensions that don't already exist (by name)
+        for (const pension of prevMonthData.pensions) {
+          if (!existingPensionNames.has(pension.name.toLowerCase())) {
+            monthData.pensions.push({
+              ...pension,
+              id: generateNetWorthId(),
+            });
+            existingPensionNames.add(pension.name.toLowerCase());
+          }
+        }
+        // Note: operations are NOT inherited - they are specific to each month
       }
       
       return newData;
     });
   }, [selectedYear, selectedMonth, getPreviousMonthData]);
+
+  // Check if asset name already exists (for validation)
+  const isAssetNameDuplicate = useCallback((name: string, excludeId?: string): boolean => {
+    if (!currentMonthData) return false;
+    const normalizedName = name.toLowerCase().trim();
+    return currentMonthData.assets.some(
+      a => a.name.toLowerCase().trim() === normalizedName && a.id !== excludeId
+    );
+  }, [currentMonthData]);
+
+  // Check if cash account name already exists (for validation)
+  const isCashNameDuplicate = useCallback((accountName: string, excludeId?: string): boolean => {
+    if (!currentMonthData) return false;
+    const normalizedName = accountName.toLowerCase().trim();
+    return currentMonthData.cashEntries.some(
+      c => c.accountName.toLowerCase().trim() === normalizedName && c.id !== excludeId
+    );
+  }, [currentMonthData]);
+
+  // Check if pension name already exists (for validation)
+  const isPensionNameDuplicate = useCallback((name: string, excludeId?: string): boolean => {
+    if (!currentMonthData) return false;
+    const normalizedName = name.toLowerCase().trim();
+    return currentMonthData.pensions.some(
+      p => p.name.toLowerCase().trim() === normalizedName && p.id !== excludeId
+    );
+  }, [currentMonthData]);
 
   // Add asset
   const handleAddAsset = useCallback((asset: Omit<AssetHolding, 'id'>) => {
@@ -1030,6 +1082,7 @@ export function NetWorthTrackerPage() {
             }
             onClose={() => { setShowAssetDialog(false); setEditingItem(null); setEditingItemType(null); }}
             defaultCurrency={data.defaultCurrency}
+            isNameDuplicate={(name) => isAssetNameDuplicate(name, editingItemType === 'asset' ? (editingItem as AssetHolding)?.id : undefined)}
           />
         )}
 
@@ -1043,6 +1096,7 @@ export function NetWorthTrackerPage() {
             }
             onClose={() => { setShowCashDialog(false); setEditingItem(null); setEditingItemType(null); }}
             defaultCurrency={data.defaultCurrency}
+            isNameDuplicate={(name) => isCashNameDuplicate(name, editingItemType === 'cash' ? (editingItem as CashEntry)?.id : undefined)}
           />
         )}
 
@@ -1056,6 +1110,7 @@ export function NetWorthTrackerPage() {
             }
             onClose={() => { setShowPensionDialog(false); setEditingItem(null); setEditingItemType(null); }}
             defaultCurrency={data.defaultCurrency}
+            isNameDuplicate={(name) => isPensionNameDuplicate(name, editingItemType === 'pension' ? (editingItem as PensionEntry)?.id : undefined)}
           />
         )}
 
@@ -1079,9 +1134,10 @@ interface AssetDialogProps {
   onSubmit: (data: Omit<AssetHolding, 'id'>) => void;
   onClose: () => void;
   defaultCurrency: SupportedCurrency;
+  isNameDuplicate?: (name: string) => boolean;
 }
 
-function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency }: AssetDialogProps) {
+function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency, isNameDuplicate }: AssetDialogProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [ticker, setTicker] = useState(initialData?.ticker || '');
   const [assetClass, setAssetClass] = useState<AssetHolding['assetClass']>(initialData?.assetClass || 'ETF');
@@ -1089,9 +1145,24 @@ function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency }: AssetD
   const [pricePerShare, setPricePerShare] = useState(initialData?.pricePerShare?.toString() || '');
   const [currency, setCurrency] = useState<SupportedCurrency>(initialData?.currency || defaultCurrency);
   const [note, setNote] = useState(initialData?.note || '');
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const handleNameChange = (newName: string) => {
+    setName(newName);
+    if (isNameDuplicate && isNameDuplicate(newName)) {
+      setNameError('An asset with this name already exists');
+    } else {
+      setNameError(null);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isNameDuplicate && isNameDuplicate(name)) {
+      setNameError('An asset with this name already exists');
+      return;
+    }
     
     const parsedShares = parseFloat(shares);
     const parsedPrice = parseFloat(pricePerShare);
@@ -1133,10 +1204,12 @@ function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency }: AssetD
                 id="asset-name"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., Vanguard FTSE All-World"
                 required
+                className={nameError ? 'input-error' : ''}
               />
+              {nameError && <span className="error-message">{nameError}</span>}
             </div>
             <div className="form-group">
               <label htmlFor="asset-ticker">Ticker</label>
@@ -1234,17 +1307,33 @@ interface CashDialogProps {
   onSubmit: (data: Omit<CashEntry, 'id'>) => void;
   onClose: () => void;
   defaultCurrency: SupportedCurrency;
+  isNameDuplicate?: (name: string) => boolean;
 }
 
-function CashDialog({ initialData, onSubmit, onClose, defaultCurrency }: CashDialogProps) {
+function CashDialog({ initialData, onSubmit, onClose, defaultCurrency, isNameDuplicate }: CashDialogProps) {
   const [accountName, setAccountName] = useState(initialData?.accountName || '');
   const [accountType, setAccountType] = useState<CashEntry['accountType']>(initialData?.accountType || 'SAVINGS');
   const [balance, setBalance] = useState(initialData?.balance?.toString() || '');
   const [currency, setCurrency] = useState<SupportedCurrency>(initialData?.currency || defaultCurrency);
   const [note, setNote] = useState(initialData?.note || '');
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const handleNameChange = (newName: string) => {
+    setAccountName(newName);
+    if (isNameDuplicate && isNameDuplicate(newName)) {
+      setNameError('An account with this name already exists');
+    } else {
+      setNameError(null);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isNameDuplicate && isNameDuplicate(accountName)) {
+      setNameError('An account with this name already exists');
+      return;
+    }
     
     const parsedBalance = parseFloat(balance);
     if (isNaN(parsedBalance)) {
@@ -1277,10 +1366,12 @@ function CashDialog({ initialData, onSubmit, onClose, defaultCurrency }: CashDia
                 id="cash-name"
                 type="text"
                 value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., Main Savings"
                 required
+                className={nameError ? 'input-error' : ''}
               />
+              {nameError && <span className="error-message">{nameError}</span>}
             </div>
             <div className="form-group">
               <label htmlFor="cash-type">Account Type</label>
@@ -1350,17 +1441,33 @@ interface PensionDialogProps {
   onSubmit: (data: Omit<PensionEntry, 'id'>) => void;
   onClose: () => void;
   defaultCurrency: SupportedCurrency;
+  isNameDuplicate?: (name: string) => boolean;
 }
 
-function PensionDialog({ initialData, onSubmit, onClose, defaultCurrency }: PensionDialogProps) {
+function PensionDialog({ initialData, onSubmit, onClose, defaultCurrency, isNameDuplicate }: PensionDialogProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [pensionType, setPensionType] = useState<PensionEntry['pensionType']>(initialData?.pensionType || 'STATE');
   const [currentValue, setCurrentValue] = useState(initialData?.currentValue?.toString() || '');
   const [currency, setCurrency] = useState<SupportedCurrency>(initialData?.currency || defaultCurrency);
   const [note, setNote] = useState(initialData?.note || '');
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const handleNameChange = (newName: string) => {
+    setName(newName);
+    if (isNameDuplicate && isNameDuplicate(newName)) {
+      setNameError('A pension with this name already exists');
+    } else {
+      setNameError(null);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isNameDuplicate && isNameDuplicate(name)) {
+      setNameError('A pension with this name already exists');
+      return;
+    }
     
     const parsedValue = parseFloat(currentValue);
     if (isNaN(parsedValue) || parsedValue < 0) {
@@ -1393,10 +1500,12 @@ function PensionDialog({ initialData, onSubmit, onClose, defaultCurrency }: Pens
                 id="pension-name"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., State Pension"
                 required
+                className={nameError ? 'input-error' : ''}
               />
+              {nameError && <span className="error-message">{nameError}</span>}
             </div>
             <div className="form-group">
               <label htmlFor="pension-type">Pension Type</label>
