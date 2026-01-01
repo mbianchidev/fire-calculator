@@ -17,6 +17,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { CookiePolicyPage } from './components/CookiePolicyPage';
 import { CookieConsent } from './components/CookieConsent';
+import { NotFoundPage } from './components/NotFoundPage';
 import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './utils/urlParams';
 import { saveFireCalculatorInputs, loadFireCalculatorInputs, clearAllData, loadAssetAllocation } from './utils/cookieStorage';
 import { exportFireCalculatorToCSV, importFireCalculatorFromCSV } from './utils/csvExport';
@@ -309,6 +310,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage onSettingsChange={handleSettingsChange} />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         <footer className="app-footer">
