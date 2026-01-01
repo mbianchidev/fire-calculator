@@ -59,10 +59,11 @@ export function decryptData(ciphertext: string): string | null {
     }
     
     // Check for common indicators of failed decryption:
+    // - Single character results are likely invalid decryption
     // - Contains only non-printable ASCII control characters
     // - Contains replacement characters indicating encoding failure
     // - Contains mostly null bytes or other unusual patterns
-    if (/^[\x00-\x1F\x7F-\x9F]+$/.test(plaintext) || /\uFFFD/.test(plaintext)) {
+    if (plaintext.length <= 2 || /^[\x00-\x1F\x7F-\x9F]+$/.test(plaintext) || /\uFFFD/.test(plaintext)) {
       return null;
     }
     
