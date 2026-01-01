@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   NetWorthTrackerData,
+  MonthlySnapshot,
   AssetHolding,
   CashEntry,
   PensionEntry,
@@ -27,7 +28,7 @@ import {
   loadNetWorthTrackerData,
 } from '../utils/cookieStorage';
 import { DataManagement } from './DataManagement';
-import { HistoricalNetWorthChart } from './HistoricalNetWorthChart';
+import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
 import './NetWorthTrackerPage.css';
 
 // Month names for display
@@ -132,6 +133,9 @@ export function NetWorthTrackerPage() {
   
   // How to use collapsed state
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
+  
+  // Chart view mode (YTD or All historical data)
+  const [chartViewMode, setChartViewMode] = useState<ChartViewMode>('ytd');
 
   // Sync URL params when year/month changes
   useEffect(() => {
@@ -173,26 +177,44 @@ export function NetWorthTrackerPage() {
     });
   }, [currentMonthData, data.settings.showPensionInNetWorth]);
 
-  // Get all months data for the selected year
+  // Get all months data for the selected year (YTD mode)
   const allMonthsData = useMemo(() => {
     const yearData = data.years.find(y => y.year === selectedYear);
     return yearData?.months || [];
   }, [data, selectedYear]);
 
-  // Calculate monthly variations
-  const monthlyVariations = useMemo(() => {
-    return calculateMonthlyVariations(allMonthsData);
-  }, [allMonthsData]);
+  // Get ALL historical months data (All mode)
+  const allHistoricalMonthsData = useMemo(() => {
+    const allMonths: typeof allMonthsData = [];
+    for (const year of data.years) {
+      allMonths.push(...year.months);
+    }
+    // Sort by year and month
+    return allMonths.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.month - b.month;
+    });
+  }, [data.years]);
 
-  // Calculate YTD summary
+  // Get the appropriate data based on view mode
+  const chartMonthsData = useMemo(() => {
+    return chartViewMode === 'all' ? allHistoricalMonthsData : allMonthsData;
+  }, [chartViewMode, allMonthsData, allHistoricalMonthsData]);
+
+  // Calculate monthly variations based on view mode
+  const monthlyVariations = useMemo(() => {
+    return calculateMonthlyVariations(chartMonthsData);
+  }, [chartMonthsData]);
+
+  // Calculate YTD summary (always from current year data)
   const ytdSummary = useMemo(() => {
     return calculateYTDSummary(allMonthsData, selectedMonth);
   }, [allMonthsData, selectedMonth]);
 
-  // Calculate forecast
+  // Calculate forecast based on view mode data
   const forecast = useMemo(() => {
-    return calculateNetWorthForecast(allMonthsData, 3);
-  }, [allMonthsData]);
+    return calculateNetWorthForecast(chartMonthsData, 3);
+  }, [chartMonthsData]);
 
   // Get previous year's December value
   const previousYearEndValue = useMemo(() => {
@@ -209,7 +231,47 @@ export function NetWorthTrackerPage() {
     return monthlyVariations.find(v => v.month === `${SHORT_MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`);
   }, [monthlyVariations, selectedMonth, selectedYear]);
 
-  // Ensure month exists (for "Log This Month" button)
+  // Helper to find previous month's data
+  const getPreviousMonthData = useCallback((data: NetWorthTrackerData, year: number, month: number) => {
+    // Calculate previous month
+    let prevYear = year;
+    let prevMonth = month - 1;
+    if (prevMonth < 1) {
+      prevMonth = 12;
+      prevYear = year - 1;
+    }
+
+    // Try to find data from previous month
+    const prevYearData = data.years.find(y => y.year === prevYear);
+    if (prevYearData) {
+      const prevMonthData = prevYearData.months.find(m => m.month === prevMonth);
+      if (prevMonthData) {
+        return prevMonthData;
+      }
+    }
+
+    // If no previous month, find the most recent month with data
+    const allMonths: { year: number; month: number; data: MonthlySnapshot }[] = [];
+    for (const yr of data.years) {
+      for (const mo of yr.months) {
+        if (yr.year < year || (yr.year === year && mo.month < month)) {
+          allMonths.push({ year: yr.year, month: mo.month, data: mo });
+        }
+      }
+    }
+    
+    if (allMonths.length === 0) return null;
+    
+    // Sort by date descending and get the most recent
+    allMonths.sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      return b.month - a.month;
+    });
+    
+    return allMonths[0].data;
+  }, []);
+
+  // Ensure month exists (for "Log This Month" button), inherit assets from previous period
   const handleAddMonth = useCallback(() => {
     setData(prev => {
       const newData = deepCloneData(prev);
@@ -222,17 +284,38 @@ export function NetWorthTrackerPage() {
         newData.years.sort((a, b) => a.year - b.year);
       }
       
-      // Ensure month exists
+      // Check if month already exists
       let monthData = yearData.months.find(m => m.month === selectedMonth);
       if (!monthData) {
+        // Create new month with empty data
         monthData = createEmptyMonthlySnapshot(selectedYear, selectedMonth);
+        
+        // Inherit assets, cash, and pensions from previous period
+        const prevMonthData = getPreviousMonthData(prev, selectedYear, selectedMonth);
+        if (prevMonthData) {
+          // Deep clone and assign new IDs to inherited items
+          monthData.assets = prevMonthData.assets.map(asset => ({
+            ...asset,
+            id: generateNetWorthId(),
+          }));
+          monthData.cashEntries = prevMonthData.cashEntries.map(cash => ({
+            ...cash,
+            id: generateNetWorthId(),
+          }));
+          monthData.pensions = prevMonthData.pensions.map(pension => ({
+            ...pension,
+            id: generateNetWorthId(),
+          }));
+          // Note: operations are NOT inherited - they are specific to each month
+        }
+        
         yearData.months.push(monthData);
         yearData.months.sort((a, b) => a.month - b.month);
       }
       
       return newData;
     });
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, getPreviousMonthData]);
 
   // Add asset
   const handleAddAsset = useCallback((asset: Omit<AssetHolding, 'id'>) => {
@@ -897,11 +980,13 @@ export function NetWorthTrackerPage() {
             forecast={forecast}
             currency={data.defaultCurrency}
             previousYearEnd={previousYearEndValue}
+            viewMode={chartViewMode}
+            onViewModeChange={setChartViewMode}
           />
         </section>
 
-        {/* YTD Summary */}
-        {ytdSummary.averageMonthlyNetWorth > 0 && (
+        {/* YTD Summary - only show in YTD mode */}
+        {chartViewMode === 'ytd' && ytdSummary.averageMonthlyNetWorth > 0 && (
           <section className="fire-progress-section">
             <h3><span aria-hidden="true">🎯</span> Year-to-Date Progress</h3>
             <div className="fire-progress-content">

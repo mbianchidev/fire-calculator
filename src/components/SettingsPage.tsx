@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadSettings, saveSettings, DEFAULT_SETTINGS, type UserSettings } from '../utils/cookieSettings';
 import { SUPPORTED_CURRENCIES, DEFAULT_FALLBACK_RATES, type SupportedCurrency } from '../types/currency';
-import { exportFireCalculatorToCSV, exportAssetAllocationToCSV, importFireCalculatorFromCSV, importAssetAllocationFromCSV, exportExpenseTrackerToCSV, importExpenseTrackerFromCSV } from '../utils/csvExport';
-import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs, saveAssetAllocation, clearAllData, loadExpenseTrackerData, saveExpenseTrackerData } from '../utils/cookieStorage';
+import { exportFireCalculatorToCSV, exportAssetAllocationToCSV, importFireCalculatorFromCSV, importAssetAllocationFromCSV, exportExpenseTrackerToCSV, importExpenseTrackerFromCSV, exportNetWorthTrackerToJSON, importNetWorthTrackerFromJSON } from '../utils/csvExport';
+import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs, saveAssetAllocation, clearAllData, loadExpenseTrackerData, saveExpenseTrackerData, loadNetWorthTrackerData, saveNetWorthTrackerData } from '../utils/cookieStorage';
 import { DEFAULT_INPUTS } from '../utils/defaults';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import './SettingsPage.css';
@@ -127,20 +127,27 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
       // Export FIRE Calculator data
       const fireInputs = loadFireCalculatorInputs() || DEFAULT_INPUTS;
       const fireCSV = exportFireCalculatorToCSV(fireInputs);
-      downloadCSV(fireCSV, `fire-calculator-data-${getDateString()}.csv`);
+      downloadFile(fireCSV, `fire-calculator-data-${getDateString()}.csv`, 'text/csv');
 
       // Export Asset Allocation data
       const { assets, assetClassTargets } = loadAssetAllocation();
       if (assets && assetClassTargets) {
         const assetCSV = exportAssetAllocationToCSV(assets, assetClassTargets);
-        downloadCSV(assetCSV, `asset-allocation-data-${getDateString()}.csv`);
+        downloadFile(assetCSV, `asset-allocation-data-${getDateString()}.csv`, 'text/csv');
       }
 
       // Export Cashflow Tracker data
       const expenseData = loadExpenseTrackerData();
       if (expenseData) {
         const expenseCSV = exportExpenseTrackerToCSV(expenseData);
-        downloadCSV(expenseCSV, `cashflow-tracker-data-${getDateString()}.csv`);
+        downloadFile(expenseCSV, `cashflow-tracker-data-${getDateString()}.csv`, 'text/csv');
+      }
+
+      // Export Net Worth Tracker data
+      const netWorthData = loadNetWorthTrackerData();
+      if (netWorthData) {
+        const netWorthJSON = exportNetWorthTrackerToJSON(netWorthData);
+        downloadFile(netWorthJSON, `net-worth-tracker-data-${getDateString()}.json`, 'application/json');
       }
 
       showMessage('success', 'Data exported successfully!');
@@ -149,9 +156,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
     }
   };
 
-  // Helper to download CSV
-  const downloadCSV = (csv: string, filename: string) => {
-    const blob = new Blob([csv], { type: 'text/csv' });
+  // Helper to download file
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -225,6 +232,25 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
     event.target.value = '';
   };
 
+  // Import Net Worth Tracker data
+  const handleImportNetWorth = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const imported = importNetWorthTrackerFromJSON(json);
+        saveNetWorthTrackerData(imported);
+        showMessage('success', 'Net Worth Tracker data imported successfully!');
+      } catch (error) {
+        showMessage('error', `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
 
   // Reset all data
   const handleResetAll = () => {
@@ -344,7 +370,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           
           <div className="data-management-group">
             <h3>Export Data</h3>
-            <p className="setting-help">Download your data as CSV files</p>
+            <p className="setting-help">Download your data as CSV/JSON files</p>
             <button className="primary-btn" onClick={handleExportAll}>
               📥 Export All Data
             </button>
@@ -352,7 +378,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
 
           <div className="data-management-group">
             <h3>Import Data</h3>
-            <p className="setting-help">Import data from CSV files. Make sure the files are in the correct format.</p>
+            <p className="setting-help">Import data from CSV/JSON files. Make sure the files are in the correct format.</p>
             <div className="import-buttons">
               <label className="primary-btn import-label">
                 📤 Import FIRE Calculator
@@ -365,6 +391,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
               <label className="primary-btn import-label">
                 📤 Import Cashflow Tracker
                 <input type="file" accept=".csv" onChange={handleImportCashflow} hidden />
+              </label>
+              <label className="primary-btn import-label">
+                📤 Import Net Worth Tracker
+                <input type="file" accept=".json" onChange={handleImportNetWorth} hidden />
               </label>
             </div>
           </div>

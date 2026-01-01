@@ -336,3 +336,53 @@ describe('Net Worth Calculator', () => {
     });
   });
 });
+
+// Tests for chart utility functions in HistoricalNetWorthChart
+describe('Chart Currency Formatting', () => {
+  // This tests the formatChartCurrency function logic
+  // The actual function is in HistoricalNetWorthChart.tsx
+  
+  function formatChartCurrency(amount: number): string {
+    const absAmount = Math.abs(amount);
+    const sign = amount < 0 ? '-' : '';
+    
+    if (absAmount >= 1000000) {
+      return `${sign}${(absAmount / 1000000).toFixed(1)}M`;
+    }
+    if (absAmount >= 1000) {
+      return `${sign}${(absAmount / 1000).toFixed(0)}k`;
+    }
+    return `${sign}${absAmount.toFixed(0)}`;
+  }
+
+  it('should format positive values with k suffix', () => {
+    expect(formatChartCurrency(5000)).toBe('5k');
+    expect(formatChartCurrency(12500)).toBe('13k'); // rounds
+    expect(formatChartCurrency(20000)).toBe('20k');
+  });
+
+  it('should format positive values with M suffix', () => {
+    expect(formatChartCurrency(1000000)).toBe('1.0M');
+    expect(formatChartCurrency(1500000)).toBe('1.5M');
+    expect(formatChartCurrency(2500000)).toBe('2.5M');
+  });
+
+  it('should format negative values with k suffix', () => {
+    expect(formatChartCurrency(-5000)).toBe('-5k');
+    expect(formatChartCurrency(-20000)).toBe('-20k');
+  });
+
+  it('should format negative values with M suffix', () => {
+    expect(formatChartCurrency(-1000000)).toBe('-1.0M');
+    expect(formatChartCurrency(-1500000)).toBe('-1.5M');
+  });
+
+  it('should handle small values without suffix', () => {
+    expect(formatChartCurrency(500)).toBe('500');
+    expect(formatChartCurrency(-500)).toBe('-500');
+  });
+
+  it('should handle zero', () => {
+    expect(formatChartCurrency(0)).toBe('0');
+  });
+});

@@ -4,6 +4,8 @@ import {
   importFireCalculatorFromCSV,
   exportAssetAllocationToCSV,
   importAssetAllocationFromCSV,
+  exportNetWorthTrackerToJSON,
+  importNetWorthTrackerFromJSON,
 } from './csvExport';
 import { CalculatorInputs } from '../types/calculator';
 import { Asset, AssetClass, AllocationMode } from '../types/assetAllocation';
@@ -127,6 +129,88 @@ describe('CSV Export/Import', () => {
       const invalidCSV = 'Asset Allocation Export\nGenerated,2024-01-01\n';
 
       expect(() => importAssetAllocationFromCSV(invalidCSV)).toThrow('No assets found');
+    });
+  });
+
+  describe('Net Worth Tracker JSON', () => {
+    const testNetWorthData = {
+      years: [
+        {
+          year: 2024,
+          months: [
+            {
+              year: 2024,
+              month: 1,
+              assets: [
+                {
+                  id: 'asset-1',
+                  ticker: 'VWCE',
+                  name: 'Vanguard All-World',
+                  shares: 100,
+                  pricePerShare: 100,
+                  currency: 'EUR',
+                  assetClass: 'ETF',
+                },
+              ],
+              cashEntries: [
+                {
+                  id: 'cash-1',
+                  accountName: 'Savings',
+                  accountType: 'SAVINGS',
+                  balance: 5000,
+                  currency: 'EUR',
+                },
+              ],
+              pensions: [],
+              operations: [],
+              isFrozen: false,
+            },
+          ],
+          isArchived: false,
+        },
+      ],
+      currentYear: 2024,
+      currentMonth: 1,
+      defaultCurrency: 'EUR',
+      settings: {
+        showPensionInNetWorth: true,
+        includeUnrealizedGains: true,
+      },
+    };
+
+    it('should export net worth tracker data to JSON', () => {
+      const json = exportNetWorthTrackerToJSON(testNetWorthData);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.type).toBe('NetWorthTracker');
+      expect(parsed.exportVersion).toBe('1.0');
+      expect(parsed.data.years).toHaveLength(1);
+      expect(parsed.data.years[0].months[0].assets[0].ticker).toBe('VWCE');
+    });
+
+    it('should import net worth tracker data from JSON', () => {
+      const json = exportNetWorthTrackerToJSON(testNetWorthData);
+      const imported = importNetWorthTrackerFromJSON(json);
+
+      expect(imported.years).toHaveLength(1);
+      expect(imported.years[0].months[0].assets[0].ticker).toBe('VWCE');
+      expect(imported.years[0].months[0].cashEntries[0].balance).toBe(5000);
+    });
+
+    it('should handle round-trip export/import', () => {
+      const json = exportNetWorthTrackerToJSON(testNetWorthData);
+      const imported = importNetWorthTrackerFromJSON(json);
+
+      expect(imported.years[0].months[0]).toEqual(testNetWorthData.years[0].months[0]);
+      expect(imported.defaultCurrency).toBe(testNetWorthData.defaultCurrency);
+    });
+
+    it('should import raw data without wrapper', () => {
+      const rawJson = JSON.stringify(testNetWorthData);
+      const imported = importNetWorthTrackerFromJSON(rawJson);
+
+      expect(imported.years).toHaveLength(1);
+      expect(imported.defaultCurrency).toBe('EUR');
     });
   });
 });

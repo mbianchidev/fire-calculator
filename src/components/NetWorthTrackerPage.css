@@ -235,6 +235,39 @@
   gap: 1rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.chart-view-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-view-mode label {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.view-mode-select {
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-mode-select:hover {
+  border-color: #667eea;
+}
+
+.view-mode-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .chart-toggle {
@@ -244,6 +277,49 @@
   cursor: pointer;
   font-size: 0.9rem;
   color: #555;
+}
+
+/* Forecast confidence info box */
+.forecast-confidence-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.forecast-confidence-box.low {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px solid #ffb74d;
+  color: #e65100;
+}
+
+.forecast-confidence-box.medium {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #64b5f6;
+  color: #1565c0;
+}
+
+.forecast-confidence-box.high {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 1px solid #81c784;
+  color: #2e7d32;
+}
+
+.forecast-confidence-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.forecast-confidence-text {
+  line-height: 1.4;
+}
+
+.forecast-confidence-text strong {
+  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 .chart-currency-toggle {
