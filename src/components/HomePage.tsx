@@ -15,7 +15,7 @@ export function HomePage() {
 
   // Initialize state immediately to prevent layout shift
   const [showSecurityBanner, setShowSecurityBanner] = useState(() => {
-    if (!isGitHubPages) return false;
+    if (!isGitHubPages || typeof window === 'undefined') return false;
     // Check dismissed status synchronously on initial render
     const dismissed = loadSecurityBannerDismissed();
     return !dismissed;
