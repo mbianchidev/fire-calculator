@@ -7,15 +7,15 @@ import {
 import './HomePage.css';
 
 export function HomePage() {
-  // Check if running on GitHub Pages
-  const isGitHubPages =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'github.io' ||
-      window.location.hostname.endsWith('.github.io'));
-
   // Initialize state immediately to prevent layout shift
   const [showSecurityBanner, setShowSecurityBanner] = useState(() => {
-    // Return false if not on GitHub Pages (window check already in isGitHubPages)
+    // Check if running on GitHub Pages (SSR-safe - only runs on client)
+    const isGitHubPages =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'github.io' ||
+        window.location.hostname.endsWith('.github.io'));
+    
+    // Return false if not on GitHub Pages
     if (!isGitHubPages) return false;
     
     // Check dismissed status synchronously on initial render
@@ -28,6 +28,12 @@ export function HomePage() {
       return true;
     }
   });
+
+  // Check if running on GitHub Pages (for conditional rendering)
+  const isGitHubPages =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'github.io' ||
+      window.location.hostname.endsWith('.github.io'));
 
   const handleDismissSecurityBanner = () => {
     saveSecurityBannerDismissed(true);
