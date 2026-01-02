@@ -29,44 +29,44 @@ export function HomePage() {
 
   return (
     <main className="homepage" id="main-content">
-      <section className="hero-section" aria-labelledby="hero-title">
-         {isGitHubPages && showSecurityBanner && (
-          <div className="security-warning-banner">
-            <div className="warning-icon">🔒⚠️</div>
-            <div className="warning-content">
-              <h2 className="warning-heading">Security Notice: GitHub Pages Deployment</h2>
-              <p>
-                <strong>Warning:</strong> This application is deployed on GitHub Pages, which does not support 
-                server-side data storage or HTTP-only cookies. While data is encrypted using AES, 
-                it is still vulnerable to XSS attacks and other client-side exploits that could 
-                exfiltrate your financial data.
-              </p>
-              <p>
-                <strong>For better security:</strong> We strongly recommend deploying this application 
-                locally on your own machine. Local deployment provides better isolation and reduces 
-                attack surface.
-              </p>
-              <div className="warning-actions">
-                <a 
-                  href="https://github.com/mbianchidev/fire-calculator#getting-started" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="warning-button"
-                >
-                  📖 View Local Setup Instructions
-                </a>
-              </div>
+      {isGitHubPages && showSecurityBanner && (
+        <div className="security-warning-banner">
+          <div className="warning-icon">🔒⚠️</div>
+          <div className="warning-content">
+            <h2 className="warning-heading">Security Notice: GitHub Pages Deployment</h2>
+            <p>
+              <strong>Warning:</strong> This application is deployed on GitHub Pages, which does not support 
+              server-side data storage or HTTP-only cookies. While data is encrypted using AES, 
+              it is still vulnerable to XSS attacks and other client-side exploits that could 
+              exfiltrate your financial data.
+            </p>
+            <p>
+              <strong>For better security:</strong> We strongly recommend deploying this application 
+              locally on your own machine. Local deployment provides better isolation and reduces 
+              attack surface.
+            </p>
+            <div className="warning-actions">
+              <a 
+                href="https://github.com/mbianchidev/fire-calculator#getting-started" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="warning-button"
+              >
+                📖 View Local Setup Instructions
+              </a>
             </div>
-            <button
-              type="button"
-              className="warning-close"
-              aria-label="Dismiss security notice"
-              onClick={handleDismissSecurityBanner}
-            >
-              ×
-            </button>
           </div>
-        )}
+          <button
+            type="button"
+            className="warning-close"
+            aria-label="Dismiss security notice"
+            onClick={handleDismissSecurityBanner}
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <section className="hero-section" aria-labelledby="hero-title">
         <h1 id="hero-title" className="hero-title"><span aria-hidden="true">💸</span> Fire Tools</h1>
         <p className="hero-subtitle">Rocket fuel for your financial planning</p>
       </section>
