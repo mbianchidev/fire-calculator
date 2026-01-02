@@ -312,8 +312,8 @@ export function clearExpenseTrackerData(): void {
 }
 
 /**
- * Clear all FIRE Calculator data from cookies
- * This includes both Asset Allocation and FIRE Calculator inputs
+ * Clear all FIRE Calculator data from cookies and localStorage
+ * This includes Asset Allocation, FIRE Calculator inputs, and Expense Tracker data
  */
 export function clearAllData(): void {
   clearAssetAllocation();
@@ -323,6 +323,8 @@ export function clearAllData(): void {
 
 /**
  * Check if cookie storage is available and working
+ * Note: Expense Tracker uses localStorage instead due to size limits.
+ * localStorage availability is checked implicitly via try-catch in save/load functions.
  */
 export function isCookieStorageAvailable(): boolean {
   try {
