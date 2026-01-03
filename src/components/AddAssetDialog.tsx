@@ -40,18 +40,19 @@ const getTickerLabel = (subAssetType: SubAssetType): string => {
 };
 
 export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose, onAdd }) => {
+  // Load default currency from settings
+  const settings = loadSettings();
+  const defaultCurrency = settings.currencySettings.defaultCurrency;
+  
   const [assetClass, setAssetClass] = useState<AssetClass>('STOCKS');
   const [subAssetType, setSubAssetType] = useState<SubAssetType>('ETF');
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
   const [isin, setIsin] = useState('');
   const [currentValue, setCurrentValue] = useState<string>('0');
-  const [currency, setCurrency] = useState<SupportedCurrency>('EUR');
+  const [currency, setCurrency] = useState<SupportedCurrency>(defaultCurrency);
   const [targetMode, setTargetMode] = useState<AllocationMode>('PERCENTAGE');
   const [targetPercent, setTargetPercent] = useState<string>('0');
-
-  // Get fallback rates from settings
-  const settings = loadSettings();
 
   const handleAssetClassChange = (newClass: AssetClass) => {
     setAssetClass(newClass);
@@ -127,7 +128,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     setTicker('');
     setIsin('');
     setCurrentValue('0');
-    setCurrency('EUR');
+    setCurrency(defaultCurrency);
     setTargetPercent('0');
     onClose();
   };

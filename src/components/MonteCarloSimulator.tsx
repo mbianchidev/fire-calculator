@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { CalculatorInputs, MonteCarloInputs, MonteCarloResult } from '../types/calculator';
 import { runMonteCarloSimulation } from '../utils/monteCarlo';
+import { loadSettings } from '../utils/cookieSettings';
 import { NumberInput } from './NumberInput';
 import { MonteCarloChart } from './MonteCarloChart';
 
@@ -16,11 +17,13 @@ interface ValidationErrors {
   blackSwanImpact?: string;
 }
 
-// Format currency for display (using de-DE locale for EUR formatting)
+// Format currency for display using user's default currency setting
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('de-DE', {
+  const settings = loadSettings();
+  const currency = settings.currencySettings.defaultCurrency;
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'EUR',
+    currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
