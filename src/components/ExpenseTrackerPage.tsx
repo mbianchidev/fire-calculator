@@ -37,6 +37,7 @@ import {
   importExpenseTrackerFromCSV,
 } from '../utils/csvExport';
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
+import { useTableSort } from '../utils/useTableSort';
 import { DataManagement } from './DataManagement';
 import { ExpenseBreakdownChart } from './ExpenseBreakdownChart';
 import { SpendingTrendChart } from './SpendingTrendChart';
@@ -289,6 +290,13 @@ export function ExpenseTrackerPage() {
     if (!currentMonthData) return [];
     return calculateCategoryBreakdown(currentMonthData.expenses, data.globalBudgets);
   }, [currentMonthData, data.globalBudgets, activeTab, analyticsView, allMonthsData, selectedQuarter, selectedMonth]);
+
+  // Add table sorting for category breakdown
+  const { 
+    sortedData: sortedCategoryBreakdown, 
+    requestSort: requestCategorySort, 
+    getSortIndicator: getCategorySortIndicator 
+  } = useTableSort(categoryBreakdown, 'totalAmount');
 
   // Calculate 50/30/20 breakdown
   const budgetRuleBreakdown = useMemo(() => {
@@ -1062,21 +1070,57 @@ export function ExpenseTrackerPage() {
               <table className="breakdown-table">
                 <thead>
                   <tr>
-                    <th>Category</th>
-                    <th>{analyticsView === 'ytd' ? 'Monthly Average' : 'Total'}</th>
-                    <th>% of Total</th>
-                    <th>Budget</th>
-                    <th>Remaining</th>
-                    <th>Transactions</th>
+                    <th 
+                      onClick={() => requestCategorySort('category')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      Category {getCategorySortIndicator('category')}
+                    </th>
+                    <th 
+                      onClick={() => requestCategorySort('totalAmount')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      {analyticsView === 'ytd' ? 'Monthly Average' : 'Total'} {getCategorySortIndicator('totalAmount')}
+                    </th>
+                    <th 
+                      onClick={() => requestCategorySort('percentage')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      % of Total {getCategorySortIndicator('percentage')}
+                    </th>
+                    <th 
+                      onClick={() => requestCategorySort('budgeted')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      Budget {getCategorySortIndicator('budgeted')}
+                    </th>
+                    <th 
+                      onClick={() => requestCategorySort('remaining')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      Remaining {getCategorySortIndicator('remaining')}
+                    </th>
+                    <th 
+                      onClick={() => requestCategorySort('transactionCount')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      title="Click to sort"
+                    >
+                      Transactions {getCategorySortIndicator('transactionCount')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {categoryBreakdown.length === 0 ? (
+                  {sortedCategoryBreakdown.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="empty-state">No expenses recorded for this period</td>
                     </tr>
                   ) : (
-                    categoryBreakdown.map(item => (
+                    sortedCategoryBreakdown.map(item => (
                       <tr key={item.category}>
                         <td>
                           <span className="category-icon" aria-hidden="true">
