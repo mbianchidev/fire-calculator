@@ -107,11 +107,9 @@ export const MonteCarloChart: React.FC<MonteCarloChartProps> = ({ result }) => {
     };
   }, [result]);
 
-  // Get currency symbol from settings
-  const currencySymbol = useMemo(() => {
-    const settings = loadSettings();
-    return getCurrencySymbol(settings.currencySettings.defaultCurrency);
-  }, []);
+  // Get currency symbol from settings - recalculated on each render to pick up changes
+  const settings = loadSettings();
+  const currencySymbol = getCurrencySymbol(settings.currencySettings.defaultCurrency);
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {

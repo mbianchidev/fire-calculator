@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { CalculatorInputs } from '../types/calculator';
 import { NumberInput } from './NumberInput';
 import { calculateYearsOfExpenses } from '../utils/fireCalculator';
@@ -23,11 +23,9 @@ interface CalculatorInputsProps {
 }
 
 export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, onChange, assetAllocationData }) => {
-  // Get currency symbol from settings
-  const currencySymbol = useMemo(() => {
-    const settings = loadSettings();
-    return getCurrencySymbol(settings.currencySettings.defaultCurrency);
-  }, []);
+  // Get currency symbol from settings - recalculated on each render to pick up changes
+  const settings = loadSettings();
+  const currencySymbol = getCurrencySymbol(settings.currencySettings.defaultCurrency);
 
   const [openSections, setOpenSections] = useState({
     initialValues: !inputs.useAssetAllocationValue,
