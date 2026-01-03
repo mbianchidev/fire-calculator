@@ -4,6 +4,7 @@ import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetC
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
 import { saveAssetAllocation, loadAssetAllocation, clearAllData } from '../utils/cookieStorage';
 import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
+import { loadSettings } from '../utils/cookieSettings';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
@@ -53,7 +54,11 @@ export const AssetAllocationPage: React.FC = () => {
     const saved = loadAssetAllocation();
     return saved.assets || DEFAULT_ASSETS;
   });
-  const [currency] = useState<string>('EUR');
+  // Load currency from user settings
+  const [currency] = useState<string>(() => {
+    const settings = loadSettings();
+    return settings.currencySettings.defaultCurrency;
+  });
   // Store asset class level targets independently for display in the Asset Classes table
   const [assetClassTargets, setAssetClassTargets] = useState<Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>>(() => {
     const saved = loadAssetAllocation();
