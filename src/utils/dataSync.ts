@@ -103,7 +103,8 @@ function mapNetWorthAssetClassToAllocation(assetClass: AssetHolding['assetClass'
  * 
  * Rules:
  * - Only syncs to the current month (currentYear/currentMonth)
- * - Assets (non-cash) are converted to AssetHolding with price = currentValue, shares = 1
+ * - Assets (non-cash) are converted to AssetHolding with shares and pricePerShare
+ * - If shares and pricePerShare are provided, use them; otherwise default to shares=1, pricePerShare=currentValue
  * - Cash assets are converted to CashEntry
  * - Existing data in current month is replaced (overwritten)
  * - Other months remain unchanged
@@ -152,13 +153,18 @@ export function syncAssetAllocationToNetWorth(
       newCashEntries.push(cashEntry);
     } else {
       // Convert to asset holding
-      // Use shares = 1 and price = currentValue for simplicity
+      // Use provided shares and pricePerShare if available, otherwise default to shares=1, price=currentValue
+      const shares = asset.shares !== undefined && asset.shares > 0 ? asset.shares : 1;
+      const pricePerShare = asset.pricePerShare !== undefined && asset.pricePerShare > 0 
+        ? asset.pricePerShare 
+        : asset.currentValue / shares;
+      
       const assetHolding: AssetHolding = {
         id: generateNetWorthId(),
         ticker: asset.ticker || asset.name.substring(0, 5).toUpperCase(),
         name: asset.name,
-        shares: 1,
-        pricePerShare: asset.currentValue,
+        shares,
+        pricePerShare,
         currency: (asset.originalCurrency || 'EUR') as SupportedCurrency,
         assetClass: mapAssetClassToNetWorth(asset.assetClass),
       };
@@ -180,6 +186,7 @@ export function syncAssetAllocationToNetWorth(
  * Rules:
  * - Only syncs from the current month (currentYear/currentMonth)
  * - AssetHolding are converted to Assets with currentValue = shares * pricePerShare
+ * - Shares and pricePerShare are preserved in the Asset
  * - CashEntry are converted to Cash assets
  * - Existing asset allocation data is replaced (overwritten)
  * 
@@ -211,6 +218,8 @@ export function syncNetWorthToAssetAllocation(
       assetClass: mapNetWorthAssetClassToAllocation(holding.assetClass),
       subAssetType: 'ETF' as SubAssetType, // Default to ETF for non-cash
       currentValue: holding.shares * holding.pricePerShare,
+      shares: holding.shares,
+      pricePerShare: holding.pricePerShare,
       originalCurrency: holding.currency as SupportedCurrency,
       originalValue: holding.shares * holding.pricePerShare,
       targetMode: 'OFF', // Default to OFF, user must configure

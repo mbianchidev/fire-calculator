@@ -300,6 +300,8 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(vwceShares * vwcePrice * 100) / 100,
+        shares: vwceShares,
+        pricePerShare: vwcePrice,
         targetMode: 'OFF' as AllocationMode,
       },
       {
@@ -309,6 +311,8 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'BONDS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(agghShares * agghPrice * 100) / 100,
+        shares: agghShares,
+        pricePerShare: agghPrice,
         targetMode: 'OFF' as AllocationMode,
       },
       {

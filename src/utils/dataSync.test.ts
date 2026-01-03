@@ -238,5 +238,170 @@ describe('Data Sync Utilities', () => {
       expect(checking!.assetClass).toBe('CASH');
       expect(checking!.currentValue).toBe(3000);
     });
+
+    it('should sync shares and pricePerShare from net worth to asset allocation', () => {
+      // ARRANGE
+      const currentYear = 2026;
+      const currentMonth = 1;
+      
+      const netWorthData: NetWorthTrackerData = {
+        years: [
+          {
+            year: currentYear,
+            months: [
+              {
+                year: currentYear,
+                month: currentMonth,
+                assets: [
+                  {
+                    id: 'nw-1',
+                    ticker: 'VWCE',
+                    name: 'Vanguard FTSE All-World',
+                    shares: 85,
+                    pricePerShare: 112.50,
+                    currency: 'EUR',
+                    assetClass: 'ETF',
+                  },
+                ],
+                cashEntries: [],
+                pensions: [],
+                operations: [],
+                isFrozen: false,
+              },
+            ],
+          },
+        ],
+        currentYear,
+        currentMonth,
+        defaultCurrency: 'EUR',
+        settings: {
+          showPensionInNetWorth: true,
+          includeUnrealizedGains: true,
+        },
+      };
+      
+      // ACT
+      const result = syncNetWorthToAssetAllocation(netWorthData);
+      
+      // ASSERT
+      expect(result).toHaveLength(1);
+      const vwce = result[0];
+      expect(vwce.shares).toBe(85);
+      expect(vwce.pricePerShare).toBe(112.50);
+      expect(vwce.currentValue).toBeCloseTo(9562.50, 2); // 85 * 112.50
+    });
+  });
+
+  describe('syncAssetAllocationToNetWorth with shares', () => {
+    it('should sync shares and pricePerShare from asset allocation to net worth', () => {
+      // ARRANGE
+      const currentYear = 2026;
+      const currentMonth = 1;
+      
+      const assetAllocationData: Asset[] = [
+        {
+          id: 'aa-1',
+          name: 'Vanguard FTSE All-World',
+          ticker: 'VWCE',
+          assetClass: 'STOCKS' as AssetClass,
+          subAssetType: 'ETF' as SubAssetType,
+          currentValue: 9562.50,
+          shares: 85,
+          pricePerShare: 112.50,
+          targetMode: 'OFF' as AllocationMode,
+        },
+      ];
+      
+      const netWorthData: NetWorthTrackerData = {
+        years: [
+          {
+            year: currentYear,
+            months: [
+              {
+                year: currentYear,
+                month: currentMonth,
+                assets: [],
+                cashEntries: [],
+                pensions: [],
+                operations: [],
+                isFrozen: false,
+              },
+            ],
+          },
+        ],
+        currentYear,
+        currentMonth,
+        defaultCurrency: 'EUR',
+        settings: {
+          showPensionInNetWorth: true,
+          includeUnrealizedGains: true,
+        },
+      };
+      
+      // ACT
+      const result = syncAssetAllocationToNetWorth(assetAllocationData, netWorthData);
+      
+      // ASSERT
+      expect(result.years[0].months[0].assets).toHaveLength(1);
+      const asset = result.years[0].months[0].assets[0];
+      expect(asset.shares).toBe(85);
+      expect(asset.pricePerShare).toBe(112.50);
+      expect(asset.shares * asset.pricePerShare).toBeCloseTo(9562.50, 2);
+    });
+
+    it('should calculate pricePerShare when only currentValue is provided', () => {
+      // ARRANGE - User entered current value but not shares
+      const currentYear = 2026;
+      const currentMonth = 1;
+      
+      const assetAllocationData: Asset[] = [
+        {
+          id: 'aa-1',
+          name: 'Vanguard FTSE All-World',
+          ticker: 'VWCE',
+          assetClass: 'STOCKS' as AssetClass,
+          subAssetType: 'ETF' as SubAssetType,
+          currentValue: 10000,
+          // No shares or pricePerShare provided
+          targetMode: 'OFF' as AllocationMode,
+        },
+      ];
+      
+      const netWorthData: NetWorthTrackerData = {
+        years: [
+          {
+            year: currentYear,
+            months: [
+              {
+                year: currentYear,
+                month: currentMonth,
+                assets: [],
+                cashEntries: [],
+                pensions: [],
+                operations: [],
+                isFrozen: false,
+              },
+            ],
+          },
+        ],
+        currentYear,
+        currentMonth,
+        defaultCurrency: 'EUR',
+        settings: {
+          showPensionInNetWorth: true,
+          includeUnrealizedGains: true,
+        },
+      };
+      
+      // ACT
+      const result = syncAssetAllocationToNetWorth(assetAllocationData, netWorthData);
+      
+      // ASSERT
+      expect(result.years[0].months[0].assets).toHaveLength(1);
+      const asset = result.years[0].months[0].assets[0];
+      // Should default to shares=1 and pricePerShare=currentValue for backwards compatibility
+      expect(asset.shares).toBe(1);
+      expect(asset.pricePerShare).toBe(10000);
+    });
   });
 });
