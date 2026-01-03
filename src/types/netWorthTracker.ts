@@ -154,6 +154,7 @@ export interface NetWorthTrackerData {
   settings: {
     showPensionInNetWorth: boolean;
     includeUnrealizedGains: boolean;
+    syncWithAssetAllocation?: boolean; // When true, sync current month with Asset Allocation Manager
   };
 }
 

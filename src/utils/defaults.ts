@@ -190,6 +190,7 @@ export function getDemoNetWorthData(): NetWorthTrackerData {
     settings: {
       showPensionInNetWorth: true,
       includeUnrealizedGains: true,
+      syncWithAssetAllocation: true, // Enable sync by default in demo data
     },
   };
 }
@@ -299,7 +300,10 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(vwceShares * vwcePrice * 100) / 100,
-        targetMode: 'OFF' as AllocationMode,
+        shares: vwceShares,
+        pricePerShare: vwcePrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 70, // Main stock holding
       },
       {
         id: 'demo-aa-2',
@@ -308,7 +312,10 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'BONDS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(agghShares * agghPrice * 100) / 100,
-        targetMode: 'OFF' as AllocationMode,
+        shares: agghShares,
+        pricePerShare: agghPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 20, // Bond allocation
       },
       {
         id: 'demo-aa-3',
@@ -317,7 +324,8 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'SAVINGS_ACCOUNT' as SubAssetType,
         currentValue: Math.max(10000, baseEmergencyFund + emergencyFundGrowth + emergencyFundVariation),
-        targetMode: 'OFF' as AllocationMode,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 8, // Most of cash allocation
       },
       {
         id: 'demo-aa-4',
@@ -326,7 +334,8 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'CHECKING_ACCOUNT' as SubAssetType,
         currentValue: Math.max(500, baseChecking + checkingVariation),
-        targetMode: 'OFF' as AllocationMode,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 2, // Remainder of cash allocation
       },
     ],
     assetClassTargets: {

@@ -1922,6 +1922,18 @@ select:disabled {
   font-weight: 500;
 }
 
+/* Shares info note - similar to currency conversion note */
+.shares-info-note {
+  background: #f3e5f5;
+  border: 1px solid #ce93d8;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #6a1b9a;
+  margin-top: -0.5rem;
+  font-weight: 500;
+}
+
 /* Currency indicator in tables */
 .currency-indicator {
   font-size: 0.75rem;
@@ -2400,4 +2412,19 @@ select:disabled {
   .asset-class-table {
     page-break-inside: avoid;
   }
+}
+
+/* Sync Status Banner */
+.sync-status-banner {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #2196F3;
+  font-weight: 500;
+  color: #1976D2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }

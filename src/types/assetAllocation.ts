@@ -29,6 +29,8 @@ export interface Asset {
   assetClass: AssetClass;
   subAssetType: SubAssetType;
   currentValue: number; // Value in EUR (converted if entered in another currency)
+  shares?: number; // Number of shares owned (optional, for stocks/ETFs/bonds)
+  pricePerShare?: number; // Price per share (optional, for stocks/ETFs/bonds)
   originalCurrency?: SupportedCurrency; // The currency the value was originally entered in (defaults to EUR)
   originalValue?: number; // The original value before conversion to EUR
   targetMode: AllocationMode;
