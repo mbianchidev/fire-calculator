@@ -4,6 +4,7 @@
 
 import { CalculatorInputs } from '../types/calculator';
 import { Asset, AssetClass, AllocationMode } from '../types/assetAllocation';
+import { NetWorthTrackerData } from '../types/netWorthTracker';
 
 /**
  * Export FIRE Calculator inputs to CSV format
@@ -567,4 +568,33 @@ function parseCSVLine(line: string): string[] {
   parts.push(current.trim());
 
   return parts;
+}
+
+/**
+ * Export Net Worth Tracker data to JSON format
+ * Using JSON instead of CSV due to the complex nested structure
+ */
+export function exportNetWorthTrackerToJSON(data: NetWorthTrackerData): string {
+  const exportData = {
+    exportVersion: '1.0',
+    exportDate: new Date().toISOString(),
+    type: 'NetWorthTracker',
+    data: data,
+  };
+  return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Import Net Worth Tracker data from JSON format
+ */
+export function importNetWorthTrackerFromJSON(json: string): NetWorthTrackerData {
+  const parsed = JSON.parse(json);
+  
+  // Check if this is our export format or raw data
+  if (parsed.type === 'NetWorthTracker' && parsed.data) {
+    return parsed.data as NetWorthTrackerData;
+  }
+  
+  // Assume it's raw data
+  return parsed as NetWorthTrackerData;
 }

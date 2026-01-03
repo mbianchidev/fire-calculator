@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import { Asset, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { CalculatorInputs } from '../types/calculator';
 import { ExpenseTrackerData, YearData, MonthData, IncomeEntry, ExpenseEntry } from '../types/expenseTracker';
+import { NetWorthTrackerData, NetWorthYearData, MonthlySnapshot, AssetHolding, CashEntry, PensionEntry, FinancialOperation } from '../types/netWorthTracker';
 import { DEFAULT_INPUTS } from './defaults';
 import { encryptData, decryptData } from './cookieEncryption';
 
@@ -15,6 +16,7 @@ const ASSET_ALLOCATION_KEY = 'fire-calculator-asset-allocation';
 const ASSET_CLASS_TARGETS_KEY = 'fire-calculator-asset-class-targets';
 const FIRE_CALCULATOR_INPUTS_KEY = 'fire-calculator-inputs';
 const EXPENSE_TRACKER_KEY = 'fire-tools-expense-tracker';
+const NET_WORTH_TRACKER_KEY = 'fire-tools-net-worth-tracker';
 
 // Cookie options - secure settings for production
 const COOKIE_OPTIONS: Cookies.CookieAttributes = {
@@ -311,6 +313,165 @@ export function clearExpenseTrackerData(): void {
   }
 }
 
+// Data validation helpers for net worth tracker
+function isValidAssetHolding(obj: unknown): obj is AssetHolding {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.ticker === 'string' &&
+    typeof o.name === 'string' &&
+    typeof o.shares === 'number' &&
+    typeof o.pricePerShare === 'number' &&
+    typeof o.currency === 'string' &&
+    typeof o.assetClass === 'string'
+  );
+}
+
+function isValidCashEntry(obj: unknown): obj is CashEntry {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.accountName === 'string' &&
+    typeof o.accountType === 'string' &&
+    typeof o.balance === 'number' &&
+    typeof o.currency === 'string'
+  );
+}
+
+function isValidPensionEntry(obj: unknown): obj is PensionEntry {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.name === 'string' &&
+    typeof o.currentValue === 'number' &&
+    typeof o.currency === 'string' &&
+    typeof o.pensionType === 'string'
+  );
+}
+
+function isValidFinancialOperation(obj: unknown): obj is FinancialOperation {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.date === 'string' &&
+    typeof o.type === 'string' &&
+    typeof o.description === 'string' &&
+    typeof o.amount === 'number' &&
+    typeof o.currency === 'string'
+  );
+}
+
+function isValidMonthlySnapshot(obj: unknown): obj is MonthlySnapshot {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.year === 'number' &&
+    typeof o.month === 'number' &&
+    Array.isArray(o.assets) &&
+    Array.isArray(o.cashEntries) &&
+    Array.isArray(o.pensions) &&
+    Array.isArray(o.operations) &&
+    typeof o.isFrozen === 'boolean' &&
+    (o.assets as unknown[]).every(isValidAssetHolding) &&
+    (o.cashEntries as unknown[]).every(isValidCashEntry) &&
+    (o.pensions as unknown[]).every(isValidPensionEntry) &&
+    (o.operations as unknown[]).every(isValidFinancialOperation)
+  );
+}
+
+function isValidNetWorthYearData(obj: unknown): obj is NetWorthYearData {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.year === 'number' &&
+    Array.isArray(o.months) &&
+    (o.months as unknown[]).every(isValidMonthlySnapshot)
+  );
+}
+
+function isValidNetWorthTrackerData(obj: unknown): obj is NetWorthTrackerData {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    Array.isArray(o.years) &&
+    typeof o.currentYear === 'number' &&
+    typeof o.currentMonth === 'number' &&
+    typeof o.defaultCurrency === 'string' &&
+    (o.years as unknown[]).every(isValidNetWorthYearData)
+  );
+}
+
+/**
+ * Save Net Worth Tracker data to encrypted localStorage
+ * Note: Uses localStorage instead of cookies due to 4KB cookie size limit.
+ * Net worth tracker data can easily exceed this limit with realistic asset history.
+ */
+export function saveNetWorthTrackerData(data: NetWorthTrackerData): void {
+  try {
+    const dataJson = JSON.stringify(data);
+    const encryptedData = encryptData(dataJson);
+    
+    localStorage.setItem(NET_WORTH_TRACKER_KEY, encryptedData);
+  } catch (error) {
+    console.error('Failed to save net worth tracker data to localStorage:', error);
+    throw new Error('Failed to save data to localStorage. Storage may be full or disabled.');
+  }
+}
+
+/**
+ * Load Net Worth Tracker data from encrypted localStorage
+ */
+export function loadNetWorthTrackerData(): NetWorthTrackerData | null {
+  try {
+    // Try localStorage first
+    let encryptedData = localStorage.getItem(NET_WORTH_TRACKER_KEY);
+    
+    // Migration: If not in localStorage, try to load from cookie and migrate
+    if (!encryptedData) {
+      const cookieData = Cookies.get(NET_WORTH_TRACKER_KEY);
+      if (cookieData) {
+        console.log('Migrating net worth tracker data from cookies to localStorage...');
+        // Save to localStorage
+        localStorage.setItem(NET_WORTH_TRACKER_KEY, cookieData);
+        // Remove from cookie
+        Cookies.remove(NET_WORTH_TRACKER_KEY, { path: '/' });
+        encryptedData = cookieData;
+      }
+    }
+    
+    if (encryptedData) {
+      const decryptedData = decryptData(encryptedData);
+      if (decryptedData) {
+        const parsed = JSON.parse(decryptedData);
+        if (isValidNetWorthTrackerData(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to load net worth tracker data from localStorage:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear Net Worth Tracker data from localStorage
+ */
+export function clearNetWorthTrackerData(): void {
+  try {
+    localStorage.removeItem(NET_WORTH_TRACKER_KEY);
+    // Also remove from cookies in case there's legacy data
+    Cookies.remove(NET_WORTH_TRACKER_KEY, { path: '/' });
+  } catch (error) {
+    console.error('Failed to clear net worth tracker data from localStorage:', error);
+  }
+}
+
 /**
  * Clear all FIRE Calculator data from cookies and localStorage
  * This includes Asset Allocation, FIRE Calculator inputs, and Expense Tracker data
@@ -319,6 +480,7 @@ export function clearAllData(): void {
   clearAssetAllocation();
   clearFireCalculatorInputs();
   clearExpenseTrackerData();
+  clearNetWorthTrackerData();
 }
 
 /**
