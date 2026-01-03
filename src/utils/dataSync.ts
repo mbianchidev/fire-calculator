@@ -4,7 +4,7 @@
  * and Net Worth Tracker for the current month
  */
 
-import { Asset, AssetClass, SubAssetType } from '../types/assetAllocation';
+import { Asset, AssetClass, SubAssetType, AllocationMode } from '../types/assetAllocation';
 import { 
   NetWorthTrackerData, 
   AssetHolding, 
@@ -14,6 +14,18 @@ import {
   createEmptyNetWorthYearData,
 } from '../types/netWorthTracker';
 import { SupportedCurrency } from '../types/currency';
+
+/**
+ * Default asset class targets for Asset Allocation Manager
+ * Used when no existing targets are found
+ */
+export const DEFAULT_ASSET_CLASS_TARGETS: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }> = {
+  STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 70 },
+  BONDS: { targetMode: 'PERCENTAGE', targetPercent: 20 },
+  CASH: { targetMode: 'PERCENTAGE', targetPercent: 10 },
+  CRYPTO: { targetMode: 'OFF' },
+  REAL_ESTATE: { targetMode: 'OFF' },
+};
 
 /**
  * Maps Asset Allocation asset class to Net Worth asset class
@@ -62,6 +74,27 @@ function mapSubAssetTypeToCashAccountType(subAssetType: SubAssetType): CashEntry
       return 'BROKERAGE';
     default:
       return 'OTHER';
+  }
+}
+
+/**
+ * Maps Net Worth AssetHolding asset class to Asset Allocation AssetClass
+ */
+function mapNetWorthAssetClassToAllocation(assetClass: AssetHolding['assetClass']): AssetClass {
+  switch (assetClass) {
+    case 'STOCKS':
+      return 'STOCKS';
+    case 'BONDS':
+      return 'BONDS';
+    case 'ETF':
+      return 'STOCKS'; // ETFs are treated as stocks in Asset Allocation
+    case 'CRYPTO':
+      return 'CRYPTO';
+    case 'REAL_ESTATE':
+      return 'REAL_ESTATE';
+    case 'OTHER':
+    default:
+      return 'STOCKS'; // Default OTHER to STOCKS as closest match
   }
 }
 
@@ -175,7 +208,7 @@ export function syncNetWorthToAssetAllocation(
       id: holding.id,
       name: holding.name,
       ticker: holding.ticker,
-      assetClass: holding.assetClass === 'ETF' ? 'STOCKS' : holding.assetClass as AssetClass,
+      assetClass: mapNetWorthAssetClassToAllocation(holding.assetClass),
       subAssetType: 'ETF' as SubAssetType, // Default to ETF for non-cash
       currentValue: holding.shares * holding.pricePerShare,
       originalCurrency: holding.currency as SupportedCurrency,

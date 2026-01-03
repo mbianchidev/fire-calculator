@@ -30,7 +30,7 @@ import {
   saveAssetAllocation,
 } from '../utils/cookieStorage';
 import { getDemoNetWorthData } from '../utils/defaults';
-import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation } from '../utils/dataSync';
+import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation, DEFAULT_ASSET_CLASS_TARGETS } from '../utils/dataSync';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
 import './NetWorthTrackerPage.css';
@@ -164,13 +164,7 @@ export function NetWorthTrackerPage() {
         // Sync Net Worth → Asset Allocation
         const syncedAssets = syncNetWorthToAssetAllocation(data);
         const { assetClassTargets } = loadAssetAllocation();
-        saveAssetAllocation(syncedAssets, assetClassTargets || {
-          STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 70 },
-          BONDS: { targetMode: 'PERCENTAGE', targetPercent: 20 },
-          CASH: { targetMode: 'PERCENTAGE', targetPercent: 10 },
-          CRYPTO: { targetMode: 'OFF' },
-          REAL_ESTATE: { targetMode: 'OFF' },
-        });
+        saveAssetAllocation(syncedAssets, assetClassTargets || DEFAULT_ASSET_CLASS_TARGETS);
       }
     }
   }, [data, selectedYear, selectedMonth, currentYear, currentMonth]);
