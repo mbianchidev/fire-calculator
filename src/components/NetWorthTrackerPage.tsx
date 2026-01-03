@@ -27,6 +27,7 @@ import {
   saveNetWorthTrackerData,
   loadNetWorthTrackerData,
 } from '../utils/cookieStorage';
+import { loadSettings } from '../utils/cookieSettings';
 import { generateDemoNetWorthDataForYear } from '../utils/defaults';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
@@ -64,6 +65,10 @@ function getDefaultData(): NetWorthTrackerData {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
+  
+  // Load default currency from user settings
+  const settings = loadSettings();
+  const defaultCurrency = settings.currencySettings.defaultCurrency;
 
   return {
     years: [
@@ -75,7 +80,7 @@ function getDefaultData(): NetWorthTrackerData {
     ],
     currentYear,
     currentMonth,
-    defaultCurrency: 'EUR',
+    defaultCurrency,
     settings: {
       showPensionInNetWorth: true,
       includeUnrealizedGains: true,

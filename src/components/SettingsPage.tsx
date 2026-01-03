@@ -327,6 +327,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         <section className="settings-section">
           <h2>🎨 Display</h2>
           <div className="setting-item">
+            <label htmlFor="defaultCurrency">Default Currency</label>
+            <select
+              id="defaultCurrency"
+              value={settings.currencySettings.defaultCurrency}
+              onChange={(e) => {
+                const newCurrency = e.target.value as SupportedCurrency;
+                const newSettings = {
+                  ...settings,
+                  currencySettings: {
+                    ...settings.currencySettings,
+                    defaultCurrency: newCurrency,
+                  },
+                };
+                setSettings(newSettings);
+                saveSettings(newSettings);
+                onSettingsChange?.(newSettings);
+                showMessage('success', `Default currency changed to ${newCurrency}!`);
+              }}
+            >
+              {SUPPORTED_CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.symbol} {currency.name} ({currency.code})
+                </option>
+              ))}
+            </select>
+            <span className="setting-help">This currency will be used as default across all pages</span>
+          </div>
+          <div className="setting-item">
             <label>Decimal Separator</label>
             <div className="toggle-group">
               <button

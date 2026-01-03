@@ -36,6 +36,7 @@ import {
   exportExpenseTrackerToCSV,
   importExpenseTrackerFromCSV,
 } from '../utils/csvExport';
+import { loadSettings } from '../utils/cookieSettings';
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { useTableSort } from '../utils/useTableSort';
 import { DataManagement } from './DataManagement';
@@ -66,6 +67,10 @@ function getDefaultData(): ExpenseTrackerData {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
+  
+  // Load default currency from user settings
+  const settings = loadSettings();
+  const defaultCurrency = settings.currencySettings.defaultCurrency;
 
   return {
     years: [
@@ -77,7 +82,7 @@ function getDefaultData(): ExpenseTrackerData {
     ],
     currentYear,
     currentMonth,
-    currency: 'EUR',
+    currency: defaultCurrency,
     globalBudgets: [],
   };
 }
