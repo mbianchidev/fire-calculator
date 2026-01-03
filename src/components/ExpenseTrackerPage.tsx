@@ -98,11 +98,17 @@ export function ExpenseTrackerPage() {
   // State
   const [data, setData] = useState<ExpenseTrackerData>(() => {
     const saved = loadExpenseTrackerData();
+    // Always get current default currency from settings
+    const settings = loadSettings();
+    const currentDefaultCurrency = settings.currencySettings.defaultCurrency;
+    
     if (saved) {
       // Ensure globalBudgets exists for backward compatibility
+      // Update the currency to match current settings
       return {
         ...saved,
-        globalBudgets: saved.globalBudgets || []
+        globalBudgets: saved.globalBudgets || [],
+        currency: currentDefaultCurrency,
       };
     }
     return getDefaultData();

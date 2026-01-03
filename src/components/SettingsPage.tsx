@@ -280,6 +280,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         const netWorthData = getDemoNetWorthData();
         saveNetWorthTrackerData(netWorthData);
         
+        // Reset default currency to EUR since demo data is in EUR
+        const newSettings = {
+          ...settings,
+          currencySettings: {
+            ...settings.currencySettings,
+            defaultCurrency: 'EUR' as SupportedCurrency,
+            fallbackRates: { ...DEFAULT_FALLBACK_RATES },
+          },
+        };
+        setSettings(newSettings);
+        saveSettings(newSettings);
+        onSettingsChange?.(newSettings);
+        
         showMessage('success', 'Demo data loaded successfully! Refresh the page to see the changes.');
       } catch (error) {
         showMessage('error', `Failed to load demo data: ${error instanceof Error ? error.message : 'Unknown error'}`);

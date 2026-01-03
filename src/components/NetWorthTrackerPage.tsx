@@ -99,8 +99,16 @@ export function NetWorthTrackerPage() {
   // State
   const [data, setData] = useState<NetWorthTrackerData>(() => {
     const saved = loadNetWorthTrackerData();
+    // Always get current default currency from settings
+    const settings = loadSettings();
+    const currentDefaultCurrency = settings.currencySettings.defaultCurrency;
+    
     if (saved) {
-      return saved;
+      // Update the default currency to match current settings
+      return {
+        ...saved,
+        defaultCurrency: currentDefaultCurrency,
+      };
     }
     return getDefaultData();
   });
