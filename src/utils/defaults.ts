@@ -1,5 +1,12 @@
 import { CalculatorInputs } from '../types/calculator';
-import { NetWorthTrackerData } from '../types/netWorthTracker';
+import { 
+  NetWorthTrackerData, 
+  AssetHolding, 
+  CashEntry, 
+  PensionEntry, 
+  FinancialOperation,
+  MonthlySnapshot 
+} from '../types/netWorthTracker';
 import { ExpenseTrackerData } from '../types/expenseTracker';
 import { Asset, AssetClass, AllocationMode, SubAssetType } from '../types/assetAllocation';
 import { SupportedCurrency } from '../types/currency';
@@ -39,103 +46,130 @@ export const DEFAULT_INPUTS: CalculatorInputs = {
   useExpenseTrackerIncome: false,
 };
 
-// Demo data for Net Worth Tracker
+// Demo data for Net Worth Tracker - generates 12 months of data for current year with randomized variations
 export function getDemoNetWorthData(): NetWorthTrackerData {
   const currentYear = new Date().getFullYear();
-  const prevYear = currentYear - 1;
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  
+  // Base values coherent with Asset Allocation demo data
+  const baseVWCEShares = 85;
+  const baseVWCEPrice = 110;
+  const baseAGGHShares = 50;
+  const baseAGGHPrice = 45;
+  const baseEmergencyFund = 12000;
+  const baseChecking = 3000;
+  const basePension = 25000;
+  
+  // Seeded random for consistent demo data (using month as seed)
+  const seededRandom = (seed: number, min: number, max: number) => {
+    const x = Math.sin(seed * 9999) * 10000;
+    return min + (x - Math.floor(x)) * (max - min);
+  };
+  
+  // Generate 12 months of data with gradual growth and random variations
+  const months: MonthlySnapshot[] = [];
+  for (let month = 1; month <= 12; month++) {
+    const monthSeed = currentYear * 100 + month;
+    
+    // Monthly DCA adds ~5 shares of VWCE per month
+    const vwceSharesGrowth = (month - 1) * 5;
+    // Price fluctuates ±8% around base with upward trend
+    const vwcePriceVariation = seededRandom(monthSeed, -0.08, 0.12);
+    const vwcePrice = Math.round((baseVWCEPrice * (1 + vwcePriceVariation + month * 0.005)) * 100) / 100;
+    
+    // Bond shares grow slower (~2 per month)
+    const agghSharesGrowth = Math.floor((month - 1) * 2);
+    // Bond prices more stable, ±3% variation
+    const agghPriceVariation = seededRandom(monthSeed + 1, -0.03, 0.03);
+    const agghPrice = Math.round((baseAGGHPrice * (1 + agghPriceVariation)) * 100) / 100;
+    
+    // Cash grows with monthly savings, but fluctuates due to expenses
+    const emergencyFundGrowth = (month - 1) * 300;
+    const emergencyFundVariation = Math.round(seededRandom(monthSeed + 2, -500, 500));
+    const checkingVariation = Math.round(seededRandom(monthSeed + 3, -800, 800));
+    
+    // Pension grows steadily with small variations
+    const pensionGrowth = (month - 1) * 400;
+    const pensionVariation = Math.round(seededRandom(monthSeed + 4, -200, 200));
+    
+    const isFrozen = month < currentMonth;
+    
+    const assets: AssetHolding[] = [
+      { 
+        id: `demo-asset-${month}-1`, 
+        ticker: 'VWCE', 
+        name: 'Vanguard FTSE All-World', 
+        shares: baseVWCEShares + vwceSharesGrowth, 
+        pricePerShare: vwcePrice, 
+        currency: 'EUR' as SupportedCurrency, 
+        assetClass: 'ETF' as const
+      },
+      { 
+        id: `demo-asset-${month}-2`, 
+        ticker: 'AGGH', 
+        name: 'iShares Global Agg Bond', 
+        shares: baseAGGHShares + agghSharesGrowth, 
+        pricePerShare: agghPrice, 
+        currency: 'EUR' as SupportedCurrency, 
+        assetClass: 'BONDS' as const
+      },
+    ];
+    
+    const cashEntries: CashEntry[] = [
+      { 
+        id: `demo-cash-${month}-1`, 
+        accountName: 'Emergency Fund', 
+        accountType: 'SAVINGS' as const, 
+        balance: Math.max(10000, baseEmergencyFund + emergencyFundGrowth + emergencyFundVariation), 
+        currency: 'EUR' as SupportedCurrency 
+      },
+      { 
+        id: `demo-cash-${month}-2`, 
+        accountName: 'Main Checking', 
+        accountType: 'CHECKING' as const, 
+        balance: Math.max(500, baseChecking + checkingVariation), 
+        currency: 'EUR' as SupportedCurrency 
+      },
+    ];
+    
+    const pensions: PensionEntry[] = [
+      { 
+        id: `demo-pension-${month}`, 
+        name: 'State Pension', 
+        pensionType: 'STATE' as const, 
+        currentValue: basePension + pensionGrowth + pensionVariation, 
+        currency: 'EUR' as SupportedCurrency 
+      },
+    ];
+    
+    const operations: FinancialOperation[] = month % 3 === 0 ? [
+      { id: `demo-op-${month}-1`, date: `${currentYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
+      { id: `demo-op-${month}-2`, date: `${currentYear}-${String(month).padStart(2, '0')}-20`, type: 'DIVIDEND' as const, description: 'VWCE Dividend', amount: Math.round(seededRandom(monthSeed + 5, 80, 150)), currency: 'EUR' as SupportedCurrency },
+    ] : [
+      { id: `demo-op-${month}-1`, date: `${currentYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
+    ];
+    
+    months.push({
+      year: currentYear,
+      month,
+      assets,
+      cashEntries,
+      pensions,
+      operations,
+      isFrozen,
+    });
+  }
   
   return {
     years: [
       {
-        year: prevYear,
-        months: [
-          {
-            year: prevYear,
-            month: 10,
-            assets: [
-              { id: 'demo-asset-1', ticker: 'VWCE', name: 'Vanguard FTSE All-World', shares: 80, pricePerShare: 105, currency: 'EUR' as SupportedCurrency, assetClass: 'ETF' },
-              { id: 'demo-asset-2', ticker: 'AGGH', name: 'iShares Global Agg Bond', shares: 50, pricePerShare: 45, currency: 'EUR' as SupportedCurrency, assetClass: 'BONDS' },
-            ],
-            cashEntries: [
-              { id: 'demo-cash-1', accountName: 'Emergency Fund', accountType: 'SAVINGS', balance: 12000, currency: 'EUR' as SupportedCurrency },
-              { id: 'demo-cash-2', accountName: 'Main Checking', accountType: 'CHECKING', balance: 3500, currency: 'EUR' as SupportedCurrency },
-            ],
-            pensions: [
-              { id: 'demo-pension-1', name: 'State Pension', pensionType: 'STATE', currentValue: 25000, currency: 'EUR' as SupportedCurrency },
-            ],
-            operations: [],
-            isFrozen: true,
-          },
-          {
-            year: prevYear,
-            month: 11,
-            assets: [
-              { id: 'demo-asset-3', ticker: 'VWCE', name: 'Vanguard FTSE All-World', shares: 85, pricePerShare: 108, currency: 'EUR' as SupportedCurrency, assetClass: 'ETF' },
-              { id: 'demo-asset-4', ticker: 'AGGH', name: 'iShares Global Agg Bond', shares: 50, pricePerShare: 44, currency: 'EUR' as SupportedCurrency, assetClass: 'BONDS' },
-            ],
-            cashEntries: [
-              { id: 'demo-cash-3', accountName: 'Emergency Fund', accountType: 'SAVINGS', balance: 12500, currency: 'EUR' as SupportedCurrency },
-              { id: 'demo-cash-4', accountName: 'Main Checking', accountType: 'CHECKING', balance: 2800, currency: 'EUR' as SupportedCurrency },
-            ],
-            pensions: [
-              { id: 'demo-pension-2', name: 'State Pension', pensionType: 'STATE', currentValue: 25500, currency: 'EUR' as SupportedCurrency },
-            ],
-            operations: [
-              { id: 'demo-op-1', date: `${prevYear}-11-15`, type: 'PURCHASE', description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
-            ],
-            isFrozen: true,
-          },
-          {
-            year: prevYear,
-            month: 12,
-            assets: [
-              { id: 'demo-asset-5', ticker: 'VWCE', name: 'Vanguard FTSE All-World', shares: 90, pricePerShare: 112, currency: 'EUR' as SupportedCurrency, assetClass: 'ETF' },
-              { id: 'demo-asset-6', ticker: 'AGGH', name: 'iShares Global Agg Bond', shares: 55, pricePerShare: 46, currency: 'EUR' as SupportedCurrency, assetClass: 'BONDS' },
-            ],
-            cashEntries: [
-              { id: 'demo-cash-5', accountName: 'Emergency Fund', accountType: 'SAVINGS', balance: 13000, currency: 'EUR' as SupportedCurrency },
-              { id: 'demo-cash-6', accountName: 'Main Checking', accountType: 'CHECKING', balance: 4200, currency: 'EUR' as SupportedCurrency },
-            ],
-            pensions: [
-              { id: 'demo-pension-3', name: 'State Pension', pensionType: 'STATE', currentValue: 26000, currency: 'EUR' as SupportedCurrency },
-            ],
-            operations: [
-              { id: 'demo-op-2', date: `${prevYear}-12-15`, type: 'PURCHASE', description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
-              { id: 'demo-op-3', date: `${prevYear}-12-20`, type: 'DIVIDEND', description: 'VWCE Dividend', amount: 120, currency: 'EUR' as SupportedCurrency },
-            ],
-            isFrozen: true,
-          },
-        ],
-        isArchived: false,
-      },
-      {
         year: currentYear,
-        months: [
-          {
-            year: currentYear,
-            month: 1,
-            assets: [
-              { id: 'demo-asset-7', ticker: 'VWCE', name: 'Vanguard FTSE All-World', shares: 95, pricePerShare: 115, currency: 'EUR' as SupportedCurrency, assetClass: 'ETF' },
-              { id: 'demo-asset-8', ticker: 'AGGH', name: 'iShares Global Agg Bond', shares: 55, pricePerShare: 47, currency: 'EUR' as SupportedCurrency, assetClass: 'BONDS' },
-            ],
-            cashEntries: [
-              { id: 'demo-cash-7', accountName: 'Emergency Fund', accountType: 'SAVINGS', balance: 13500, currency: 'EUR' as SupportedCurrency },
-              { id: 'demo-cash-8', accountName: 'Main Checking', accountType: 'CHECKING', balance: 3100, currency: 'EUR' as SupportedCurrency },
-            ],
-            pensions: [
-              { id: 'demo-pension-4', name: 'State Pension', pensionType: 'STATE', currentValue: 26500, currency: 'EUR' as SupportedCurrency },
-            ],
-            operations: [
-              { id: 'demo-op-4', date: `${currentYear}-01-15`, type: 'PURCHASE', description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
-            ],
-            isFrozen: false,
-          },
-        ],
+        months,
         isArchived: false,
       },
     ],
     currentYear,
-    currentMonth: 1,
+    currentMonth,
     defaultCurrency: 'EUR',
     settings: {
       showPensionInNetWorth: true,
@@ -202,11 +236,44 @@ export function getDemoCashflowData(): ExpenseTrackerData {
   };
 }
 
-// Demo data for Asset Allocation
+// Demo data for Asset Allocation - coherent with Net Worth demo data for current month
 export function getDemoAssetAllocationData(): { 
   assets: Asset[]; 
   assetClassTargets: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>;
 } {
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  const currentYear = new Date().getFullYear();
+  
+  // Use same calculation logic as getDemoNetWorthData for consistency
+  const baseVWCEShares = 85;
+  const baseVWCEPrice = 110;
+  const baseAGGHShares = 50;
+  const baseAGGHPrice = 45;
+  const baseEmergencyFund = 12000;
+  const baseChecking = 3000;
+  
+  const seededRandom = (seed: number, min: number, max: number) => {
+    const x = Math.sin(seed * 9999) * 10000;
+    return min + (x - Math.floor(x)) * (max - min);
+  };
+  
+  const monthSeed = currentYear * 100 + currentMonth;
+  
+  // Calculate current month values
+  const vwceSharesGrowth = (currentMonth - 1) * 5;
+  const vwcePriceVariation = seededRandom(monthSeed, -0.08, 0.12);
+  const vwcePrice = Math.round((baseVWCEPrice * (1 + vwcePriceVariation + currentMonth * 0.005)) * 100) / 100;
+  const vwceShares = baseVWCEShares + vwceSharesGrowth;
+  
+  const agghSharesGrowth = Math.floor((currentMonth - 1) * 2);
+  const agghPriceVariation = seededRandom(monthSeed + 1, -0.03, 0.03);
+  const agghPrice = Math.round((baseAGGHPrice * (1 + agghPriceVariation)) * 100) / 100;
+  const agghShares = baseAGGHShares + agghSharesGrowth;
+  
+  const emergencyFundGrowth = (currentMonth - 1) * 300;
+  const emergencyFundVariation = Math.round(seededRandom(monthSeed + 2, -500, 500));
+  const checkingVariation = Math.round(seededRandom(monthSeed + 3, -800, 800));
+  
   return {
     assets: [
       {
@@ -215,7 +282,7 @@ export function getDemoAssetAllocationData(): {
         ticker: 'VWCE',
         assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
-        currentValue: 10925, // 95 shares * 115
+        currentValue: Math.round(vwceShares * vwcePrice * 100) / 100,
         targetMode: 'OFF' as AllocationMode,
       },
       {
@@ -224,7 +291,7 @@ export function getDemoAssetAllocationData(): {
         ticker: 'AGGH',
         assetClass: 'BONDS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
-        currentValue: 2585, // 55 shares * 47
+        currentValue: Math.round(agghShares * agghPrice * 100) / 100,
         targetMode: 'OFF' as AllocationMode,
       },
       {
@@ -233,7 +300,7 @@ export function getDemoAssetAllocationData(): {
         ticker: '',
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'SAVINGS_ACCOUNT' as SubAssetType,
-        currentValue: 13500,
+        currentValue: Math.max(10000, baseEmergencyFund + emergencyFundGrowth + emergencyFundVariation),
         targetMode: 'OFF' as AllocationMode,
       },
       {
@@ -242,7 +309,7 @@ export function getDemoAssetAllocationData(): {
         ticker: '',
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'CHECKING_ACCOUNT' as SubAssetType,
-        currentValue: 3100,
+        currentValue: Math.max(500, baseChecking + checkingVariation),
         targetMode: 'OFF' as AllocationMode,
       },
     ],
