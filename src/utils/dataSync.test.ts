@@ -4,7 +4,7 @@ import {
   syncNetWorthToAssetAllocation,
 } from './dataSync';
 import { Asset, AssetClass, AllocationMode, SubAssetType } from '../types/assetAllocation';
-import { NetWorthTrackerData, MonthlySnapshot, AssetHolding, CashEntry } from '../types/netWorthTracker';
+import { NetWorthTrackerData } from '../types/netWorthTracker';
 
 describe('Data Sync Utilities', () => {
   describe('syncAssetAllocationToNetWorth', () => {

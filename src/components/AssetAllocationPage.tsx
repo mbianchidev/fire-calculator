@@ -4,6 +4,7 @@ import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetC
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
 import { saveAssetAllocation, loadAssetAllocation, clearAllData } from '../utils/cookieStorage';
 import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
+import { getDemoAssetAllocationData } from '../utils/defaults';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
@@ -340,6 +341,15 @@ export const AssetAllocationPage: React.FC = () => {
     }
   };
 
+  const handleLoadDemo = () => {
+    if (confirm('This will replace your current asset allocation data with demo data. Continue?')) {
+      const demoData = getDemoAssetAllocationData();
+      setAssets(demoData.assets);
+      setAssetClassTargets(demoData.assetClassTargets);
+      updateAllocation(demoData.assets, demoData.assetClassTargets);
+    }
+  };
+
   // Calculate cash delta (positive = SAVE, negative = INVEST)
   // The delta is applied to non-cash asset classes:
   // - If INVEST (negative cash delta), add to other classes
@@ -462,6 +472,7 @@ export const AssetAllocationPage: React.FC = () => {
           onExport={handleExport}
           onImport={handleImport}
           onReset={handleResetData}
+          onLoadDemo={handleLoadDemo}
           defaultOpen={false}
         />
 

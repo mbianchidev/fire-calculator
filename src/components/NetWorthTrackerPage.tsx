@@ -26,8 +26,11 @@ import {
 import {
   saveNetWorthTrackerData,
   loadNetWorthTrackerData,
+  loadAssetAllocation,
+  saveAssetAllocation,
 } from '../utils/cookieStorage';
 import { getDemoNetWorthData } from '../utils/defaults';
+import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation } from '../utils/dataSync';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
 import './NetWorthTrackerPage.css';
@@ -146,14 +149,38 @@ export function NetWorthTrackerPage() {
     setSearchParams(newParams, { replace: true });
   }, [selectedYear, selectedMonth, setSearchParams, searchParams]);
 
-  // Save data whenever it changes
+  // Save data whenever it changes, and sync if enabled
   useEffect(() => {
     saveNetWorthTrackerData(data);
-  }, [data]);
+    
+    // If sync is enabled and we're viewing the current month, sync to Asset Allocation
+    if (data.settings.syncWithAssetAllocation && 
+        selectedYear === currentYear && 
+        selectedMonth === currentMonth) {
+      const yearData = data.years.find(y => y.year === currentYear);
+      const monthData = yearData?.months.find(m => m.month === currentMonth);
+      
+      if (monthData) {
+        // Sync Net Worth → Asset Allocation
+        const syncedAssets = syncNetWorthToAssetAllocation(data);
+        const { assetClassTargets } = loadAssetAllocation();
+        saveAssetAllocation(syncedAssets, assetClassTargets || {
+          STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 70 },
+          BONDS: { targetMode: 'PERCENTAGE', targetPercent: 20 },
+          CASH: { targetMode: 'PERCENTAGE', targetPercent: 10 },
+          CRYPTO: { targetMode: 'OFF' },
+          REAL_ESTATE: { targetMode: 'OFF' },
+        });
+      }
+    }
+  }, [data, selectedYear, selectedMonth, currentYear, currentMonth]);
 
   // Check if we're viewing a past period
   const isViewingPastPeriod = selectedYear < currentYear || 
     (selectedYear === currentYear && selectedMonth < currentMonth);
+
+  // Check if we're viewing the current period
+  const isViewingCurrentPeriod = selectedYear === currentYear && selectedMonth === currentMonth;
 
   // Navigate to current period
   const goToCurrentPeriod = useCallback(() => {
@@ -655,6 +682,25 @@ export function NetWorthTrackerPage() {
     }
   };
 
+  // Toggle sync with Asset Allocation
+  const handleToggleSync = useCallback((enabled: boolean) => {
+    setData(prev => {
+      const newData = deepCloneData(prev);
+      newData.settings.syncWithAssetAllocation = enabled;
+      
+      // If enabling sync and viewing current month, import from Asset Allocation
+      if (enabled && selectedYear === currentYear && selectedMonth === currentMonth) {
+        const { assets } = loadAssetAllocation();
+        if (assets && assets.length > 0) {
+          const synced = syncAssetAllocationToNetWorth(assets, newData);
+          return synced;
+        }
+      }
+      
+      return newData;
+    });
+  }, [selectedYear, selectedMonth, currentYear, currentMonth]);
+
   // Load demo data
   const handleLoadDemo = () => {
     if (confirm('This will replace your current net worth tracker data with demo data. Continue?')) {
@@ -710,9 +756,35 @@ export function NetWorthTrackerPage() {
               <li><strong>Monthly Snapshot:</strong> Update values at month end for historical tracking</li>
               <li><strong>View History:</strong> Navigate between months to see historical data</li>
               <li><strong>Forecast Confidence:</strong> LOW (1-5 months), MEDIUM (6-23 months), HIGH (24+ months of data with stable growth)</li>
+              <li><strong>Asset Allocation Sync:</strong> Enable sync to automatically keep current month data in sync with Asset Allocation Manager</li>
             </ul>
           )}
         </section>
+
+        {/* Sync Configuration */}
+        {isViewingCurrentPeriod && (
+          <section className="sync-config-section" aria-labelledby="sync-config-heading">
+            <h3 id="sync-config-heading" className="visually-hidden">Asset Allocation Sync</h3>
+            <div className="sync-config-content">
+              <label className="sync-toggle-label">
+                <input
+                  type="checkbox"
+                  checked={data.settings.syncWithAssetAllocation || false}
+                  onChange={(e) => handleToggleSync(e.target.checked)}
+                  aria-label="Sync with Asset Allocation Manager"
+                />
+                <span className="sync-label-text">
+                  <span aria-hidden="true">🔄</span> Sync current month with Asset Allocation Manager
+                </span>
+              </label>
+              {data.settings.syncWithAssetAllocation && (
+                <p className="sync-info">
+                  <span aria-hidden="true">ℹ️</span> When enabled, changes to assets and cash in this month will automatically sync to Asset Allocation Manager, and vice versa.
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Data Management */}
         <DataManagement

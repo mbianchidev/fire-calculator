@@ -174,6 +174,7 @@ export function getDemoNetWorthData(): NetWorthTrackerData {
     settings: {
       showPensionInNetWorth: true,
       includeUnrealizedGains: true,
+      syncWithAssetAllocation: true, // Enable sync by default in demo data
     },
   };
 }
