@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, formatAssetName, formatCurrency } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
-import { saveAssetAllocation, loadAssetAllocation, clearAllData } from '../utils/cookieStorage';
+import { 
+  saveAssetAllocation, 
+  loadAssetAllocation, 
+  clearAllData, 
+  loadNetWorthTrackerData, 
+  saveNetWorthTrackerData 
+} from '../utils/cookieStorage';
 import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
 import { getDemoAssetAllocationData } from '../utils/defaults';
+import { syncAssetAllocationToNetWorth } from '../utils/dataSync';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
@@ -88,6 +95,20 @@ export const AssetAllocationPage: React.FC = () => {
   // Auto-save to localStorage when assets or targets change
   useEffect(() => {
     saveAssetAllocation(assets, assetClassTargets);
+    
+    // If Net Worth Tracker has sync enabled, sync Asset Allocation → Net Worth
+    const netWorthData = loadNetWorthTrackerData();
+    if (netWorthData?.settings.syncWithAssetAllocation) {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      
+      // Only sync if Net Worth Tracker is viewing the current month
+      if (netWorthData.currentYear === currentYear && netWorthData.currentMonth === currentMonth) {
+        const synced = syncAssetAllocationToNetWorth(assets, netWorthData);
+        saveNetWorthTrackerData(synced);
+      }
+    }
   }, [assets, assetClassTargets]);
 
   const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>) => {
@@ -417,6 +438,10 @@ export const AssetAllocationPage: React.FC = () => {
     ? prepareAssetChartData(selectedAssetClass.assets, selectedAssetClass.currentTotal)
     : [];
 
+  // Check if Net Worth sync is enabled
+  const netWorthData = loadNetWorthTrackerData();
+  const isSyncEnabled = netWorthData?.settings.syncWithAssetAllocation || false;
+
   return (
     <div className="asset-allocation-page">
       <header className="page-header">
@@ -428,6 +453,13 @@ export const AssetAllocationPage: React.FC = () => {
       </header>
 
       <main className="asset-allocation-manager" id="main-content">
+        {/* Sync status banner */}
+        {isSyncEnabled && (
+          <div className="sync-status-banner" role="status" aria-live="polite">
+            <span aria-hidden="true">🔄</span> Syncing with Net Worth Tracker (current month)
+          </div>
+        )}
+
         {/* Portfolio Value - calculated from non-cash assets */}
         <section className="portfolio-value-section" aria-labelledby="portfolio-value-heading">
           <div className="portfolio-value-label">
