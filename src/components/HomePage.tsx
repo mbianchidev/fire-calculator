@@ -1,26 +1,28 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   loadSecurityBannerDismissed,
   saveSecurityBannerDismissed,
 } from '../utils/bannerPreferences';
+import { useState } from 'react';
 import './HomePage.css';
 
+// Check if running on GitHub Pages (computed once on module load)
+const isGitHubPages =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'github.io' ||
+    window.location.hostname.endsWith('.github.io'));
+
+// Compute initial banner state synchronously to prevent CLS
+function getInitialBannerState(): boolean {
+  if (!isGitHubPages) {
+    return false;
+  }
+  return !loadSecurityBannerDismissed();
+}
+
 export function HomePage() {
-  const [showSecurityBanner, setShowSecurityBanner] = useState(false);
-
-  // Check if running on GitHub Pages
-  const isGitHubPages =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'github.io' ||
-      window.location.hostname.endsWith('.github.io'));
-
-  useEffect(() => {
-    if (isGitHubPages) {
-      const dismissed = loadSecurityBannerDismissed();
-      setShowSecurityBanner(!dismissed);
-    }
-  }, [isGitHubPages]);
+  // Initialize state synchronously to prevent layout shift
+  const [showSecurityBanner, setShowSecurityBanner] = useState(getInitialBannerState);
 
   const handleDismissSecurityBanner = () => {
     saveSecurityBannerDismissed(true);

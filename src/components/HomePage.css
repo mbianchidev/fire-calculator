@@ -100,6 +100,8 @@
   border-radius: 16px;
   margin-bottom: 3rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* Prevent CLS by reserving minimum height based on content */
+  min-height: 180px;
 }
 
 .hero-title {
@@ -107,6 +109,8 @@
   color: #333;
   margin-bottom: 1rem;
   font-weight: bold;
+  /* Prevent CLS from font loading by reserving line height */
+  line-height: 1.2;
 }
 
 .hero-subtitle {
