@@ -46,7 +46,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
   const [ticker, setTicker] = useState('');
   const [isin, setIsin] = useState('');
   const [currentValue, setCurrentValue] = useState<string>('0');
-  const [shares, setShares] = useState<string>('');
+  const [shares, setShares] = useState<string>('1');
   const [pricePerShare, setPricePerShare] = useState<string>('');
   const [currency, setCurrency] = useState<SupportedCurrency>('EUR');
   const [targetMode, setTargetMode] = useState<AllocationMode>('PERCENTAGE');
@@ -126,6 +126,18 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
       return;
     }
 
+    // For non-cash assets, shares and pricePerShare are required
+    if (assetClass !== 'CASH') {
+      if (!shares.trim() || parseFloat(shares) <= 0) {
+        alert('Please enter a valid number of shares');
+        return;
+      }
+      if (!pricePerShare.trim() || parseFloat(pricePerShare) <= 0) {
+        alert('Please enter a valid price per share');
+        return;
+      }
+    }
+
     // Generate a fallback ticker if not provided (for cash accounts/property that don't need ticker)
     // Uses first 4 chars of name + timestamp to ensure uniqueness
     const generatedTicker = ticker.trim().toUpperCase() || 
@@ -165,7 +177,7 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
     setTicker('');
     setIsin('');
     setCurrentValue('0');
-    setShares('');
+    setShares('1'); // Reset to default 1 for next asset
     setPricePerShare('');
     setCurrency('EUR');
     setTargetPercent('0');
@@ -258,28 +270,30 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
             )}
           </div>
 
-          {/* Shares and Price Per Share - only for non-cash assets */}
+          {/* Shares and Price Per Share - required for non-cash assets */}
           {assetClass !== 'CASH' && (
             <div className="form-row">
               <div className="form-group">
-                <label>Number of Shares (optional)</label>
+                <label>Number of Shares *</label>
                 <input
                   type="text"
                   value={shares}
                   onChange={(e) => handleSharesChange(e.target.value)}
                   placeholder="e.g., 85"
                   className="dialog-input"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Price Per Share (optional)</label>
+                <label>Price Per Share *</label>
                 <input
                   type="text"
                   value={pricePerShare}
                   onChange={(e) => handlePricePerShareChange(e.target.value)}
                   placeholder="e.g., 112.50"
                   className="dialog-input"
+                  required
                 />
               </div>
             </div>
@@ -293,19 +307,19 @@ export const AddAssetDialog: React.FC<AddAssetDialogProps> = ({ isOpen, onClose,
 
           <div className="form-row">
             <div className="form-group">
-              <label>Current Value *</label>
+              <label>Current Value {assetClass === 'CASH' ? '*' : '(Calculated)'}</label>
               <input
                 type="text"
                 value={currentValue}
                 onChange={(e) => handleCurrentValueChange(e.target.value)}
                 className="dialog-input"
-                disabled={assetClass !== 'CASH' && !!shares && !!pricePerShare}
-                style={assetClass !== 'CASH' && !!shares && !!pricePerShare ? {
+                disabled={assetClass !== 'CASH'}
+                style={assetClass !== 'CASH' ? {
                   backgroundColor: '#f0f0f0',
                   cursor: 'not-allowed',
                   color: '#666'
                 } : {}}
-                required
+                required={assetClass === 'CASH'}
               />
             </div>
 
