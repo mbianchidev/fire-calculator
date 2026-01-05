@@ -70,15 +70,17 @@ export function formatDisplayNumber(value: number): string {
  * Always shows decimal places as per settings (percentages are typically < 1000)
  * 
  * @param value - The percentage value (e.g., 45.5 for 45.5%)
+ * @param showSign - Optional. If true, shows + for positive values and - for negative values
  * @returns The formatted percentage string with % symbol
  */
-export function formatDisplayPercent(value: number): string {
+export function formatDisplayPercent(value: number, showSign: boolean = false): string {
   const settings = loadSettings();
   const decimalSeparator = settings.decimalSeparator;
   const decimalPlaces = settings.decimalPlaces ?? 2;
   
   // Round to specified decimal places
-  const roundedValue = Math.round(value * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+  const absValue = Math.abs(value);
+  const roundedValue = Math.round(absValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
   
   // Format with decimal places
   let formatted = roundedValue.toFixed(decimalPlaces);
@@ -86,6 +88,17 @@ export function formatDisplayPercent(value: number): string {
   // Replace decimal separator if needed
   if (decimalSeparator === ',') {
     formatted = formatted.replace('.', ',');
+  }
+  
+  // Add sign if requested
+  if (showSign) {
+    const sign = value >= 0 ? '+' : '-';
+    return sign + formatted + '%';
+  }
+  
+  // Standard formatting with negative sign if needed
+  if (value < 0) {
+    return '-' + formatted + '%';
   }
   
   return formatted + '%';

@@ -29,7 +29,7 @@ import {
 } from '../utils/cookieStorage';
 import { loadSettings } from '../utils/cookieSettings';
 import { generateDemoNetWorthDataForYear } from '../utils/defaults';
-import { formatDisplayCurrency, formatDisplayNumber } from '../utils/numberFormatter';
+import { formatDisplayCurrency, formatDisplayPercent, formatDisplayNumber } from '../utils/numberFormatter';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
 import './NetWorthTrackerPage.css';
@@ -50,19 +50,9 @@ function formatCurrency(amount: number, _currency: string): string {
   return formatDisplayCurrency(amount);
 }
 
-// Helper to format percentage (with sign for variations)
+// Helper to format percentage with sign (for variations)
 function formatPercent(value: number): string {
-  const settings = loadSettings();
-  const decimalSeparator = settings.decimalSeparator;
-  const decimalPlaces = settings.decimalPlaces ?? 2;
-  const sign = value >= 0 ? '+' : '';
-  const absValue = Math.abs(value);
-  const roundedValue = Math.round(absValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
-  let formatted = roundedValue.toFixed(decimalPlaces);
-  if (decimalSeparator === ',') {
-    formatted = formatted.replace('.', ',');
-  }
-  return `${sign}${value < 0 ? '-' : ''}${formatted}%`;
+  return formatDisplayPercent(value, true);
 }
 
 // Get default data

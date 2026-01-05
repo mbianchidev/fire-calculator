@@ -217,6 +217,28 @@ describe('formatDisplayPercent', () => {
     });
     expect(formatDisplayPercent(45.678)).toBe('45,68%');
   });
+
+  describe('with showSign option', () => {
+    it('shows + sign for positive values when showSign is true', () => {
+      expect(formatDisplayPercent(45.678, true)).toBe('+45.68%');
+    });
+
+    it('shows - sign for negative values when showSign is true', () => {
+      expect(formatDisplayPercent(-45.678, true)).toBe('-45.68%');
+    });
+
+    it('shows + sign for zero when showSign is true', () => {
+      expect(formatDisplayPercent(0, true)).toBe('+0.00%');
+    });
+
+    it('does not show + sign for positive values when showSign is false', () => {
+      expect(formatDisplayPercent(45.678, false)).toBe('45.68%');
+    });
+
+    it('handles negative values without showSign', () => {
+      expect(formatDisplayPercent(-45.678)).toBe('-45.68%');
+    });
+  });
 });
 
 describe('formatDisplayCurrency', () => {
