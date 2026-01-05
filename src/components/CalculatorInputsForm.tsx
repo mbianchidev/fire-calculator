@@ -6,6 +6,8 @@ import {
   calculateAnnualExpensesFromTracker, 
   calculateAnnualIncomeFromTracker 
 } from '../utils/expenseTrackerIntegration';
+import { loadSettings } from '../utils/cookieSettings';
+import { getCurrencySymbol } from '../utils/currencyConverter';
 
 interface AssetAllocationData {
   totalValue: number;
@@ -21,6 +23,10 @@ interface CalculatorInputsProps {
 }
 
 export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, onChange, assetAllocationData }) => {
+  // Get currency symbol from settings - recalculated on each render to pick up changes
+  const settings = loadSettings();
+  const currencySymbol = getCurrencySymbol(settings.currencySettings.defaultCurrency);
+
   const [openSections, setOpenSections] = useState({
     initialValues: !inputs.useAssetAllocationValue,
     assetAllocation: !inputs.useAssetAllocationValue,
@@ -102,6 +108,17 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
     ? calculateAnnualIncomeFromTracker(undefined, inputs.laborIncomeGrowthRate)
     : inputs.annualLaborIncome;
 
+  // Calculate effective savings rate based on whether expense tracker flags are enabled
+  const effectiveSavingsRate = (() => {
+    const income = effectiveLaborIncome;
+    const expenses = effectiveCurrentExpenses;
+    if (income > 0) {
+      const rate = ((income - expenses) / income) * 100;
+      return Math.min(100, rate);
+    }
+    return 0;
+  })();
+
   return (
     <div className="inputs-form">
       <h2>FIRE Calculator Inputs</h2>
@@ -122,7 +139,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         {openSections.initialValues && (<div id="initial-values-content" className="form-section-content">
         <div className="form-group">
           <label htmlFor="initial-savings">
-            Initial Savings / Portfolio Value (€)
+            Initial Savings / Portfolio Value ({currencySymbol})
             {inputs.useAssetAllocationValue && <span className="calculated-label"> - From Asset Allocation</span>}
           </label>
           {inputs.useAssetAllocationValue ? (
@@ -240,7 +257,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         </button>
         {openSections.income && (<div id="income-content" className="form-section-content">
         <div className="form-group">
-          <label htmlFor="labor-income">Annual Labor Income (Net) (€)</label>
+          <label htmlFor="labor-income">Current Annual Labor Income (Net) ({currencySymbol})</label>
           {inputs.useExpenseTrackerIncome ? (
             <input
               id="labor-income"
@@ -268,7 +285,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           />
         </div>
         <div className="form-group">
-          <label htmlFor="other-income">Side Income / Working After FIRE (Annual) (€)</label>
+          <label htmlFor="other-income">Side Income / Working After FIRE (Annual) ({currencySymbol})</label>
           <NumberInput
             id="other-income"
             value={inputs.otherIncome}
@@ -298,7 +315,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           />
         </div>
         <div className="form-group">
-          <label htmlFor="state-pension">State Pension Income (Annual) (€)</label>
+          <label htmlFor="state-pension">State Pension Income (Annual) ({currencySymbol})</label>
           <NumberInput
             id="state-pension"
             value={inputs.statePensionIncome}
@@ -306,7 +323,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           />
         </div>
         <div className="form-group">
-          <label htmlFor="private-pension">Private Pension Income (Annual) (€)</label>
+          <label htmlFor="private-pension">Private Pension Income (Annual) ({currencySymbol})</label>
           <NumberInput
             id="private-pension"
             value={inputs.privatePensionIncome}
@@ -327,7 +344,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         </button>
         {openSections.expenses && (<div id="expenses-content" className="form-section-content">
         <div className="form-group">
-          <label htmlFor="current-expenses">Current Annual Expenses (€)</label>
+          <label htmlFor="current-expenses">Current Annual Expenses ({currencySymbol})</label>
           {inputs.useExpenseTrackerExpenses ? (
             <input
               id="current-expenses"
@@ -347,7 +364,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           )}
         </div>
         <div className="form-group">
-          <label htmlFor="fire-expenses">FIRE Annual Expenses (€)</label>
+          <label htmlFor="fire-expenses">FIRE Annual Expenses ({currencySymbol})</label>
           <NumberInput
             id="fire-expenses"
             value={inputs.fireAnnualExpenses}
@@ -360,7 +377,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
             id="savings-rate"
             type="number"
             inputMode="decimal"
-            value={(inputs.savingsRate ?? 0).toFixed(2)}
+            value={effectiveSavingsRate.toFixed(2)}
             readOnly
             className="calculated-field"
             aria-readonly="true"

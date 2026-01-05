@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, formatAssetName, formatCurrency } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
-import { saveAssetAllocation, loadAssetAllocation, clearAllData } from '../utils/cookieStorage';
+import { saveAssetAllocation, loadAssetAllocation, clearAssetAllocation } from '../utils/cookieStorage';
 import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
+import { loadSettings } from '../utils/cookieSettings';
+import { getDemoAssetAllocationData } from '../utils/defaults';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { AddAssetDialog } from './AddAssetDialog';
@@ -53,7 +55,11 @@ export const AssetAllocationPage: React.FC = () => {
     const saved = loadAssetAllocation();
     return saved.assets || DEFAULT_ASSETS;
   });
-  const [currency] = useState<string>('EUR');
+  // Load currency from user settings
+  const [currency] = useState<string>(() => {
+    const settings = loadSettings();
+    return settings.currencySettings.defaultCurrency;
+  });
   // Store asset class level targets independently for display in the Asset Classes table
   const [assetClassTargets, setAssetClassTargets] = useState<Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>>(() => {
     const saved = loadAssetAllocation();
@@ -332,11 +338,20 @@ export const AssetAllocationPage: React.FC = () => {
   };
 
   const handleResetData = () => {
-    if (confirm('Are you sure you want to reset all data? This will clear all saved data from cookies and reset to defaults.')) {
-      clearAllData();
-      setAssets(DEFAULT_ASSETS);
+    if (confirm('Are you sure you want to reset all Asset Allocation data? This will clear all saved assets.')) {
+      clearAssetAllocation();
+      setAssets([]);
       setAssetClassTargets(defaultTargets);
-      updateAllocation(DEFAULT_ASSETS, defaultTargets);
+      updateAllocation([], defaultTargets);
+    }
+  };
+
+  const handleLoadDemoData = () => {
+    if (confirm('This will overwrite your current asset allocation data with demo data. Are you sure you want to continue?')) {
+      const { assets: demoAssets, assetClassTargets: demoTargets } = getDemoAssetAllocationData();
+      setAssets(demoAssets);
+      setAssetClassTargets(demoTargets);
+      updateAllocation(demoAssets, demoTargets);
     }
   };
 
@@ -462,6 +477,7 @@ export const AssetAllocationPage: React.FC = () => {
           onExport={handleExport}
           onImport={handleImport}
           onReset={handleResetData}
+          onLoadDemo={handleLoadDemoData}
           defaultOpen={false}
         />
 

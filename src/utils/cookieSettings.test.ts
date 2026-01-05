@@ -90,6 +90,45 @@ describe('Cookie Settings utilities', () => {
       expect(loaded.currencySettings.fallbackRates.USD).toBe(0.90);
     });
 
+    it('should save and load non-EUR default currency', () => {
+      const settings: UserSettings = {
+        ...DEFAULT_SETTINGS,
+        currencySettings: {
+          ...DEFAULT_SETTINGS.currencySettings,
+          defaultCurrency: 'USD',
+        },
+      };
+      
+      saveSettings(settings);
+      const loaded = loadSettings();
+      
+      expect(loaded.currencySettings.defaultCurrency).toBe('USD');
+    });
+
+    it('should preserve default currency when changing other settings', () => {
+      const settings: UserSettings = {
+        ...DEFAULT_SETTINGS,
+        currencySettings: {
+          ...DEFAULT_SETTINGS.currencySettings,
+          defaultCurrency: 'GBP',
+        },
+      };
+      
+      saveSettings(settings);
+      
+      // Update a different setting
+      const loaded = loadSettings();
+      const updatedSettings: UserSettings = {
+        ...loaded,
+        accountName: 'New Account Name',
+      };
+      saveSettings(updatedSettings);
+      
+      const reloaded = loadSettings();
+      expect(reloaded.currencySettings.defaultCurrency).toBe('GBP');
+      expect(reloaded.accountName).toBe('New Account Name');
+    });
+
     it('should encrypt data in cookies', () => {
       const settings: UserSettings = {
         ...DEFAULT_SETTINGS,
