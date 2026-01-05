@@ -537,7 +537,9 @@ export function getDemoAssetAllocationData(): {
         targetPercent: 33.34, // 33.34% of BONDS allocation (rounding adjustment)
         originalCurrency: 'USD' as SupportedCurrency,
       },
-      // CASH (2 accounts)
+      // CASH (2 accounts) - now with shares and price
+      // Emergency Fund: €3,500 (70% of cash)
+      // Treating as 1 "unit" @ €3,500/unit for compatibility
       {
         id: 'demo-aa-9',
         name: 'Emergency Fund',
@@ -545,9 +547,13 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'SAVINGS_ACCOUNT' as SubAssetType,
         currentValue: 3500,
+        shares: 1,
+        pricePerShare: 3500,
         targetMode: 'PERCENTAGE' as AllocationMode,
         targetPercent: 70, // 70% of CASH allocation
       },
+      // Main Checking: €1,500 (30% of cash)
+      // Treating as 1 "unit" @ €1,500/unit for compatibility
       {
         id: 'demo-aa-10',
         name: 'Main Checking',
@@ -555,6 +561,8 @@ export function getDemoAssetAllocationData(): {
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'CHECKING_ACCOUNT' as SubAssetType,
         currentValue: 1500,
+        shares: 1,
+        pricePerShare: 1500,
         targetMode: 'PERCENTAGE' as AllocationMode,
         targetPercent: 30, // 30% of CASH allocation
       },
