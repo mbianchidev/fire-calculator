@@ -48,20 +48,34 @@ export const DEFAULT_INPUTS: CalculatorInputs = {
 
 // Base values coherent with Asset Allocation demo data  
 // Total portfolio: €70,000 (€65,000 non-cash + €5,000 cash)
-// Stocks: €35,000, Bonds: €30,000, Cash: €5,000
+// Stocks: €35,000 (5 ETFs), Bonds: €30,000 (3 ETFs), Cash: €5,000
 const NET_WORTH_DEMO_BASE = {
-  // SPY: 23.921 shares @ €585.21 = €14,000
-  spyShares: 23.921,
+  // STOCKS - €35,000 total (5 ETFs @ €7,000 each)
+  // SPY: 11.961 shares @ €585.21 = €7,000
+  spyShares: 11.961,
   spyPrice: 585.21,
-  // VWCE: 186.667 shares @ €112.50 = €21,000
-  vwceShares: 186.667,
-  vwcePrice: 112.50,
-  // AGGH: 327.869 shares @ €45.75 = €15,000
-  agghShares: 327.869,
-  agghPrice: 45.75,
-  // TIP: 162.514 shares @ €92.30 = €15,000
-  tipShares: 162.514,
+  // VTI: 29.346 shares @ €238.54 = €7,000
+  vtiShares: 29.346,
+  vtiPrice: 238.54,
+  // VXUS: 112.090 shares @ €62.45 = €7,000
+  vxusShares: 112.090,
+  vxusPrice: 62.45,
+  // VWO: 165.947 shares @ €42.18 = €7,000
+  vwoShares: 165.947,
+  vwoPrice: 42.18,
+  // VBR: 41.410 shares @ €169.08 = €7,000
+  vbrShares: 41.410,
+  vbrPrice: 169.08,
+  // BONDS - €30,000 total (3 ETFs @ €10,000 each)
+  // BND: 158.876 shares @ €62.94 = €10,000
+  bndShares: 158.876,
+  bndPrice: 62.94,
+  // TIP: 108.343 shares @ €92.30 = €10,000
+  tipShares: 108.343,
   tipPrice: 92.30,
+  // BNDX: 242.582 shares @ €41.23 = €10,000
+  bndxShares: 242.582,
+  bndxPrice: 41.23,
   // Cash totals: €5,000 (€3,500 + €1,500)
   emergencyFund: 3500,
   checking: 1500,
@@ -87,40 +101,56 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
   for (let month = 1; month <= 12; month++) {
     const monthSeed = targetYear * 100 + month;
     
-    // SPY (S&P 500 ETF) - shares stay relatively stable
+    // SPY (S&P 500) - shares stay relatively stable
     const spyPriceVariation = seededRandom(monthSeed, -0.08, 0.12);
     const spyPrice = Math.round((NET_WORTH_DEMO_BASE.spyPrice * (1 + spyPriceVariation + month * 0.005)) * 100) / 100;
     
-    // VWCE (All-World) - Monthly DCA adds shares
-    const vwceSharesGrowth = (month - 1) * 2;
-    const vwcePriceVariation = seededRandom(monthSeed + 1, -0.08, 0.12);
-    const vwcePrice = Math.round((NET_WORTH_DEMO_BASE.vwcePrice * (1 + vwcePriceVariation + month * 0.005)) * 100) / 100;
+    // VTI (Total Stock Market) - shares stay relatively stable
+    const vtiPriceVariation = seededRandom(monthSeed + 1, -0.08, 0.12);
+    const vtiPrice = Math.round((NET_WORTH_DEMO_BASE.vtiPrice * (1 + vtiPriceVariation + month * 0.005)) * 100) / 100;
     
-    // AGGH (Global Agg Bond) - Bond shares stay relatively stable
-    const agghPriceVariation = seededRandom(monthSeed + 2, -0.03, 0.03);
-    const agghPrice = Math.round((NET_WORTH_DEMO_BASE.agghPrice * (1 + agghPriceVariation)) * 100) / 100;
+    // VXUS (International) - shares stay relatively stable
+    const vxusPriceVariation = seededRandom(monthSeed + 2, -0.08, 0.12);
+    const vxusPrice = Math.round((NET_WORTH_DEMO_BASE.vxusPrice * (1 + vxusPriceVariation + month * 0.005)) * 100) / 100;
     
-    // TIP (Treasury Inflation-Protected) - Bond shares stay relatively stable
-    const tipPriceVariation = seededRandom(monthSeed + 3, -0.03, 0.03);
+    // VWO (Emerging Markets) - more volatile
+    const vwoPriceVariation = seededRandom(monthSeed + 3, -0.12, 0.15);
+    const vwoPrice = Math.round((NET_WORTH_DEMO_BASE.vwoPrice * (1 + vwoPriceVariation + month * 0.005)) * 100) / 100;
+    
+    // VBR (Small Cap) - more volatile
+    const vbrPriceVariation = seededRandom(monthSeed + 4, -0.10, 0.13);
+    const vbrPrice = Math.round((NET_WORTH_DEMO_BASE.vbrPrice * (1 + vbrPriceVariation + month * 0.005)) * 100) / 100;
+    
+    // BND (Total Bond Market) - less volatile
+    const bndPriceVariation = seededRandom(monthSeed + 5, -0.03, 0.03);
+    const bndPrice = Math.round((NET_WORTH_DEMO_BASE.bndPrice * (1 + bndPriceVariation)) * 100) / 100;
+    
+    // TIP (Inflation-Protected Bonds) - less volatile
+    const tipPriceVariation = seededRandom(monthSeed + 6, -0.03, 0.03);
     const tipPrice = Math.round((NET_WORTH_DEMO_BASE.tipPrice * (1 + tipPriceVariation)) * 100) / 100;
+    
+    // BNDX (International Bonds) - less volatile
+    const bndxPriceVariation = seededRandom(monthSeed + 7, -0.03, 0.03);
+    const bndxPrice = Math.round((NET_WORTH_DEMO_BASE.bndxPrice * (1 + bndxPriceVariation)) * 100) / 100;
     
     // Cash grows with monthly savings, but fluctuates due to expenses
     const emergencyFundGrowth = (month - 1) * 200;
-    const emergencyFundVariation = Math.round(seededRandom(monthSeed + 4, -300, 300));
-    const checkingVariation = Math.round(seededRandom(monthSeed + 5, -500, 500));
+    const emergencyFundVariation = Math.round(seededRandom(monthSeed + 8, -300, 300));
+    const checkingVariation = Math.round(seededRandom(monthSeed + 9, -500, 500));
     
     // Pension grows steadily with small variations
     const pensionGrowth = (month - 1) * 400;
-    const pensionVariation = Math.round(seededRandom(monthSeed + 6, -200, 200));
+    const pensionVariation = Math.round(seededRandom(monthSeed + 10, -200, 200));
     
     // Only freeze months if target year is current year and month is in the past
     const isFrozen = targetYear === currentYear && month < currentMonth;
     
     const assets: AssetHolding[] = [
+      // STOCKS (5 ETFs)
       { 
         id: `demo-asset-${targetYear}-${month}-1`, 
         ticker: 'SPY', 
-        name: 'S&P 500 Index ETF', 
+        name: 'S&P 500 Index', 
         shares: NET_WORTH_DEMO_BASE.spyShares, 
         pricePerShare: spyPrice, 
         currency: 'USD' as SupportedCurrency, 
@@ -128,29 +158,66 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
       },
       { 
         id: `demo-asset-${targetYear}-${month}-2`, 
-        ticker: 'VWCE', 
-        name: 'Vanguard FTSE All-World', 
-        shares: NET_WORTH_DEMO_BASE.vwceShares + vwceSharesGrowth, 
-        pricePerShare: vwcePrice, 
-        currency: 'EUR' as SupportedCurrency, 
+        ticker: 'VTI', 
+        name: 'Total Stock Market', 
+        shares: NET_WORTH_DEMO_BASE.vtiShares, 
+        pricePerShare: vtiPrice, 
+        currency: 'USD' as SupportedCurrency, 
         assetClass: 'STOCKS' as const
       },
       { 
         id: `demo-asset-${targetYear}-${month}-3`, 
-        ticker: 'AGGH', 
-        name: 'iShares Global Agg Bond', 
-        shares: NET_WORTH_DEMO_BASE.agghShares, 
-        pricePerShare: agghPrice, 
+        ticker: 'VXUS', 
+        name: 'Total International Stock', 
+        shares: NET_WORTH_DEMO_BASE.vxusShares, 
+        pricePerShare: vxusPrice, 
+        currency: 'USD' as SupportedCurrency, 
+        assetClass: 'STOCKS' as const
+      },
+      { 
+        id: `demo-asset-${targetYear}-${month}-4`, 
+        ticker: 'VWO', 
+        name: 'Emerging Markets', 
+        shares: NET_WORTH_DEMO_BASE.vwoShares, 
+        pricePerShare: vwoPrice, 
+        currency: 'USD' as SupportedCurrency, 
+        assetClass: 'STOCKS' as const
+      },
+      { 
+        id: `demo-asset-${targetYear}-${month}-5`, 
+        ticker: 'VBR', 
+        name: 'Small Cap Value', 
+        shares: NET_WORTH_DEMO_BASE.vbrShares, 
+        pricePerShare: vbrPrice, 
+        currency: 'USD' as SupportedCurrency, 
+        assetClass: 'STOCKS' as const
+      },
+      // BONDS (3 ETFs)
+      { 
+        id: `demo-asset-${targetYear}-${month}-6`, 
+        ticker: 'BND', 
+        name: 'Total Bond Market', 
+        shares: NET_WORTH_DEMO_BASE.bndShares, 
+        pricePerShare: bndPrice, 
+        currency: 'USD' as SupportedCurrency, 
+        assetClass: 'BONDS' as const
+      },
+      { 
+        id: `demo-asset-${targetYear}-${month}-7`, 
+        ticker: 'TIP', 
+        name: 'Inflation-Protected Bonds', 
+        shares: NET_WORTH_DEMO_BASE.tipShares, 
+        pricePerShare: tipPrice, 
         currency: 'EUR' as SupportedCurrency, 
         assetClass: 'BONDS' as const
       },
       { 
-        id: `demo-asset-${targetYear}-${month}-4`, 
-        ticker: 'TIP', 
-        name: 'Treasury Inflation-Protected', 
-        shares: NET_WORTH_DEMO_BASE.tipShares, 
-        pricePerShare: tipPrice, 
-        currency: 'EUR' as SupportedCurrency, 
+        id: `demo-asset-${targetYear}-${month}-8`, 
+        ticker: 'BNDX', 
+        name: 'International Bond', 
+        shares: NET_WORTH_DEMO_BASE.bndxShares, 
+        pricePerShare: bndxPrice, 
+        currency: 'USD' as SupportedCurrency, 
         assetClass: 'BONDS' as const
       },
     ];
@@ -183,10 +250,10 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
     ];
     
     const operations: FinancialOperation[] = month % 3 === 0 ? [
-      { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
-      { id: `demo-op-${targetYear}-${month}-2`, date: `${targetYear}-${String(month).padStart(2, '0')}-20`, type: 'DIVIDEND' as const, description: 'VWCE Dividend', amount: Math.round(seededRandom(monthSeed + 7, 80, 150)), currency: 'EUR' as SupportedCurrency },
+      { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - Various ETFs', amount: 500, currency: 'EUR' as SupportedCurrency },
+      { id: `demo-op-${targetYear}-${month}-2`, date: `${targetYear}-${String(month).padStart(2, '0')}-20`, type: 'DIVIDEND' as const, description: 'ETF Dividends', amount: Math.round(seededRandom(monthSeed + 11, 80, 150)), currency: 'EUR' as SupportedCurrency },
     ] : [
-      { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
+      { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - Various ETFs', amount: 500, currency: 'EUR' as SupportedCurrency },
     ];
     
     months.push({
@@ -288,7 +355,7 @@ export function getDemoCashflowData(): ExpenseTrackerData {
 }
 
 // Demo data for Asset Allocation - coherent with Net Worth demo data for current month
-// Portfolio structure:
+// Portfolio structure updated to 8 ETFs (5 stocks + 3 bonds + 2 cash)
 // - Total: €70,000 (€65,000 non-cash + €5,000 cash)
 // - Stocks: €35,000 (50% actual) with 50% target = +€0 delta
 // - Bonds: €30,000 (42.86% actual) with 43% target = ±€0 delta (rounded)
@@ -298,86 +365,181 @@ export function getDemoAssetAllocationData(): {
   assets: Asset[]; 
   assetClassTargets: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>;
 } {
-  // Portfolio totals: €70,000 with €35k stocks, €30k bonds, €5k cash
-  // Using realistic prices and fractional shares
+  // Portfolio totals: €70,000 with €35k stocks (5 ETFs), €30k bonds (3 ETFs), €5k cash
+  // Using realistic prices and fractional shares for each ETF
   
-  // SPY (S&P 500 ETF): €14,000 value
-  // Real price: 683.17 USD/share ≈ 585.21 EUR/share (at 1.167 USD/EUR)
-  // Shares needed: 14,000 / 585.21 = 23.921 shares
-  const spyShares = 23.921;
+  // STOCKS: €35,000 total (50% of portfolio)
+  // Individual targets add up to 100% within STOCKS class
+  
+  // SPY (S&P 500): €7,000 (20% of stocks = 40% target × 50% of total)
+  // Price: 683.17 USD ≈ 585.21 EUR (at 1.167 USD/EUR)
+  // Shares: 7,000 / 585.21 = 11.961 shares
+  const spyShares = 11.961;
   const spyPrice = 585.21;
   
-  // VWCE (Vanguard All-World): €21,000 value
-  // Price: €112.50/share
-  // Shares needed: 21,000 / 112.50 = 186.667 shares
-  const vwceShares = 186.667;
-  const vwcePrice = 112.50;
+  // VTI (Total Stock Market): €7,000 (20% of stocks)
+  // Price: 278.45 USD ≈ 238.54 EUR
+  // Shares: 7,000 / 238.54 = 29.346 shares
+  const vtiShares = 29.346;
+  const vtiPrice = 238.54;
   
-  // AGGH (Global Aggregate Bond): €15,000 value
-  // Price: €45.75/share
-  // Shares needed: 15,000 / 45.75 = 327.869 shares
-  const aggh1Shares = 327.869;
-  const aggh1Price = 45.75;
+  // VXUS (Total International): €7,000 (20% of stocks)
+  // Price: 72.89 USD ≈ 62.45 EUR
+  // Shares: 7,000 / 62.45 = 112.090 shares
+  const vxusShares = 112.090;
+  const vxusPrice = 62.45;
   
-  // TIP (Treasury Inflation-Protected): €15,000 value
+  // VWO (Emerging Markets): €7,000 (20% of stocks)
+  // Price: 49.23 USD ≈ 42.18 EUR
+  // Shares: 7,000 / 42.18 = 165.947 shares
+  const vwoShares = 165.947;
+  const vwoPrice = 42.18;
+  
+  // VBR (Small Cap Value): €7,000 (20% of stocks)
+  // Price: 197.34 USD ≈ 169.08 EUR
+  // Shares: 7,000 / 169.08 = 41.410 shares
+  const vbrShares = 41.410;
+  const vbrPrice = 169.08;
+  
+  // BONDS: €30,000 total (42.86% of portfolio, 43% target)
+  // Individual targets add up to 100% within BONDS class
+  
+  // BND (Total Bond Market): €10,000 (33.33% of bonds)
+  // Price: 73.45 USD ≈ 62.94 EUR
+  // Shares: 10,000 / 62.94 = 158.876 shares
+  const bndShares = 158.876;
+  const bndPrice = 62.94;
+  
+  // TIP (Inflation-Protected): €10,000 (33.33% of bonds)
   // Price: €92.30/share
-  // Shares needed: 15,000 / 92.30 = 162.514 shares
-  const tipShares = 162.514;
+  // Shares: 10,000 / 92.30 = 108.343 shares
+  const tipShares = 108.343;
   const tipPrice = 92.30;
+  
+  // BNDX (International Bond): €10,000 (33.33% of bonds)
+  // Price: 48.12 USD ≈ 41.23 EUR
+  // Shares: 10,000 / 41.23 = 242.582 shares
+  const bndxShares = 242.582;
+  const bndxPrice = 41.23;
   
   return {
     assets: [
+      // STOCKS (5 ETFs)
       {
         id: 'demo-aa-1',
-        name: 'S&P 500 Index ETF',
+        name: 'S&P 500 Index',
         ticker: 'SPY',
+        isin: 'US78462F1030',
         assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(spyShares * spyPrice * 100) / 100,
         shares: spyShares,
         pricePerShare: spyPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 40, // 40% of STOCKS allocation
+        targetPercent: 20, // 20% of STOCKS allocation
         originalCurrency: 'USD' as SupportedCurrency,
       },
       {
         id: 'demo-aa-2',
-        name: 'Vanguard FTSE All-World',
-        ticker: 'VWCE',
+        name: 'Total Stock Market',
+        ticker: 'VTI',
+        isin: 'US9229083632',
         assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
-        currentValue: Math.round(vwceShares * vwcePrice * 100) / 100,
-        shares: vwceShares,
-        pricePerShare: vwcePrice,
+        currentValue: Math.round(vtiShares * vtiPrice * 100) / 100,
+        shares: vtiShares,
+        pricePerShare: vtiPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 60, // 60% of STOCKS allocation
+        targetPercent: 20, // 20% of STOCKS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
       },
       {
         id: 'demo-aa-3',
-        name: 'iShares Global Agg Bond',
-        ticker: 'AGGH',
-        assetClass: 'BONDS' as AssetClass,
+        name: 'Total International Stock',
+        ticker: 'VXUS',
+        isin: 'US9219107094',
+        assetClass: 'STOCKS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
-        currentValue: Math.round(aggh1Shares * aggh1Price * 100) / 100,
-        shares: aggh1Shares,
-        pricePerShare: aggh1Price,
+        currentValue: Math.round(vxusShares * vxusPrice * 100) / 100,
+        shares: vxusShares,
+        pricePerShare: vxusPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 50, // 50% of BONDS allocation
+        targetPercent: 20, // 20% of STOCKS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
       },
       {
         id: 'demo-aa-4',
-        name: 'Treasury Inflation-Protected',
+        name: 'Emerging Markets',
+        ticker: 'VWO',
+        isin: 'US9220428588',
+        assetClass: 'STOCKS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(vwoShares * vwoPrice * 100) / 100,
+        shares: vwoShares,
+        pricePerShare: vwoPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 20, // 20% of STOCKS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
+      },
+      {
+        id: 'demo-aa-5',
+        name: 'Small Cap Value',
+        ticker: 'VBR',
+        isin: 'US9219107771',
+        assetClass: 'STOCKS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(vbrShares * vbrPrice * 100) / 100,
+        shares: vbrShares,
+        pricePerShare: vbrPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 20, // 20% of STOCKS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
+      },
+      // BONDS (3 ETFs)
+      {
+        id: 'demo-aa-6',
+        name: 'Total Bond Market',
+        ticker: 'BND',
+        isin: 'US9219378356',
+        assetClass: 'BONDS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(bndShares * bndPrice * 100) / 100,
+        shares: bndShares,
+        pricePerShare: bndPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 33.33, // 33.33% of BONDS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
+      },
+      {
+        id: 'demo-aa-7',
+        name: 'Inflation-Protected Bonds',
         ticker: 'TIP',
+        isin: 'US46434V6478',
         assetClass: 'BONDS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
         currentValue: Math.round(tipShares * tipPrice * 100) / 100,
         shares: tipShares,
         pricePerShare: tipPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 50, // 50% of BONDS allocation
+        targetPercent: 33.33, // 33.33% of BONDS allocation
       },
       {
-        id: 'demo-aa-5',
+        id: 'demo-aa-8',
+        name: 'International Bond',
+        ticker: 'BNDX',
+        isin: 'US9219107771',
+        assetClass: 'BONDS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(bndxShares * bndxPrice * 100) / 100,
+        shares: bndxShares,
+        pricePerShare: bndxPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 33.34, // 33.34% of BONDS allocation (rounding adjustment)
+        originalCurrency: 'USD' as SupportedCurrency,
+      },
+      // CASH (2 accounts)
+      {
+        id: 'demo-aa-9',
         name: 'Emergency Fund',
         ticker: '',
         assetClass: 'CASH' as AssetClass,
@@ -387,7 +549,7 @@ export function getDemoAssetAllocationData(): {
         targetPercent: 70, // 70% of CASH allocation
       },
       {
-        id: 'demo-aa-6',
+        id: 'demo-aa-10',
         name: 'Main Checking',
         ticker: '',
         assetClass: 'CASH' as AssetClass,

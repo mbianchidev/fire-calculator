@@ -260,6 +260,8 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
       [assetId]: {
         name: editValues.name,
         currentValue: editValues.currentValue,
+        shares: editValues.shares,
+        pricePerShare: editValues.pricePerShare,
         targetPercent: editValues.targetPercent,
       }
     };
