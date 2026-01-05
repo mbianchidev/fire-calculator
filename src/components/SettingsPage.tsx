@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadSettings, saveSettings, DEFAULT_SETTINGS, type UserSettings } from '../utils/cookieSettings';
 import { SUPPORTED_CURRENCIES, DEFAULT_FALLBACK_RATES, type SupportedCurrency } from '../types/currency';
-import { recalculateFallbackRates } from '../utils/currencyConverter';
+import { recalculateFallbackRates, convertAssetsToNewCurrency } from '../utils/currencyConverter';
 import { exportFireCalculatorToCSV, exportAssetAllocationToCSV, importFireCalculatorFromCSV, importAssetAllocationFromCSV, exportExpenseTrackerToCSV, importExpenseTrackerFromCSV, exportNetWorthTrackerToJSON, importNetWorthTrackerFromJSON } from '../utils/csvExport';
 import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs, saveAssetAllocation, clearAllData, loadExpenseTrackerData, saveExpenseTrackerData, loadNetWorthTrackerData, saveNetWorthTrackerData } from '../utils/cookieStorage';
 import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoAssetAllocationData } from '../utils/defaults';
@@ -351,9 +351,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 const newCurrency = e.target.value as SupportedCurrency;
                 const oldCurrency = settings.currencySettings.defaultCurrency;
                 
+                if (newCurrency === oldCurrency) {
+                  return;
+                }
+                
+                // Get current fallback rates before recalculation
+                const currentRates = settings.currencySettings.fallbackRates;
+                
+                // Convert all asset values to the new currency BEFORE recalculating rates
+                const { assets, assetClassTargets } = loadAssetAllocation();
+                if (assets && assetClassTargets) {
+                  const convertedAssets = convertAssetsToNewCurrency(assets, oldCurrency, newCurrency, currentRates);
+                  saveAssetAllocation(convertedAssets, assetClassTargets);
+                }
+                
                 // Recalculate fallback rates relative to the new default currency
                 const newFallbackRates = recalculateFallbackRates(
-                  settings.currencySettings.fallbackRates,
+                  currentRates,
                   oldCurrency,
                   newCurrency
                 );
@@ -369,7 +383,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 setSettings(newSettings);
                 saveSettings(newSettings);
                 onSettingsChange?.(newSettings);
-                showMessage('success', `Default currency changed to ${newCurrency}! Rates recalculated.`);
+                showMessage('success', `Default currency changed to ${newCurrency}! Asset values and rates converted.`);
               }}
             >
               {SUPPORTED_CURRENCIES.map((currency) => (

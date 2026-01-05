@@ -7,8 +7,10 @@ import {
   isValidCurrency,
   convertAmount,
   recalculateFallbackRates,
+  convertAssetsToNewCurrency,
 } from './currencyConverter';
 import { DEFAULT_FALLBACK_RATES } from '../types/currency';
+import { Asset } from '../types/assetAllocation';
 
 describe('Currency Converter', () => {
   describe('convertToEUR', () => {
@@ -218,6 +220,126 @@ describe('Currency Converter', () => {
     it('should return same rates when currency does not change', () => {
       const newRates = recalculateFallbackRates(DEFAULT_FALLBACK_RATES, 'EUR', 'EUR');
       expect(newRates).toEqual(DEFAULT_FALLBACK_RATES);
+    });
+  });
+
+  describe('convertAssetsToNewCurrency', () => {
+    const createMockAsset = (overrides: Partial<Asset> = {}): Asset => ({
+      id: 'test-1',
+      name: 'Test Asset',
+      ticker: 'TEST',
+      assetClass: 'STOCKS',
+      subAssetType: 'ETF',
+      currentValue: 1000,
+      originalCurrency: 'EUR',
+      originalValue: 1000,
+      targetMode: 'PERCENTAGE',
+      ...overrides,
+    });
+
+    it('should convert asset values from EUR to USD', () => {
+      const assets: Asset[] = [
+        createMockAsset({ currentValue: 1000, originalCurrency: 'EUR', originalValue: 1000 }),
+      ];
+      
+      // EUR to USD: 1000 EUR = 1000 / 0.85 = 1176.47 USD
+      const converted = convertAssetsToNewCurrency(assets, 'EUR', 'USD', DEFAULT_FALLBACK_RATES);
+      
+      expect(converted[0].currentValue).toBeCloseTo(1176.47, 0);
+      expect(converted[0].originalCurrency).toBe('EUR');
+      expect(converted[0].originalValue).toBe(1000);
+    });
+
+    it('should convert asset values from USD to EUR', () => {
+      const assets: Asset[] = [
+        createMockAsset({ currentValue: 1000, originalCurrency: 'USD', originalValue: 850 }),
+      ];
+      
+      // 1000 USD * 0.85 = 850 EUR
+      const converted = convertAssetsToNewCurrency(assets, 'USD', 'EUR', DEFAULT_FALLBACK_RATES);
+      
+      expect(converted[0].currentValue).toBeCloseTo(850, 0);
+    });
+
+    it('should handle conversion between non-EUR currencies', () => {
+      const assets: Asset[] = [
+        createMockAsset({ currentValue: 1000, originalCurrency: 'USD', originalValue: 850 }),
+      ];
+      
+      // USD to GBP: 1000 USD -> EUR -> GBP
+      // 1000 * 0.85 = 850 EUR, 850 / 1.15 = 739.13 GBP
+      const converted = convertAssetsToNewCurrency(assets, 'USD', 'GBP', DEFAULT_FALLBACK_RATES);
+      
+      expect(converted[0].currentValue).toBeCloseTo(739.13, 0);
+    });
+
+    it('should return same values when currency does not change', () => {
+      const assets: Asset[] = [
+        createMockAsset({ currentValue: 1000, originalCurrency: 'EUR', originalValue: 1000 }),
+      ];
+      
+      const converted = convertAssetsToNewCurrency(assets, 'EUR', 'EUR', DEFAULT_FALLBACK_RATES);
+      
+      expect(converted[0].currentValue).toBe(1000);
+    });
+
+    it('should convert multiple assets', () => {
+      const assets: Asset[] = [
+        createMockAsset({ id: '1', currentValue: 1000, originalCurrency: 'EUR', originalValue: 1000 }),
+        createMockAsset({ id: '2', currentValue: 2000, originalCurrency: 'EUR', originalValue: 2000 }),
+        createMockAsset({ id: '3', currentValue: 500, originalCurrency: 'EUR', originalValue: 500 }),
+      ];
+      
+      const converted = convertAssetsToNewCurrency(assets, 'EUR', 'USD', DEFAULT_FALLBACK_RATES);
+      
+      // All values should be converted from EUR to USD (divide by 0.85)
+      expect(converted[0].currentValue).toBeCloseTo(1176.47, 0);
+      expect(converted[1].currentValue).toBeCloseTo(2352.94, 0);
+      expect(converted[2].currentValue).toBeCloseTo(588.24, 0);
+    });
+
+    it('should preserve other asset properties', () => {
+      const assets: Asset[] = [
+        createMockAsset({
+          id: 'test-id',
+          name: 'My Asset',
+          ticker: 'TICK',
+          assetClass: 'BONDS',
+          subAssetType: 'SINGLE_BOND',
+          currentValue: 1000,
+          targetMode: 'SET',
+          targetValue: 1500,
+          targetPercent: 50,
+        }),
+      ];
+      
+      const converted = convertAssetsToNewCurrency(assets, 'EUR', 'USD', DEFAULT_FALLBACK_RATES);
+      
+      expect(converted[0].id).toBe('test-id');
+      expect(converted[0].name).toBe('My Asset');
+      expect(converted[0].ticker).toBe('TICK');
+      expect(converted[0].assetClass).toBe('BONDS');
+      expect(converted[0].subAssetType).toBe('SINGLE_BOND');
+      expect(converted[0].targetMode).toBe('SET');
+      // targetValue should also be converted
+      expect(converted[0].targetValue).toBeCloseTo(1764.71, 0);
+      expect(converted[0].targetPercent).toBe(50); // Percentage should NOT be converted
+    });
+
+    it('should handle empty asset array', () => {
+      const converted = convertAssetsToNewCurrency([], 'EUR', 'USD', DEFAULT_FALLBACK_RATES);
+      expect(converted).toEqual([]);
+    });
+
+    it('should handle assets with undefined originalCurrency (assume it matches fromCurrency)', () => {
+      const assets: Asset[] = [
+        createMockAsset({ currentValue: 1000, originalCurrency: undefined, originalValue: undefined }),
+      ];
+      
+      const converted = convertAssetsToNewCurrency(assets, 'EUR', 'USD', DEFAULT_FALLBACK_RATES);
+      
+      // Should convert 1000 EUR to USD
+      expect(converted[0].currentValue).toBeCloseTo(1176.47, 0);
     });
   });
 });

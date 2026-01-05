@@ -9,6 +9,7 @@ import {
   DEFAULT_FALLBACK_RATES,
   SUPPORTED_CURRENCIES,
 } from '../types/currency';
+import { Asset } from '../types/assetAllocation';
 
 /**
  * Convert an amount from a given currency to EUR
@@ -204,4 +205,46 @@ export function recalculateFallbackRates(
   });
   
   return newRates;
+}
+
+/**
+ * Convert asset values when the default currency changes
+ * @param assets - Array of assets to convert
+ * @param fromCurrency - The previous default currency
+ * @param toCurrency - The new default currency
+ * @param rates - Exchange rates (relative to fromCurrency)
+ * @returns Array of assets with converted values
+ */
+export function convertAssetsToNewCurrency(
+  assets: Asset[],
+  fromCurrency: SupportedCurrency,
+  toCurrency: SupportedCurrency,
+  rates: ExchangeRates = DEFAULT_FALLBACK_RATES
+): Asset[] {
+  if (fromCurrency === toCurrency) {
+    return assets;
+  }
+  
+  return assets.map(asset => {
+    // Store the pre-conversion value for originalValue fallback
+    const preConversionValue = asset.currentValue;
+    
+    // Convert currentValue from fromCurrency to toCurrency
+    const convertedValue = convertAmount(preConversionValue, fromCurrency, toCurrency, rates);
+    
+    // Convert targetValue if it exists (for SET mode)
+    const convertedTargetValue = asset.targetValue !== undefined
+      ? convertAmount(asset.targetValue, fromCurrency, toCurrency, rates)
+      : undefined;
+    
+    return {
+      ...asset,
+      currentValue: convertedValue,
+      targetValue: convertedTargetValue,
+      // Preserve original currency info for reference - use existing or set to fromCurrency
+      originalCurrency: asset.originalCurrency ?? fromCurrency,
+      // Preserve original value - use existing or the pre-conversion value
+      originalValue: asset.originalValue ?? preConversionValue,
+    };
+  });
 }
