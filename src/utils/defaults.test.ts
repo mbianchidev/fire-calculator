@@ -54,7 +54,8 @@ describe('generateDemoNetWorthDataForYear', () => {
         expect(asset.name).toBeTruthy();
         expect(asset.shares).toBeGreaterThan(0);
         expect(asset.pricePerShare).toBeGreaterThan(0);
-        expect(asset.currency).toBe('EUR');
+        // Assets can have different currencies (EUR or USD)
+        expect(['EUR', 'USD']).toContain(asset.currency);
       });
     });
   });

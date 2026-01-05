@@ -46,14 +46,25 @@ export const DEFAULT_INPUTS: CalculatorInputs = {
   useExpenseTrackerIncome: false,
 };
 
-// Base values coherent with Asset Allocation demo data
+// Base values coherent with Asset Allocation demo data  
+// Total portfolio: €70,000 (€65,000 non-cash + €5,000 cash)
+// Stocks: €35,000, Bonds: €30,000, Cash: €5,000
 const NET_WORTH_DEMO_BASE = {
-  vwceShares: 85,
-  vwcePrice: 112.50, // Updated to match Asset Allocation demo
-  agghShares: 50,
-  agghPrice: 45.75, // Updated to match Asset Allocation demo
-  emergencyFund: 4000, // Updated to match Asset Allocation demo
-  checking: 1500, // Updated to match Asset Allocation demo
+  // SPY: 23.921 shares @ €585.21 = €14,000
+  spyShares: 23.921,
+  spyPrice: 585.21,
+  // VWCE: 186.667 shares @ €112.50 = €21,000
+  vwceShares: 186.667,
+  vwcePrice: 112.50,
+  // AGGH: 327.869 shares @ €45.75 = €15,000
+  agghShares: 327.869,
+  agghPrice: 45.75,
+  // TIP: 162.514 shares @ €92.30 = €15,000
+  tipShares: 162.514,
+  tipPrice: 92.30,
+  // Cash totals: €5,000 (€3,500 + €1,500)
+  emergencyFund: 3500,
+  checking: 1500,
   pension: 25000,
 };
 
@@ -76,26 +87,31 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
   for (let month = 1; month <= 12; month++) {
     const monthSeed = targetYear * 100 + month;
     
-    // Monthly DCA adds ~5 shares of VWCE per month
-    const vwceSharesGrowth = (month - 1) * 5;
-    // Price fluctuates ±8% around base with upward trend
-    const vwcePriceVariation = seededRandom(monthSeed, -0.08, 0.12);
+    // SPY (S&P 500 ETF) - shares stay relatively stable
+    const spyPriceVariation = seededRandom(monthSeed, -0.08, 0.12);
+    const spyPrice = Math.round((NET_WORTH_DEMO_BASE.spyPrice * (1 + spyPriceVariation + month * 0.005)) * 100) / 100;
+    
+    // VWCE (All-World) - Monthly DCA adds shares
+    const vwceSharesGrowth = (month - 1) * 2;
+    const vwcePriceVariation = seededRandom(monthSeed + 1, -0.08, 0.12);
     const vwcePrice = Math.round((NET_WORTH_DEMO_BASE.vwcePrice * (1 + vwcePriceVariation + month * 0.005)) * 100) / 100;
     
-    // Bond shares grow slower (~2 per month)
-    const agghSharesGrowth = Math.floor((month - 1) * 2);
-    // Bond prices more stable, ±3% variation
-    const agghPriceVariation = seededRandom(monthSeed + 1, -0.03, 0.03);
+    // AGGH (Global Agg Bond) - Bond shares stay relatively stable
+    const agghPriceVariation = seededRandom(monthSeed + 2, -0.03, 0.03);
     const agghPrice = Math.round((NET_WORTH_DEMO_BASE.agghPrice * (1 + agghPriceVariation)) * 100) / 100;
     
+    // TIP (Treasury Inflation-Protected) - Bond shares stay relatively stable
+    const tipPriceVariation = seededRandom(monthSeed + 3, -0.03, 0.03);
+    const tipPrice = Math.round((NET_WORTH_DEMO_BASE.tipPrice * (1 + tipPriceVariation)) * 100) / 100;
+    
     // Cash grows with monthly savings, but fluctuates due to expenses
-    const emergencyFundGrowth = (month - 1) * 300;
-    const emergencyFundVariation = Math.round(seededRandom(monthSeed + 2, -500, 500));
-    const checkingVariation = Math.round(seededRandom(monthSeed + 3, -800, 800));
+    const emergencyFundGrowth = (month - 1) * 200;
+    const emergencyFundVariation = Math.round(seededRandom(monthSeed + 4, -300, 300));
+    const checkingVariation = Math.round(seededRandom(monthSeed + 5, -500, 500));
     
     // Pension grows steadily with small variations
     const pensionGrowth = (month - 1) * 400;
-    const pensionVariation = Math.round(seededRandom(monthSeed + 4, -200, 200));
+    const pensionVariation = Math.round(seededRandom(monthSeed + 6, -200, 200));
     
     // Only freeze months if target year is current year and month is in the past
     const isFrozen = targetYear === currentYear && month < currentMonth;
@@ -103,19 +119,37 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
     const assets: AssetHolding[] = [
       { 
         id: `demo-asset-${targetYear}-${month}-1`, 
+        ticker: 'SPY', 
+        name: 'S&P 500 Index ETF', 
+        shares: NET_WORTH_DEMO_BASE.spyShares, 
+        pricePerShare: spyPrice, 
+        currency: 'USD' as SupportedCurrency, 
+        assetClass: 'STOCKS' as const
+      },
+      { 
+        id: `demo-asset-${targetYear}-${month}-2`, 
         ticker: 'VWCE', 
         name: 'Vanguard FTSE All-World', 
         shares: NET_WORTH_DEMO_BASE.vwceShares + vwceSharesGrowth, 
         pricePerShare: vwcePrice, 
         currency: 'EUR' as SupportedCurrency, 
-        assetClass: 'ETF' as const
+        assetClass: 'STOCKS' as const
       },
       { 
-        id: `demo-asset-${targetYear}-${month}-2`, 
+        id: `demo-asset-${targetYear}-${month}-3`, 
         ticker: 'AGGH', 
         name: 'iShares Global Agg Bond', 
-        shares: NET_WORTH_DEMO_BASE.agghShares + agghSharesGrowth, 
+        shares: NET_WORTH_DEMO_BASE.agghShares, 
         pricePerShare: agghPrice, 
+        currency: 'EUR' as SupportedCurrency, 
+        assetClass: 'BONDS' as const
+      },
+      { 
+        id: `demo-asset-${targetYear}-${month}-4`, 
+        ticker: 'TIP', 
+        name: 'Treasury Inflation-Protected', 
+        shares: NET_WORTH_DEMO_BASE.tipShares, 
+        pricePerShare: tipPrice, 
         currency: 'EUR' as SupportedCurrency, 
         assetClass: 'BONDS' as const
       },
@@ -126,7 +160,7 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
         id: `demo-cash-${targetYear}-${month}-1`, 
         accountName: 'Emergency Fund', 
         accountType: 'SAVINGS' as const, 
-        balance: Math.max(3000, NET_WORTH_DEMO_BASE.emergencyFund + emergencyFundGrowth + emergencyFundVariation), 
+        balance: Math.max(2000, NET_WORTH_DEMO_BASE.emergencyFund + emergencyFundGrowth + emergencyFundVariation), 
         currency: 'EUR' as SupportedCurrency 
       },
       { 
@@ -150,7 +184,7 @@ export function generateDemoNetWorthDataForYear(targetYear: number): MonthlySnap
     
     const operations: FinancialOperation[] = month % 3 === 0 ? [
       { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
-      { id: `demo-op-${targetYear}-${month}-2`, date: `${targetYear}-${String(month).padStart(2, '0')}-20`, type: 'DIVIDEND' as const, description: 'VWCE Dividend', amount: Math.round(seededRandom(monthSeed + 5, 80, 150)), currency: 'EUR' as SupportedCurrency },
+      { id: `demo-op-${targetYear}-${month}-2`, date: `${targetYear}-${String(month).padStart(2, '0')}-20`, type: 'DIVIDEND' as const, description: 'VWCE Dividend', amount: Math.round(seededRandom(monthSeed + 7, 80, 150)), currency: 'EUR' as SupportedCurrency },
     ] : [
       { id: `demo-op-${targetYear}-${month}-1`, date: `${targetYear}-${String(month).padStart(2, '0')}-15`, type: 'PURCHASE' as const, description: 'Monthly DCA - VWCE', amount: 500, currency: 'EUR' as SupportedCurrency },
     ];
@@ -254,49 +288,60 @@ export function getDemoCashflowData(): ExpenseTrackerData {
 }
 
 // Demo data for Asset Allocation - coherent with Net Worth demo data for current month
+// Portfolio structure:
+// - Total: €70,000 (€65,000 non-cash + €5,000 cash)
+// - Stocks: €35,000 (50% actual) with 50% target = +€0 delta
+// - Bonds: €30,000 (42.86% actual) with 43% target = ±€0 delta (rounded)
+// - Cash: €5,000 (7.14% actual) with 7% target = +€0 delta
+// Asset class targets are portfolio-wide: Stocks 50%, Bonds 43%, Cash 7%
 export function getDemoAssetAllocationData(): { 
   assets: Asset[]; 
   assetClassTargets: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>;
 } {
-  const currentMonth = new Date().getMonth() + 1; // 1-12
-  const currentYear = new Date().getFullYear();
+  // Portfolio totals: €70,000 with €35k stocks, €30k bonds, €5k cash
+  // Using realistic prices and fractional shares
   
-  // Base values for calculations - using realistic share quantities
-  // VWCE @ €112.50: 85 shares = €9,562.50
-  // AGGH @ €45.75: 50 shares = €2,287.50  
-  const baseVWCEShares = 85;
-  const baseVWCEPrice = 112.50;
-  const baseAGGHShares = 50;
-  const baseAGGHPrice = 45.75;
-  const baseEmergencyFund = 4000;
-  const baseChecking = 1500;
+  // SPY (S&P 500 ETF): €14,000 value
+  // Real price: 683.17 USD/share ≈ 585.21 EUR/share (at 1.167 USD/EUR)
+  // Shares needed: 14,000 / 585.21 = 23.921 shares
+  const spyShares = 23.921;
+  const spyPrice = 585.21;
   
-  const seededRandom = (seed: number, min: number, max: number) => {
-    const x = Math.sin(seed * 9999) * 10000;
-    return min + (x - Math.floor(x)) * (max - min);
-  };
+  // VWCE (Vanguard All-World): €21,000 value
+  // Price: €112.50/share
+  // Shares needed: 21,000 / 112.50 = 186.667 shares
+  const vwceShares = 186.667;
+  const vwcePrice = 112.50;
   
-  const monthSeed = currentYear * 100 + currentMonth;
+  // AGGH (Global Aggregate Bond): €15,000 value
+  // Price: €45.75/share
+  // Shares needed: 15,000 / 45.75 = 327.869 shares
+  const aggh1Shares = 327.869;
+  const aggh1Price = 45.75;
   
-  // Calculate current month values with growth
-  const vwceSharesGrowth = (currentMonth - 1) * 5;
-  const vwcePriceVariation = seededRandom(monthSeed, -0.08, 0.12);
-  const vwcePrice = Math.round((baseVWCEPrice * (1 + vwcePriceVariation + currentMonth * 0.005)) * 100) / 100;
-  const vwceShares = Math.round((baseVWCEShares + vwceSharesGrowth) * 1000) / 1000; // Allow fractional shares
-  
-  const agghSharesGrowth = Math.floor((currentMonth - 1) * 2);
-  const agghPriceVariation = seededRandom(monthSeed + 1, -0.03, 0.03);
-  const agghPrice = Math.round((baseAGGHPrice * (1 + agghPriceVariation)) * 100) / 100;
-  const agghShares = Math.round((baseAGGHShares + agghSharesGrowth) * 1000) / 1000;
-  
-  const emergencyFundGrowth = (currentMonth - 1) * 300;
-  const emergencyFundVariation = Math.round(seededRandom(monthSeed + 2, -500, 500));
-  const checkingVariation = Math.round(seededRandom(monthSeed + 3, -800, 800));
+  // TIP (Treasury Inflation-Protected): €15,000 value
+  // Price: €92.30/share
+  // Shares needed: 15,000 / 92.30 = 162.514 shares
+  const tipShares = 162.514;
+  const tipPrice = 92.30;
   
   return {
     assets: [
       {
         id: 'demo-aa-1',
+        name: 'S&P 500 Index ETF',
+        ticker: 'SPY',
+        assetClass: 'STOCKS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(spyShares * spyPrice * 100) / 100,
+        shares: spyShares,
+        pricePerShare: spyPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 40, // 40% of STOCKS allocation
+        originalCurrency: 'USD' as SupportedCurrency,
+      },
+      {
+        id: 'demo-aa-2',
         name: 'Vanguard FTSE All-World',
         ticker: 'VWCE',
         assetClass: 'STOCKS' as AssetClass,
@@ -305,47 +350,59 @@ export function getDemoAssetAllocationData(): {
         shares: vwceShares,
         pricePerShare: vwcePrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 100, // 100% of STOCKS allocation (only stock asset in demo)
+        targetPercent: 60, // 60% of STOCKS allocation
       },
       {
-        id: 'demo-aa-2',
+        id: 'demo-aa-3',
         name: 'iShares Global Agg Bond',
         ticker: 'AGGH',
         assetClass: 'BONDS' as AssetClass,
         subAssetType: 'ETF' as SubAssetType,
-        currentValue: Math.round(agghShares * agghPrice * 100) / 100,
-        shares: agghShares,
-        pricePerShare: agghPrice,
+        currentValue: Math.round(aggh1Shares * aggh1Price * 100) / 100,
+        shares: aggh1Shares,
+        pricePerShare: aggh1Price,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 100, // 100% of BONDS allocation (only bond asset in demo)
+        targetPercent: 50, // 50% of BONDS allocation
       },
       {
-        id: 'demo-aa-3',
+        id: 'demo-aa-4',
+        name: 'Treasury Inflation-Protected',
+        ticker: 'TIP',
+        assetClass: 'BONDS' as AssetClass,
+        subAssetType: 'ETF' as SubAssetType,
+        currentValue: Math.round(tipShares * tipPrice * 100) / 100,
+        shares: tipShares,
+        pricePerShare: tipPrice,
+        targetMode: 'PERCENTAGE' as AllocationMode,
+        targetPercent: 50, // 50% of BONDS allocation
+      },
+      {
+        id: 'demo-aa-5',
         name: 'Emergency Fund',
         ticker: '',
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'SAVINGS_ACCOUNT' as SubAssetType,
-        currentValue: Math.max(3000, baseEmergencyFund + emergencyFundGrowth + emergencyFundVariation),
+        currentValue: 3500,
         targetMode: 'PERCENTAGE' as AllocationMode,
         targetPercent: 70, // 70% of CASH allocation
       },
       {
-        id: 'demo-aa-4',
+        id: 'demo-aa-6',
         name: 'Main Checking',
         ticker: '',
         assetClass: 'CASH' as AssetClass,
         subAssetType: 'CHECKING_ACCOUNT' as SubAssetType,
-        currentValue: Math.max(500, baseChecking + checkingVariation),
+        currentValue: 1500,
         targetMode: 'PERCENTAGE' as AllocationMode,
         targetPercent: 30, // 30% of CASH allocation
       },
     ],
     assetClassTargets: {
-      STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 70 },
-      BONDS: { targetMode: 'PERCENTAGE', targetPercent: 20 },
+      STOCKS: { targetMode: 'PERCENTAGE', targetPercent: 50 }, // 50% of portfolio
+      BONDS: { targetMode: 'PERCENTAGE', targetPercent: 43 }, // 43% of portfolio
       REAL_ESTATE: { targetMode: 'OFF' },
       CRYPTO: { targetMode: 'OFF' },
-      CASH: { targetMode: 'PERCENTAGE', targetPercent: 10 },
+      CASH: { targetMode: 'PERCENTAGE', targetPercent: 7 }, // 7% of portfolio
     },
   };
 }
