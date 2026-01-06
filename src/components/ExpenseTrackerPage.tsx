@@ -36,6 +36,7 @@ import {
   exportExpenseTrackerToCSV,
   importExpenseTrackerFromCSV,
 } from '../utils/csvExport';
+import { loadSettings } from '../utils/cookieSettings';
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { useTableSort } from '../utils/useTableSort';
 import { DataManagement } from './DataManagement';
@@ -66,6 +67,10 @@ function getDefaultData(): ExpenseTrackerData {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
+  
+  // Load default currency from user settings
+  const settings = loadSettings();
+  const defaultCurrency = settings.currencySettings.defaultCurrency;
 
   return {
     years: [
@@ -77,7 +82,7 @@ function getDefaultData(): ExpenseTrackerData {
     ],
     currentYear,
     currentMonth,
-    currency: 'EUR',
+    currency: defaultCurrency,
     globalBudgets: [],
   };
 }
@@ -93,11 +98,17 @@ export function ExpenseTrackerPage() {
   // State
   const [data, setData] = useState<ExpenseTrackerData>(() => {
     const saved = loadExpenseTrackerData();
+    // Always get current default currency from settings
+    const settings = loadSettings();
+    const currentDefaultCurrency = settings.currencySettings.defaultCurrency;
+    
     if (saved) {
       // Ensure globalBudgets exists for backward compatibility
+      // Update the currency to match current settings
       return {
         ...saved,
-        globalBudgets: saved.globalBudgets || []
+        globalBudgets: saved.globalBudgets || [],
+        currency: currentDefaultCurrency,
       };
     }
     return getDefaultData();
@@ -1244,6 +1255,7 @@ function TransactionFormDialog({
         amount: parsedAmount,
         description,
         source,
+        currency,
       });
     } else {
       onSubmit({
@@ -1253,6 +1265,7 @@ function TransactionFormDialog({
         category,
         subCategory: subCategory || undefined,
         expenseType,
+        currency,
       });
     }
   };

@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadSettings, saveSettings, DEFAULT_SETTINGS, type UserSettings } from '../utils/cookieSettings';
 import { SUPPORTED_CURRENCIES, DEFAULT_FALLBACK_RATES, type SupportedCurrency } from '../types/currency';
+import { recalculateFallbackRates, convertAssetsToNewCurrency, convertNetWorthDataToNewCurrency, convertExpenseDataToNewCurrency, convertFireCalculatorInputsToNewCurrency } from '../utils/currencyConverter';
 import { exportFireCalculatorToCSV, exportAssetAllocationToCSV, importFireCalculatorFromCSV, importAssetAllocationFromCSV, exportExpenseTrackerToCSV, importExpenseTrackerFromCSV, exportNetWorthTrackerToJSON, importNetWorthTrackerFromJSON } from '../utils/csvExport';
 import { loadFireCalculatorInputs, loadAssetAllocation, saveFireCalculatorInputs, saveAssetAllocation, clearAllData, loadExpenseTrackerData, saveExpenseTrackerData, loadNetWorthTrackerData, saveNetWorthTrackerData } from '../utils/cookieStorage';
-import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoCashflowData, getDemoAssetAllocationData } from '../utils/defaults';
+import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoAssetAllocationData } from '../utils/defaults';
+import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import './SettingsPage.css';
 
@@ -19,15 +21,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
   const [isLoading, setIsLoading] = useState(true);
   const [rateTextValues, setRateTextValues] = useState<Record<string, string>>({});
 
-  // Initialize rate text values when settings load or decimal separator changes
+  // Initialize rate text values when settings load, default currency, or decimal separator changes
   useEffect(() => {
     const textValues: Record<string, string> = {};
-    SUPPORTED_CURRENCIES.filter(c => c.code !== 'EUR').forEach((currency) => {
+    SUPPORTED_CURRENCIES.filter(c => c.code !== settings.currencySettings.defaultCurrency).forEach((currency) => {
       const rate = settings.currencySettings.fallbackRates[currency.code] ?? DEFAULT_FALLBACK_RATES[currency.code];
       textValues[currency.code] = formatWithSeparator(rate, settings.decimalSeparator);
     });
     setRateTextValues(textValues);
-  }, [settings.currencySettings.fallbackRates, settings.decimalSeparator]);
+  }, [settings.currencySettings.fallbackRates, settings.currencySettings.defaultCurrency, settings.decimalSeparator]);
 
   // Load settings on mount
   useEffect(() => {
@@ -264,6 +266,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
   const handleLoadDemoData = () => {
     if (confirm('This will overwrite your current data with demo data. Are you sure you want to continue?')) {
       try {
+        // First, reset default currency to EUR and fallback rates BEFORE loading demo data
+        // This ensures all demo data is loaded with EUR as the default currency
+        const newSettings = {
+          ...settings,
+          currencySettings: {
+            ...settings.currencySettings,
+            defaultCurrency: 'EUR' as SupportedCurrency,
+            fallbackRates: { ...DEFAULT_FALLBACK_RATES },
+          },
+        };
+        setSettings(newSettings);
+        saveSettings(newSettings);
+        onSettingsChange?.(newSettings);
+        
         // Load demo FIRE Calculator data
         saveFireCalculatorInputs(DEFAULT_INPUTS);
         
@@ -271,8 +287,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         const { assets, assetClassTargets } = getDemoAssetAllocationData();
         saveAssetAllocation(assets, assetClassTargets);
         
-        // Load demo Cashflow Tracker data
-        const cashflowData = getDemoCashflowData();
+        // Load demo Cashflow Tracker data with full year of randomized data
+        const cashflowData = generateDemoExpenseData();
         saveExpenseTrackerData(cashflowData);
         
         // Load demo Net Worth Tracker data
@@ -327,6 +343,79 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         <section className="settings-section">
           <h2>🎨 Display</h2>
           <div className="setting-item">
+            <label htmlFor="defaultCurrency">Default Currency</label>
+            <select
+              id="defaultCurrency"
+              value={settings.currencySettings.defaultCurrency}
+              onChange={(e) => {
+                const newCurrency = e.target.value as SupportedCurrency;
+                const oldCurrency = settings.currencySettings.defaultCurrency;
+                
+                if (newCurrency === oldCurrency) {
+                  return;
+                }
+                
+                // Get current fallback rates before recalculation
+                const currentRates = settings.currencySettings.fallbackRates;
+                
+                // Convert all asset values to the new currency BEFORE recalculating rates
+                const { assets, assetClassTargets } = loadAssetAllocation();
+                if (assets && assetClassTargets) {
+                  const convertedAssets = convertAssetsToNewCurrency(assets, oldCurrency, newCurrency, currentRates);
+                  saveAssetAllocation(convertedAssets, assetClassTargets);
+                }
+                
+                // Convert Net Worth Tracker data
+                const netWorthData = loadNetWorthTrackerData();
+                if (netWorthData) {
+                  const convertedNetWorth = convertNetWorthDataToNewCurrency(netWorthData, oldCurrency, newCurrency, currentRates);
+                  saveNetWorthTrackerData(convertedNetWorth);
+                }
+                
+                // Convert Expense Tracker data
+                const expenseData = loadExpenseTrackerData();
+                if (expenseData) {
+                  const convertedExpense = convertExpenseDataToNewCurrency(expenseData, oldCurrency, newCurrency, currentRates);
+                  saveExpenseTrackerData(convertedExpense);
+                }
+                
+                // Convert FIRE Calculator inputs
+                const fireInputs = loadFireCalculatorInputs();
+                if (fireInputs) {
+                  const convertedFireInputs = convertFireCalculatorInputsToNewCurrency(fireInputs, oldCurrency, newCurrency, currentRates);
+                  saveFireCalculatorInputs(convertedFireInputs);
+                }
+                
+                // Recalculate fallback rates relative to the new default currency
+                const newFallbackRates = recalculateFallbackRates(
+                  currentRates,
+                  oldCurrency,
+                  newCurrency
+                );
+                
+                const newSettings = {
+                  ...settings,
+                  currencySettings: {
+                    ...settings.currencySettings,
+                    defaultCurrency: newCurrency,
+                    fallbackRates: newFallbackRates,
+                  },
+                };
+                setSettings(newSettings);
+                saveSettings(newSettings);
+                onSettingsChange?.(newSettings);
+                showMessage('success', `Default currency changed to ${newCurrency}! All values converted.`);
+              }}
+            >
+              {SUPPORTED_CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.symbol} {currency.name} ({currency.code})
+                </option>
+              ))}
+            </select>
+            <span className="setting-help">This currency will be used as default across all pages</span>
+          </div>
+          <div className="setting-item">
             <label>Decimal Separator</label>
             <div className="toggle-group">
               <button
@@ -360,10 +449,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           <h2>💱 Currency Conversion Fallback Rates</h2>
           <p className="section-description">
             These rates are used when the live exchange rate API is unavailable.
-            All values convert to EUR (the default currency).
+            All values convert to {settings.currencySettings.defaultCurrency} (the default currency).
           </p>
           <div className="fallback-rates-grid">
-            {SUPPORTED_CURRENCIES.filter(c => c.code !== 'EUR').map((currency) => (
+            {SUPPORTED_CURRENCIES.filter(c => c.code !== settings.currencySettings.defaultCurrency).map((currency) => (
               <div key={currency.code} className="rate-item">
                 <label htmlFor={`rate-${currency.code}`}>
                   {currency.code} ({currency.name})
@@ -380,7 +469,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                     onChange={(e) => handleRateTextChange(currency.code, e.target.value)}
                     onBlur={() => handleRateTextBlur(currency.code)}
                   />
-                  <span className="rate-suffix">EUR</span>
+                  <span className="rate-suffix">{settings.currencySettings.defaultCurrency}</span>
                 </div>
               </div>
             ))}

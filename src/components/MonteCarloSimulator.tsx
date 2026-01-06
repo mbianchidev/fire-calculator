@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { CalculatorInputs, MonteCarloInputs, MonteCarloResult } from '../types/calculator';
 import { runMonteCarloSimulation } from '../utils/monteCarlo';
+import { loadSettings } from '../utils/cookieSettings';
 import { NumberInput } from './NumberInput';
 import { MonteCarloChart } from './MonteCarloChart';
 
@@ -16,17 +17,23 @@ interface ValidationErrors {
   blackSwanImpact?: string;
 }
 
-// Format currency for display (using de-DE locale for EUR formatting)
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('de-DE', {
+// Format currency for display
+const formatCurrency = (value: number, currency: string): string => {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'EUR',
+    currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
 };
 
 export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs }) => {
+  // Load default currency from settings once at component level
+  const defaultCurrency = useMemo(() => {
+    const settings = loadSettings();
+    return settings.currencySettings.defaultCurrency;
+  }, []);
+  
   const [mcInputs, setMcInputs] = useState<MonteCarloInputs>({
     numSimulations: 1000,
     stockVolatility: 15,
@@ -131,15 +138,15 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
                 <h4 className="mc-data-group-title">Financial Position</h4>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Initial Portfolio</span>
-                  <span className="mc-data-value">{formatCurrency(inputs.initialSavings)}</span>
+                  <span className="mc-data-value">{formatCurrency(inputs.initialSavings, defaultCurrency)}</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">FIRE Target</span>
-                  <span className="mc-data-value highlight">{formatCurrency(fireTarget)}</span>
+                  <span className="mc-data-value highlight">{formatCurrency(fireTarget, defaultCurrency)}</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Annual Income</span>
-                  <span className="mc-data-value">{formatCurrency(inputs.annualLaborIncome)}</span>
+                  <span className="mc-data-value">{formatCurrency(inputs.annualLaborIncome, defaultCurrency)}</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Savings Rate</span>
@@ -190,11 +197,11 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Current Expenses</span>
-                  <span className="mc-data-value">{formatCurrency(inputs.currentAnnualExpenses)}</span>
+                  <span className="mc-data-value">{formatCurrency(inputs.currentAnnualExpenses, defaultCurrency)}</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">FIRE Expenses</span>
-                  <span className="mc-data-value">{formatCurrency(inputs.fireAnnualExpenses)}</span>
+                  <span className="mc-data-value">{formatCurrency(inputs.fireAnnualExpenses, defaultCurrency)}</span>
                 </div>
                 <div className="mc-data-item">
                   <span className="mc-data-label">Withdrawal Rate</span>
