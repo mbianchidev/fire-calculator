@@ -378,12 +378,6 @@ export const AssetAllocationPage: React.FC = () => {
     updateAllocation([...assets, newAsset]);
   };
 
-  const handleStartFromScratch = () => {
-    if (confirm('Are you sure you want to delete all assets and start from scratch?')) {
-      updateAllocation([]);
-    }
-  };
-
   const handleExport = () => {
     const csv = exportAssetAllocationToCSV(assets, assetClassTargets);
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -440,7 +434,7 @@ export const AssetAllocationPage: React.FC = () => {
         if (yearData && yearData.months[currentMonth]) {
           // Clear assets and cash for current month only
           yearData.months[currentMonth].assets = [];
-          yearData.months[currentMonth].cash = [];
+          yearData.months[currentMonth].cashEntries = [];
           
           // Save updated Net Worth data
           saveNetWorthTrackerData(netWorthData);
@@ -697,14 +691,6 @@ export const AssetAllocationPage: React.FC = () => {
                 aria-label="Add new asset to portfolio"
               >
                 <span aria-hidden="true">➕</span> Add Asset
-              </button>
-              <button 
-                onClick={handleStartFromScratch} 
-                className="action-btn" 
-                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white' }}
-                aria-label="Reset all assets to defaults"
-              >
-                <span aria-hidden="true">🔄</span> Reset Assets
               </button>
             </div>
           </div>
