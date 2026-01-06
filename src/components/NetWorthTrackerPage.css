@@ -632,3 +632,55 @@
   margin-top: 0.25rem;
   display: block;
 }
+
+/* Sync Configuration Section */
+.sync-config-section {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #2196F3;
+}
+
+.sync-config-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sync-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.sync-toggle-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #2196F3;
+}
+
+.sync-label-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sync-info {
+  background: white;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+  border-left: 3px solid #2196F3;
+}
+
+.sync-info span[aria-hidden="true"] {
+  margin-right: 0.5rem;
+}

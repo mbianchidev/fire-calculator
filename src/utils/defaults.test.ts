@@ -54,7 +54,8 @@ describe('generateDemoNetWorthDataForYear', () => {
         expect(asset.name).toBeTruthy();
         expect(asset.shares).toBeGreaterThan(0);
         expect(asset.pricePerShare).toBeGreaterThan(0);
-        expect(asset.currency).toBe('EUR');
+        // Assets can have different currencies (EUR or USD)
+        expect(['EUR', 'USD']).toContain(asset.currency);
       });
     });
   });
@@ -75,8 +76,11 @@ describe('generateDemoNetWorthDataForYear', () => {
   it('should generate pensions for each month', () => {
     const months = generateDemoNetWorthDataForYear(2024);
     
+    // Pensions are now optional (empty array by default - no State Pension)
     months.forEach(month => {
-      expect(month.pensions.length).toBeGreaterThan(0);
+      expect(month.pensions).toBeDefined();
+      expect(Array.isArray(month.pensions)).toBe(true);
+      // If there are pensions, validate their structure
       month.pensions.forEach(pension => {
         expect(pension.name).toBeTruthy();
         expect(pension.currentValue).toBeGreaterThan(0);

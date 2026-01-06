@@ -41,9 +41,17 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
   const [copiedIsin, setCopiedIsin] = useState<string | null>(null);
   const [collapsedClasses, setCollapsedClasses] = useState<Set<AssetClass>>(allClasses);
   const [editingAsset, setEditingAsset] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{ name: string; currentValue: number; targetPercent: number }>({
+  const [editValues, setEditValues] = useState<{ 
+    name: string; 
+    currentValue: number; 
+    shares?: number;
+    pricePerShare?: number;
+    targetPercent: number;
+  }>({
     name: '',
     currentValue: 0,
+    shares: undefined,
+    pricePerShare: undefined,
     targetPercent: 0,
   });
   const tableRef = useRef<HTMLDivElement>(null);
@@ -130,6 +138,8 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
             [editingAsset]: {
               name: editValuesRef.current.name,
               currentValue: editValuesRef.current.currentValue,
+              shares: editValuesRef.current.shares,
+              pricePerShare: editValuesRef.current.pricePerShare,
               targetPercent: editValuesRef.current.targetPercent,
             }
           };
@@ -202,7 +212,42 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
     setEditValues({
       name: asset.name,
       currentValue: asset.currentValue,
+      shares: asset.shares,
+      pricePerShare: asset.pricePerShare,
       targetPercent: asset.targetPercent || 0,
+    });
+  };
+
+  // Handle shares change and update currentValue
+  const handleEditSharesChange = (value: number) => {
+    const priceNum = editValues.pricePerShare || 0;
+    const newCurrentValue = value > 0 && priceNum > 0 ? value * priceNum : editValues.currentValue;
+    setEditValues({
+      ...editValues,
+      shares: value,
+      currentValue: newCurrentValue,
+    });
+  };
+
+  // Handle pricePerShare change and update currentValue
+  const handleEditPricePerShareChange = (value: number) => {
+    const sharesNum = editValues.shares || 0;
+    const newCurrentValue = value > 0 && sharesNum > 0 ? sharesNum * value : editValues.currentValue;
+    setEditValues({
+      ...editValues,
+      pricePerShare: value,
+      currentValue: newCurrentValue,
+    });
+  };
+
+  // Handle currentValue change and update pricePerShare if shares exists
+  const handleEditCurrentValueChange = (value: number) => {
+    const sharesNum = editValues.shares || 0;
+    const newPrice = sharesNum > 0 && value > 0 ? value / sharesNum : editValues.pricePerShare;
+    setEditValues({
+      ...editValues,
+      currentValue: value,
+      pricePerShare: newPrice,
     });
   };
 
@@ -215,6 +260,8 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
       [assetId]: {
         name: editValues.name,
         currentValue: editValues.currentValue,
+        shares: editValues.shares,
+        pricePerShare: editValues.pricePerShare,
         targetPercent: editValues.targetPercent,
       }
     };
@@ -436,6 +483,12 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                     <th className="sortable" onClick={() => requestSort(assetClass, 'delta.currentPercentInClass')}>
                       % Current (Class) <span className="sort-indicator">{getSortIndicator(assetClass, 'delta.currentPercentInClass')}</span>
                     </th>
+                    <th className="sortable" onClick={() => requestSort(assetClass, 'asset.shares')}>
+                      Shares <span className="sort-indicator">{getSortIndicator(assetClass, 'asset.shares')}</span>
+                    </th>
+                    <th className="sortable" onClick={() => requestSort(assetClass, 'asset.pricePerShare')}>
+                      Price/Share <span className="sort-indicator">{getSortIndicator(assetClass, 'asset.pricePerShare')}</span>
+                    </th>
                     <th className="sortable" onClick={() => requestSort(assetClass, 'delta.currentValue')}>
                       Current Value <span className="sort-indicator">{getSortIndicator(assetClass, 'delta.currentValue')}</span>
                     </th>
@@ -525,13 +578,44 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         </td>
                         <td>{formatPercent(delta.currentPercent)}</td>
                         <td>{formatPercent(delta.currentPercentInClass)}</td>
-                        <td className="currency-value">
-                          {isEditing ? (
+                        <td>
+                          {isEditing && asset.assetClass !== 'CASH' ? (
                             <NumberInput
-                              value={editValues.currentValue}
-                              onChange={(value) => setEditValues({ ...editValues, currentValue: value })}
+                              value={editValues.shares || 0}
+                              onChange={handleEditSharesChange}
                               className="edit-input"
                             />
+                          ) : asset.shares ? (
+                            asset.shares.toFixed(2)
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className="currency-value">
+                          {isEditing && asset.assetClass !== 'CASH' ? (
+                            <NumberInput
+                              value={editValues.pricePerShare || 0}
+                              onChange={handleEditPricePerShareChange}
+                              className="edit-input"
+                            />
+                          ) : asset.pricePerShare ? (
+                            formatCurrency(asset.pricePerShare, currency)
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className="currency-value">
+                          {isEditing ? (
+                            <div className="calculated-value-container">
+                              <NumberInput
+                                value={editValues.currentValue}
+                                onChange={handleEditCurrentValueChange}
+                                className="edit-input"
+                                disabled={true}
+                                title="Current value is calculated from shares × price per share"
+                              />
+                              <span className="calculated-label">(Calculated)</span>
+                            </div>
                           ) : (
                             formatCurrency(delta.currentValue, currency)
                           )}

@@ -1,14 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Asset, PortfolioAllocation, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { calculatePortfolioAllocation, prepareAssetClassChartData, prepareAssetChartData, formatAssetName, formatCurrency } from '../utils/allocationCalculator';
 import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets';
-import { saveAssetAllocation, loadAssetAllocation, clearAssetAllocation } from '../utils/cookieStorage';
+import { 
+  saveAssetAllocation, 
+  loadAssetAllocation, 
+  clearAssetAllocation, 
+  loadNetWorthTrackerData, 
+  saveNetWorthTrackerData 
+} from '../utils/cookieStorage';
 import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../utils/csvExport';
 import { loadSettings } from '../utils/cookieSettings';
 import { getDemoAssetAllocationData } from '../utils/defaults';
+import { syncAssetAllocationToNetWorth } from '../utils/dataSync';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
-import { AddAssetDialog } from './AddAssetDialog';
+import { SharedAssetDialog } from './SharedAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
 import { MassEditDialog } from './MassEditDialog';
 import { DCAHelperDialog } from './DCAHelperDialog';
@@ -89,10 +96,37 @@ export const AssetAllocationPage: React.FC = () => {
   const [isDCADialogOpen, setIsDCADialogOpen] = useState(false);
   // Charts collapse state
   const [isChartsCollapsed, setIsChartsCollapsed] = useState(false);
+  
+  // Track if we're currently syncing to prevent infinite loops
+  const isSyncingRef = useRef(false);
 
   // Auto-save to localStorage when assets or targets change
   useEffect(() => {
+    // Prevent sync loop - don't sync if we're already syncing
+    if (isSyncingRef.current) {
+      return;
+    }
+    
     saveAssetAllocation(assets, assetClassTargets);
+    
+    // If Net Worth Tracker has sync enabled, sync Asset Allocation → Net Worth
+    const netWorthData = loadNetWorthTrackerData();
+    if (netWorthData?.settings.syncWithAssetAllocation) {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      
+      // Only sync if Net Worth Tracker is viewing the current month
+      if (netWorthData.currentYear === currentYear && netWorthData.currentMonth === currentMonth) {
+        isSyncingRef.current = true;
+        const synced = syncAssetAllocationToNetWorth(assets, netWorthData);
+        saveNetWorthTrackerData(synced);
+        // Reset flag after a brief delay to allow other component to process
+        setTimeout(() => {
+          isSyncingRef.current = false;
+        }, 100);
+      }
+    }
   }, [assets, assetClassTargets]);
 
   const updateAllocation = (newAssets: Asset[], newAssetClassTargets?: Record<AssetClass, { targetMode: AllocationMode; targetPercent?: number }>) => {
@@ -184,7 +218,54 @@ export const AssetAllocationPage: React.FC = () => {
       }
     };
     
-    // If updating a percentage-based asset class, redistribute other percentage-based classes
+    // Check if we're changing TO or FROM SET mode - requires redistribution
+    const oldMode = assetClassTargets[assetClass]?.targetMode;
+    const newMode = updatedTargets[assetClass].targetMode;
+    const modeChanged = oldMode !== newMode;
+    
+    // If changing an asset class to SET mode, redistribute its percentage to other PERCENTAGE classes
+    if (modeChanged && newMode === 'SET' && oldMode === 'PERCENTAGE') {
+      const oldPercent = assetClassTargets[assetClass]?.targetPercent || 0;
+      
+      // Get all other percentage-based asset classes
+      const otherPercentageClasses = Object.keys(updatedTargets).filter(
+        (key) => key !== assetClass && updatedTargets[key as AssetClass].targetMode === 'PERCENTAGE'
+      ) as AssetClass[];
+      
+      if (otherPercentageClasses.length > 0 && oldPercent > 0) {
+        // Get total of other classes' current percentages
+        const otherClassesTotal = otherPercentageClasses.reduce(
+          (sum, cls) => sum + (updatedTargets[cls].targetPercent || 0),
+          0
+        );
+        
+        if (otherClassesTotal === 0) {
+          // Distribute the freed percentage equally
+          const equalPercent = oldPercent / otherPercentageClasses.length;
+          otherPercentageClasses.forEach((cls) => {
+            updatedTargets[cls] = {
+              ...updatedTargets[cls],
+              targetPercent: (updatedTargets[cls].targetPercent || 0) + equalPercent,
+            };
+          });
+        } else {
+          // Distribute the freed percentage proportionally
+          otherPercentageClasses.forEach((cls) => {
+            const proportion = (updatedTargets[cls].targetPercent || 0) / otherClassesTotal;
+            const additionalPercent = proportion * oldPercent;
+            updatedTargets[cls] = {
+              ...updatedTargets[cls],
+              targetPercent: (updatedTargets[cls].targetPercent || 0) + additionalPercent,
+            };
+          });
+        }
+      }
+      
+      // Clear the targetPercent for the SET class
+      updatedTargets[assetClass].targetPercent = undefined;
+    }
+    
+    // If updating a percentage-based asset class percentage value, redistribute other percentage-based classes
     if (updates.targetMode === 'PERCENTAGE' || (!updates.targetMode && assetClassTargets[assetClass]?.targetMode === 'PERCENTAGE')) {
       if (updates.targetPercent !== undefined) {
         // Get all percentage-based asset classes except the one being edited
@@ -297,12 +378,6 @@ export const AssetAllocationPage: React.FC = () => {
     updateAllocation([...assets, newAsset]);
   };
 
-  const handleStartFromScratch = () => {
-    if (confirm('Are you sure you want to delete all assets and start from scratch?')) {
-      updateAllocation([]);
-    }
-  };
-
   const handleExport = () => {
     const csv = exportAssetAllocationToCSV(assets, assetClassTargets);
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -338,8 +413,34 @@ export const AssetAllocationPage: React.FC = () => {
   };
 
   const handleResetData = () => {
-    if (confirm('Are you sure you want to reset all Asset Allocation data? This will clear all saved assets.')) {
+    // Check if sync is enabled and warn accordingly
+    const netWorthData = loadNetWorthTrackerData();
+    const syncEnabled = netWorthData?.settings.syncWithAssetAllocation || false;
+    
+    const warningMessage = syncEnabled
+      ? 'Are you sure you want to reset all Asset Allocation data?\n\n⚠️ WARNING: With sync enabled, this will also clear the Net Worth Tracker data for the current month (assets and cash).\n\nHistorical Net Worth data will NOT be affected.'
+      : 'Are you sure you want to reset all Asset Allocation data? This will clear all saved assets.';
+    
+    if (confirm(warningMessage)) {
       clearAssetAllocation();
+      
+      // If sync is enabled, also clear current month in Net Worth
+      if (syncEnabled && netWorthData) {
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth(); // 0-indexed
+        
+        // Find current year data
+        const yearData = netWorthData.years.find(y => y.year === currentYear);
+        if (yearData && yearData.months[currentMonth]) {
+          // Clear assets and cash for current month only
+          yearData.months[currentMonth].assets = [];
+          yearData.months[currentMonth].cashEntries = [];
+          
+          // Save updated Net Worth data
+          saveNetWorthTrackerData(netWorthData);
+        }
+      }
+      
       setAssets([]);
       setAssetClassTargets(defaultTargets);
       updateAllocation([], defaultTargets);
@@ -422,6 +523,10 @@ export const AssetAllocationPage: React.FC = () => {
     ? prepareAssetChartData(selectedAssetClass.assets, selectedAssetClass.currentTotal)
     : [];
 
+  // Check if Net Worth sync is enabled
+  const netWorthData = loadNetWorthTrackerData();
+  const isSyncEnabled = netWorthData?.settings.syncWithAssetAllocation || false;
+
   return (
     <div className="asset-allocation-page">
       <header className="page-header">
@@ -433,6 +538,13 @@ export const AssetAllocationPage: React.FC = () => {
       </header>
 
       <main className="asset-allocation-manager" id="main-content">
+        {/* Sync status banner */}
+        {isSyncEnabled && (
+          <div className="sync-status-banner" role="status" aria-live="polite">
+            <span aria-hidden="true">🔄</span> Syncing with Net Worth Tracker (current month)
+          </div>
+        )}
+
         {/* Portfolio Value - calculated from non-cash assets */}
         <section className="portfolio-value-section" aria-labelledby="portfolio-value-heading">
           <div className="portfolio-value-label">
@@ -580,14 +692,6 @@ export const AssetAllocationPage: React.FC = () => {
               >
                 <span aria-hidden="true">➕</span> Add Asset
               </button>
-              <button 
-                onClick={handleStartFromScratch} 
-                className="action-btn" 
-                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white' }}
-                aria-label="Reset all assets to defaults"
-              >
-                <span aria-hidden="true">🔄</span> Reset Assets
-              </button>
             </div>
           </div>
           <CollapsibleAllocationTable
@@ -605,10 +709,12 @@ export const AssetAllocationPage: React.FC = () => {
         </section>
       </main>
 
-      <AddAssetDialog
+      <SharedAssetDialog
+        mode="assetAllocation"
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        onAdd={handleAddAsset}
+        onSubmit={handleAddAsset}
+        defaultCurrency={currency as 'EUR' | 'USD'}
       />
 
       <MassEditDialog

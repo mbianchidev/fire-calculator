@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   NetWorthTrackerData,
@@ -26,12 +26,16 @@ import {
 import {
   saveNetWorthTrackerData,
   loadNetWorthTrackerData,
+  loadAssetAllocation,
+  saveAssetAllocation,
 } from '../utils/cookieStorage';
 import { loadSettings } from '../utils/cookieSettings';
 import { generateDemoNetWorthDataForYear } from '../utils/defaults';
+import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation, DEFAULT_ASSET_CLASS_TARGETS } from '../utils/dataSync';
 import { formatDisplayCurrency, formatDisplayPercent, formatDisplayNumber } from '../utils/numberFormatter';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
+import { SharedAssetDialog } from './SharedAssetDialog';
 import './NetWorthTrackerPage.css';
 
 // Month names for display
@@ -145,6 +149,9 @@ export function NetWorthTrackerPage() {
   
   // Chart view mode (YTD or All historical data)
   const [chartViewMode, setChartViewMode] = useState<ChartViewMode>('ytd');
+  
+  // Track if we're currently syncing to prevent infinite loops
+  const isSyncingRef = useRef(false);
 
   // Sync URL params when year/month changes
   useEffect(() => {
@@ -154,14 +161,42 @@ export function NetWorthTrackerPage() {
     setSearchParams(newParams, { replace: true });
   }, [selectedYear, selectedMonth, setSearchParams, searchParams]);
 
-  // Save data whenever it changes
+  // Save data whenever it changes, and sync if enabled
   useEffect(() => {
+    // Prevent sync loop - don't sync if we're already syncing
+    if (isSyncingRef.current) {
+      return;
+    }
+    
     saveNetWorthTrackerData(data);
-  }, [data]);
+    
+    // If sync is enabled and we're viewing the current month, sync to Asset Allocation
+    if (data.settings.syncWithAssetAllocation && 
+        selectedYear === currentYear && 
+        selectedMonth === currentMonth) {
+      const yearData = data.years.find(y => y.year === currentYear);
+      const monthData = yearData?.months.find(m => m.month === currentMonth);
+      
+      if (monthData) {
+        // Sync Net Worth → Asset Allocation
+        isSyncingRef.current = true;
+        const syncedAssets = syncNetWorthToAssetAllocation(data);
+        const { assetClassTargets } = loadAssetAllocation();
+        saveAssetAllocation(syncedAssets, assetClassTargets || DEFAULT_ASSET_CLASS_TARGETS);
+        // Reset flag after a brief delay to allow other component to process
+        setTimeout(() => {
+          isSyncingRef.current = false;
+        }, 100);
+      }
+    }
+  }, [data, selectedYear, selectedMonth, currentYear, currentMonth]);
 
   // Check if we're viewing a past period
   const isViewingPastPeriod = selectedYear < currentYear || 
     (selectedYear === currentYear && selectedMonth < currentMonth);
+
+  // Check if we're viewing the current period
+  const isViewingCurrentPeriod = selectedYear === currentYear && selectedMonth === currentMonth;
 
   // Navigate to current period
   const goToCurrentPeriod = useCallback(() => {
@@ -663,6 +698,25 @@ export function NetWorthTrackerPage() {
     }
   };
 
+  // Toggle sync with Asset Allocation
+  const handleToggleSync = useCallback((enabled: boolean) => {
+    setData(prev => {
+      const newData = deepCloneData(prev);
+      newData.settings.syncWithAssetAllocation = enabled;
+      
+      // If enabling sync and viewing current month, import from Asset Allocation
+      if (enabled && selectedYear === currentYear && selectedMonth === currentMonth) {
+        const { assets } = loadAssetAllocation();
+        if (assets && assets.length > 0) {
+          const synced = syncAssetAllocationToNetWorth(assets, newData);
+          return synced;
+        }
+      }
+      
+      return newData;
+    });
+  }, [selectedYear, selectedMonth, currentYear, currentMonth]);
+
   // Load demo data for the currently selected year
   const handleLoadDemo = useCallback(() => {
     if (confirm(`This will add demo data for ${selectedYear} to your net worth tracker. Any existing data for ${selectedYear} will be replaced. Continue?`)) {
@@ -741,9 +795,35 @@ export function NetWorthTrackerPage() {
               <li><strong>Monthly Snapshot:</strong> Update values at month end for historical tracking</li>
               <li><strong>View History:</strong> Navigate between months to see historical data</li>
               <li><strong>Forecast Confidence:</strong> LOW (1-5 months), MEDIUM (6-23 months), HIGH (24+ months of data with stable growth)</li>
+              <li><strong>Asset Allocation Sync:</strong> Enable sync to automatically keep current month data in sync with Asset Allocation Manager</li>
             </ul>
           )}
         </section>
+
+        {/* Sync Configuration */}
+        {isViewingCurrentPeriod && (
+          <section className="sync-config-section" aria-labelledby="sync-config-heading">
+            <h3 id="sync-config-heading" className="visually-hidden">Asset Allocation Sync</h3>
+            <div className="sync-config-content">
+              <label className="sync-toggle-label">
+                <input
+                  type="checkbox"
+                  checked={data.settings.syncWithAssetAllocation || false}
+                  onChange={(e) => handleToggleSync(e.target.checked)}
+                  aria-label="Sync with Asset Allocation Manager"
+                />
+                <span className="sync-label-text">
+                  <span aria-hidden="true">🔄</span> Sync current month with Asset Allocation Manager
+                </span>
+              </label>
+              {data.settings.syncWithAssetAllocation && (
+                <p className="sync-info">
+                  <span aria-hidden="true">ℹ️</span> When enabled, changes to assets and cash in this month will automatically sync to Asset Allocation Manager, and vice versa.
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Data Management */}
         <DataManagement
@@ -1122,7 +1202,9 @@ export function NetWorthTrackerPage() {
 
         {/* Asset Dialog */}
         {showAssetDialog && (
-          <AssetDialog
+          <SharedAssetDialog
+            mode="netWorthTracker"
+            isOpen={showAssetDialog}
             initialData={editingItemType === 'asset' ? editingItem as AssetHolding : undefined}
             onSubmit={editingItemType === 'asset' && editingItem 
               ? (data) => handleUpdateAsset((editingItem as AssetHolding).id, data)
@@ -1176,178 +1258,6 @@ export function NetWorthTrackerPage() {
   );
 }
 
-// Asset Dialog Component
-interface AssetDialogProps {
-  initialData?: AssetHolding;
-  onSubmit: (data: Omit<AssetHolding, 'id'>) => void;
-  onClose: () => void;
-  defaultCurrency: SupportedCurrency;
-  isNameDuplicate?: (name: string) => boolean;
-}
-
-function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency, isNameDuplicate }: AssetDialogProps) {
-  const [name, setName] = useState(initialData?.name || '');
-  const [ticker, setTicker] = useState(initialData?.ticker || '');
-  const [assetClass, setAssetClass] = useState<AssetHolding['assetClass']>(initialData?.assetClass || 'ETF');
-  const [shares, setShares] = useState(initialData?.shares?.toString() || '');
-  const [pricePerShare, setPricePerShare] = useState(initialData?.pricePerShare?.toString() || '');
-  const [currency, setCurrency] = useState<SupportedCurrency>(initialData?.currency || defaultCurrency);
-  const [note, setNote] = useState(initialData?.note || '');
-  const [nameError, setNameError] = useState<string | null>(null);
-
-  const handleNameChange = (newName: string) => {
-    setName(newName);
-    if (isNameDuplicate && isNameDuplicate(newName)) {
-      setNameError('An asset with this name already exists');
-    } else {
-      setNameError(null);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isNameDuplicate && isNameDuplicate(name)) {
-      setNameError('An asset with this name already exists');
-      return;
-    }
-    
-    const parsedShares = parseFloat(shares);
-    const parsedPrice = parseFloat(pricePerShare);
-    
-    if (isNaN(parsedShares) || parsedShares < 0) {
-      alert('Please enter a valid number of shares');
-      return;
-    }
-    
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      alert('Please enter a valid price per share');
-      return;
-    }
-
-    onSubmit({
-      name,
-      ticker: ticker.toUpperCase(),
-      assetClass,
-      shares: parsedShares,
-      pricePerShare: parsedPrice,
-      currency,
-      note: note || undefined,
-    });
-  };
-
-  return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="dialog-header">
-          <h2>{initialData ? 'Edit' : 'Log'} Asset</h2>
-          <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="dialog-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-name">Name</label>
-              <input
-                id="asset-name"
-                type="text"
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g., Vanguard FTSE All-World"
-                required
-                className={nameError ? 'input-error' : ''}
-              />
-              {nameError && <span className="error-message">{nameError}</span>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-ticker">Ticker</label>
-              <input
-                id="asset-ticker"
-                type="text"
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                placeholder="e.g., VWCE"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-class">Asset Class</label>
-              <select
-                id="asset-class"
-                value={assetClass}
-                onChange={(e) => setAssetClass(e.target.value as AssetHolding['assetClass'])}
-              >
-                {ASSET_CLASSES.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-currency">Currency</label>
-              <select
-                id="asset-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
-              >
-                {SUPPORTED_CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-shares">Number of Shares</label>
-              <input
-                id="asset-shares"
-                type="number"
-                min="0"
-                step="0.0001"
-                value={shares}
-                onChange={(e) => setShares(e.target.value)}
-                placeholder="0"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-price">Price per Share</label>
-              <input
-                id="asset-price"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={pricePerShare}
-                onChange={(e) => setPricePerShare(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="form-group full-width">
-            <label htmlFor="asset-note">Note (optional)</label>
-            <input
-              id="asset-note"
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add a note..."
-            />
-          </div>
-          
-          <div className="dialog-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Log'} Asset</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // Cash Dialog Component
 interface CashDialogProps {
