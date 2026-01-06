@@ -14,7 +14,7 @@ import { getDemoAssetAllocationData } from '../utils/defaults';
 import { syncAssetAllocationToNetWorth } from '../utils/dataSync';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
-import { AddAssetDialog } from './AddAssetDialog';
+import { SharedAssetDialog } from './SharedAssetDialog';
 import { CollapsibleAllocationTable } from './CollapsibleAllocationTable';
 import { MassEditDialog } from './MassEditDialog';
 import { DCAHelperDialog } from './DCAHelperDialog';
@@ -645,10 +645,12 @@ export const AssetAllocationPage: React.FC = () => {
         </section>
       </main>
 
-      <AddAssetDialog
+      <SharedAssetDialog
+        mode="assetAllocation"
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        onAdd={handleAddAsset}
+        onSubmit={handleAddAsset}
+        defaultCurrency={currency as 'EUR' | 'USD'}
       />
 
       <MassEditDialog

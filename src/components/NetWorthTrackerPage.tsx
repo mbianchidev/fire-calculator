@@ -33,6 +33,7 @@ import { generateDemoNetWorthDataForYear } from '../utils/defaults';
 import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation, DEFAULT_ASSET_CLASS_TARGETS } from '../utils/dataSync';
 import { DataManagement } from './DataManagement';
 import { HistoricalNetWorthChart, ChartViewMode } from './HistoricalNetWorthChart';
+import { SharedAssetDialog } from './SharedAssetDialog';
 import './NetWorthTrackerPage.css';
 
 // Month names for display
@@ -1193,7 +1194,9 @@ export function NetWorthTrackerPage() {
 
         {/* Asset Dialog */}
         {showAssetDialog && (
-          <AssetDialog
+          <SharedAssetDialog
+            mode="netWorthTracker"
+            isOpen={showAssetDialog}
             initialData={editingItemType === 'asset' ? editingItem as AssetHolding : undefined}
             onSubmit={editingItemType === 'asset' && editingItem 
               ? (data) => handleUpdateAsset((editingItem as AssetHolding).id, data)
@@ -1247,178 +1250,6 @@ export function NetWorthTrackerPage() {
   );
 }
 
-// Asset Dialog Component
-interface AssetDialogProps {
-  initialData?: AssetHolding;
-  onSubmit: (data: Omit<AssetHolding, 'id'>) => void;
-  onClose: () => void;
-  defaultCurrency: SupportedCurrency;
-  isNameDuplicate?: (name: string) => boolean;
-}
-
-function AssetDialog({ initialData, onSubmit, onClose, defaultCurrency, isNameDuplicate }: AssetDialogProps) {
-  const [name, setName] = useState(initialData?.name || '');
-  const [ticker, setTicker] = useState(initialData?.ticker || '');
-  const [assetClass, setAssetClass] = useState<AssetHolding['assetClass']>(initialData?.assetClass || 'ETF');
-  const [shares, setShares] = useState(initialData?.shares?.toString() || '');
-  const [pricePerShare, setPricePerShare] = useState(initialData?.pricePerShare?.toString() || '');
-  const [currency, setCurrency] = useState<SupportedCurrency>(initialData?.currency || defaultCurrency);
-  const [note, setNote] = useState(initialData?.note || '');
-  const [nameError, setNameError] = useState<string | null>(null);
-
-  const handleNameChange = (newName: string) => {
-    setName(newName);
-    if (isNameDuplicate && isNameDuplicate(newName)) {
-      setNameError('An asset with this name already exists');
-    } else {
-      setNameError(null);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isNameDuplicate && isNameDuplicate(name)) {
-      setNameError('An asset with this name already exists');
-      return;
-    }
-    
-    const parsedShares = parseFloat(shares);
-    const parsedPrice = parseFloat(pricePerShare);
-    
-    if (isNaN(parsedShares) || parsedShares < 0) {
-      alert('Please enter a valid number of shares');
-      return;
-    }
-    
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      alert('Please enter a valid price per share');
-      return;
-    }
-
-    onSubmit({
-      name,
-      ticker: ticker.toUpperCase(),
-      assetClass,
-      shares: parsedShares,
-      pricePerShare: parsedPrice,
-      currency,
-      note: note || undefined,
-    });
-  };
-
-  return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog net-worth-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="dialog-header">
-          <h2>{initialData ? 'Edit' : 'Log'} Asset</h2>
-          <button className="dialog-close" onClick={onClose} aria-label="Close dialog">×</button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="dialog-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-name">Name</label>
-              <input
-                id="asset-name"
-                type="text"
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g., Vanguard FTSE All-World"
-                required
-                className={nameError ? 'input-error' : ''}
-              />
-              {nameError && <span className="error-message">{nameError}</span>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-ticker">Ticker</label>
-              <input
-                id="asset-ticker"
-                type="text"
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                placeholder="e.g., VWCE"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-class">Asset Class</label>
-              <select
-                id="asset-class"
-                value={assetClass}
-                onChange={(e) => setAssetClass(e.target.value as AssetHolding['assetClass'])}
-              >
-                {ASSET_CLASSES.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-currency">Currency</label>
-              <select
-                id="asset-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
-              >
-                {SUPPORTED_CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="asset-shares">Number of Shares</label>
-              <input
-                id="asset-shares"
-                type="number"
-                min="0"
-                step="0.0001"
-                value={shares}
-                onChange={(e) => setShares(e.target.value)}
-                placeholder="0"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="asset-price">Price per Share</label>
-              <input
-                id="asset-price"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={pricePerShare}
-                onChange={(e) => setPricePerShare(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="form-group full-width">
-            <label htmlFor="asset-note">Note (optional)</label>
-            <input
-              id="asset-note"
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add a note..."
-            />
-          </div>
-          
-          <div className="dialog-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-submit">{initialData ? 'Update' : 'Log'} Asset</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // Cash Dialog Component
 interface CashDialogProps {
