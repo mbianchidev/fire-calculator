@@ -206,10 +206,10 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
       return;
     }
 
-    // Shares and pricePerShare are required (not optional) EXCEPT for cash in assetAllocation mode
-    const isCashAllocation = mode === 'assetAllocation' && assetClass === 'CASH';
+    // Shares and pricePerShare are required EXCEPT for cash accounts (not MONEY_ETF) in assetAllocation mode
+    const isCashAccount = mode === 'assetAllocation' && assetClass === 'CASH' && subAssetType !== 'MONEY_ETF';
     
-    if (!isCashAllocation) {
+    if (!isCashAccount) {
       if (!shares.trim() || parseFloat(shares) <= 0) {
         alert('Please enter a valid number of shares');
         return;
@@ -224,12 +224,13 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
     const generatedTicker = ticker.trim().toUpperCase() || 
       `${name.trim().substring(0, 4).toUpperCase()}${Date.now().toString().slice(-4)}`;
 
-    // Calculate value differently for cash assets
+    // Calculate value differently for cash accounts (not MONEY_ETF)
     const sharesNum = parseFloat(shares) || 1;
     const priceNum = parseFloat(pricePerShare) || 0;
     
-    // For cash in Asset Allocation, value is directly entered (not shares × price)
-    const valueNum = isCashAllocation && priceNum === 0 ? sharesNum : sharesNum * priceNum;
+    // For cash accounts (not MONEY_ETF) in Asset Allocation, value is directly entered (not shares × price)
+    const isCashAccount = mode === 'assetAllocation' && assetClass === 'CASH' && subAssetType !== 'MONEY_ETF';
+    const valueNum = isCashAccount && priceNum === 0 ? sharesNum : sharesNum * priceNum;
 
     // Convert to EUR if needed
     const valueInEUR = currency === 'EUR'
@@ -370,54 +371,58 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
             )}
           </div>
 
+          {/* Only show shares and price fields for non-cash accounts or for MONEY_ETF */}
+          {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Number of Shares *</label>
+                <input
+                  type="number"
+                  value={shares}
+                  onChange={(e) => handleSharesChange(e.target.value)}
+                  placeholder="e.g., 100"
+                  className="dialog-input"
+                  min="0"
+                  step="any"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Price per Share *</label>
+                <input
+                  type="number"
+                  value={pricePerShare}
+                  onChange={(e) => handlePricePerShareChange(e.target.value)}
+                  placeholder="e.g., 450.00"
+                  className="dialog-input"
+                  min="0"
+                  step="any"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
           <div className="form-row">
             <div className="form-group">
-              <label>Number of Shares *</label>
+              <label>Current Value {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && mode === 'assetAllocation' ? '(Calculated)' : (mode === 'netWorthTracker' && (assetClass !== 'CASH' || subAssetType === 'MONEY_ETF')) ? '(Calculated)' : ''} *</label>
               <input
-                type="number"
-                value={shares}
-                onChange={(e) => handleSharesChange(e.target.value)}
-                placeholder="e.g., 100"
-                className="dialog-input"
-                min="0"
-                step="any"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Price per Share *</label>
-              <input
-                type="number"
-                value={pricePerShare}
-                onChange={(e) => handlePricePerShareChange(e.target.value)}
-                placeholder="e.g., 450.00"
-                className="dialog-input"
-                min="0"
-                step="any"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Current Value {assetClass !== 'CASH' || mode === 'netWorthTracker' ? '(Calculated)' : ''}</label>
-              <input
-                type={assetClass === 'CASH' && mode === 'assetAllocation' ? 'number' : 'text'}
+                type={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'number' : 'text'}
                 value={currentValue}
-                onChange={assetClass === 'CASH' && mode === 'assetAllocation' ? (e) => {
+                onChange={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? (e) => {
                   setShares(e.target.value);
                   setPricePerShare('1');
                 } : undefined}
                 className="dialog-input"
-                disabled={assetClass !== 'CASH' || mode === 'netWorthTracker'}
-                style={assetClass !== 'CASH' || mode === 'netWorthTracker' ? { backgroundColor: '#f0f0f0', cursor: 'not-allowed' } : {}}
-                placeholder={assetClass === 'CASH' && mode === 'assetAllocation' ? 'Enter cash amount' : ''}
-                min={assetClass === 'CASH' && mode === 'assetAllocation' ? '0' : undefined}
-                step={assetClass === 'CASH' && mode === 'assetAllocation' ? 'any' : undefined}
+                disabled={(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') || mode === 'netWorthTracker'}
+                style={(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') || mode === 'netWorthTracker' ? { backgroundColor: '#f0f0f0', cursor: 'not-allowed' } : {}}
+                placeholder={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'Enter cash amount' : ''}
+                min={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? '0' : undefined}
+                step={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'any' : undefined}
+                required
               />
-              {parseFloat(currentValue) > 0 && assetClass !== 'CASH' && (
+              {parseFloat(currentValue) > 0 && (assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && (
                 <small className="shares-info-note">
                   💡 {shares} × {pricePerShare} = {currentValue}
                 </small>

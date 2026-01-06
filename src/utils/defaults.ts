@@ -449,7 +449,7 @@ export function getDemoAssetAllocationData(): {
         shares: spyShares,
         pricePerShare: spyPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 40, // 40% of STOCKS allocation (€14,000 of €35,000)
+        targetPercent: 30, // 30% of STOCKS allocation (€10,500 of €35,000)
         originalCurrency: 'EUR' as SupportedCurrency,
       },
       {
@@ -477,7 +477,7 @@ export function getDemoAssetAllocationData(): {
         shares: vxusShares,
         pricePerShare: vxusPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 15, // 15% of STOCKS allocation (€5,250 of €35,000)
+        targetPercent: 20, // 20% of STOCKS allocation (€7,000 of €35,000)
         originalCurrency: 'EUR' as SupportedCurrency,
       },
       {
@@ -505,7 +505,7 @@ export function getDemoAssetAllocationData(): {
         shares: vbrShares,
         pricePerShare: vbrPrice,
         targetMode: 'PERCENTAGE' as AllocationMode,
-        targetPercent: 5, // 5% of STOCKS allocation (€1,750 of €35,000)
+        targetPercent: 10, // 10% of STOCKS allocation (€3,500 of €35,000)
         originalCurrency: 'EUR' as SupportedCurrency,
       },
       // BONDS (3 ETFs)
@@ -584,7 +584,7 @@ export function getDemoAssetAllocationData(): {
       BONDS: { targetMode: 'PERCENTAGE', targetPercent: 43 }, // 43% of portfolio
       REAL_ESTATE: { targetMode: 'OFF' },
       CRYPTO: { targetMode: 'OFF' },
-      CASH: { targetMode: 'PERCENTAGE', targetPercent: 7 }, // 7% of portfolio
+      CASH: { targetMode: 'SET', targetPercent: 0 }, // SET mode (individual assets have fixed targets)
     },
   };
 }
