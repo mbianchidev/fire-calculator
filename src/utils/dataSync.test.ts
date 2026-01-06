@@ -5,6 +5,7 @@ import {
 } from './dataSync';
 import { Asset, AssetClass, AllocationMode, SubAssetType } from '../types/assetAllocation';
 import { NetWorthTrackerData } from '../types/netWorthTracker';
+import { SupportedCurrency } from '../types/currency';
 import { getDemoAssetAllocationData } from './defaults';
 
 describe('Data Sync Utilities', () => {
