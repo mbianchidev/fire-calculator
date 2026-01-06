@@ -322,6 +322,30 @@
   font-size: 0.85rem;
 }
 
+/* Currency selector for additional currencies in chart */
+.chart-currency-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.currency-selector-label {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.currency-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .chart-currency-toggle {
   display: flex;
   gap: 0.5rem;
@@ -339,10 +363,10 @@
 
 .currency-btn:hover {
   border-color: #667eea;
+  transform: translateY(-1px);
 }
 
 .currency-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-color: transparent;
 }
