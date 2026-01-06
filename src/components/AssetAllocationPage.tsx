@@ -5,7 +5,7 @@ import { DEFAULT_ASSETS, DEFAULT_PORTFOLIO_VALUE } from '../utils/defaultAssets'
 import { 
   saveAssetAllocation, 
   loadAssetAllocation, 
-  clearAllData, 
+  clearAssetAllocation, 
   loadNetWorthTrackerData, 
   saveNetWorthTrackerData 
 } from '../utils/cookieStorage';
@@ -389,15 +389,6 @@ export const AssetAllocationPage: React.FC = () => {
     }
   };
 
-  const handleLoadDemo = () => {
-    if (confirm('This will replace your current asset allocation data with demo data. Continue?')) {
-      const demoData = getDemoAssetAllocationData();
-      setAssets(demoData.assets);
-      setAssetClassTargets(demoData.assetClassTargets);
-      updateAllocation(demoData.assets, demoData.assetClassTargets);
-    }
-  };
-
   // Calculate cash delta (positive = SAVE, negative = INVEST)
   // The delta is applied to non-cash asset classes:
   // - If INVEST (negative cash delta), add to other classes
@@ -531,7 +522,7 @@ export const AssetAllocationPage: React.FC = () => {
           onExport={handleExport}
           onImport={handleImport}
           onReset={handleResetData}
-          onLoadDemo={handleLoadDemo}
+          onLoadDemo={handleLoadDemoData}
           defaultOpen={false}
         />
 
