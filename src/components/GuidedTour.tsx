@@ -16,7 +16,6 @@ interface TourStep {
 
 interface InteractiveStep {
   page: string;
-  elementSelector?: string;
   title: string;
   description: string;
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
@@ -36,7 +35,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [tourPhase, setTourPhase] = useState<TourPhase>('overview');
   const [interactiveStep, setInteractiveStep] = useState(0);
-  const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
 
@@ -336,35 +334,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     '/net-worth-tracker': { steps: netWorthSteps, nextPage: null, pageName: '' },
   };
 
-  // Handle element highlighting
-  useEffect(() => {
-    if (tourPhase === 'interactive' && currentPageTour) {
-      const currentTour = pageTours[currentPageTour];
-      if (currentTour && currentTour.steps[interactiveStep]) {
-        const step = currentTour.steps[interactiveStep];
-        if (step.elementSelector) {
-          // Wait for the page to render
-          const timer = setTimeout(() => {
-            const element = document.querySelector(step.elementSelector!) as HTMLElement;
-            if (element) {
-              setHighlightedElement(element);
-              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 300);
-          return () => clearTimeout(timer);
-        }
-      }
-    }
-    return () => setHighlightedElement(null);
-  }, [tourPhase, currentPageTour, interactiveStep]);
-
-  // Clear highlight when phase changes
-  useEffect(() => {
-    if (tourPhase !== 'interactive') {
-      setHighlightedElement(null);
-    }
-  }, [tourPhase]);
-
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -400,7 +369,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     setIsVisible(false);
     setShowEndDialog(false);
     setTourPhase('overview');
-    setHighlightedElement(null);
     onTourComplete?.();
     
     // Reload the page to reflect data changes
@@ -468,7 +436,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const finishInteractiveTour = () => {
     setShowContinuePrompt(false);
     setTourPhase('end');
-    setHighlightedElement(null);
     setShowEndDialog(true);
   };
 
@@ -476,7 +443,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const skipInteractiveTour = () => {
     setShowContinuePrompt(false);
     setTourPhase('end');
-    setHighlightedElement(null);
     setShowEndDialog(true);
   };
 
@@ -544,21 +510,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     if (currentInteractiveStep) {
       return (
         <>
-          {/* Highlight overlay */}
-          {highlightedElement && (
-            <div className="tour-highlight-overlay">
-              <div 
-                className="tour-highlight-box"
-                style={{
-                  top: highlightedElement.offsetTop - 8,
-                  left: highlightedElement.offsetLeft - 8,
-                  width: highlightedElement.offsetWidth + 16,
-                  height: highlightedElement.offsetHeight + 16,
-                }}
-              />
-            </div>
-          )}
-          
           {/* Tooltip */}
           <div className="tour-tooltip-container">
             <div className="tour-tooltip">

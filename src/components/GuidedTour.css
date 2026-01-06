@@ -498,34 +498,6 @@
   min-width: 140px;
 }
 
-/* Highlight overlay for interactive tour */
-.tour-highlight-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 9998;
-}
-
-.tour-highlight-box {
-  position: absolute;
-  border: 3px solid #5568d4;
-  border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-  animation: highlightPulse 2s ease-in-out infinite;
-}
-
-@keyframes highlightPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px rgba(85, 104, 212, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px rgba(85, 104, 212, 0.8);
-  }
-}
-
 /* Tooltip container */
 .tour-tooltip-container {
   position: fixed;
@@ -648,13 +620,5 @@
 
   .tour-continue-actions .tour-btn {
     width: 100%;
-  }
-}
-
-/* Reduced motion for interactive tour */
-@media (prefers-reduced-motion: reduce) {
-  .tour-highlight-box {
-    animation: none;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px rgba(85, 104, 212, 0.5);
   }
 }
