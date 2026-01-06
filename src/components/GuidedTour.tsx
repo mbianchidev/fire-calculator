@@ -14,6 +14,16 @@ interface TourStep {
   icon: string;
 }
 
+interface InteractiveStep {
+  page: string;
+  elementSelector?: string;
+  title: string;
+  description: string;
+  position: 'top' | 'bottom' | 'left' | 'right' | 'center';
+}
+
+type TourPhase = 'overview' | 'interactive' | 'end';
+
 interface GuidedTourProps {
   onTourComplete?: () => void;
 }
@@ -24,6 +34,11 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [demoDataLoaded, setDemoDataLoaded] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [tourPhase, setTourPhase] = useState<TourPhase>('overview');
+  const [interactiveStep, setInteractiveStep] = useState(0);
+  const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
+  const [showContinuePrompt, setShowContinuePrompt] = useState(false);
+  const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
 
   // Check if tour should be shown on mount
   useEffect(() => {
@@ -217,6 +232,139 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     },
   ];
 
+  // Interactive tour steps for each page
+  const fireCalculatorSteps: InteractiveStep[] = [
+    {
+      page: '/fire-calculator',
+      title: '💰 Initial Values & Asset Allocation',
+      description: 'Start by entering your current savings and how your investments are split between stocks, bonds, and cash. You can also sync this from the Asset Allocation page!',
+      position: 'center',
+    },
+    {
+      page: '/fire-calculator',
+      title: '💵 Income Section',
+      description: 'Enter your annual income, expected growth rate, and any side income. This determines how much you can save each year toward FIRE.',
+      position: 'center',
+    },
+    {
+      page: '/fire-calculator',
+      title: '🏠 Expenses Section',
+      description: 'Set your current annual expenses and what you expect to spend in retirement. Lower expenses = faster path to FIRE!',
+      position: 'center',
+    },
+    {
+      page: '/fire-calculator',
+      title: '📊 FIRE Parameters',
+      description: 'The withdrawal rate (typically 4%) determines your FIRE target. Adjust it to see how it affects your timeline.',
+      position: 'center',
+    },
+    {
+      page: '/fire-calculator',
+      title: '📈 Results & Charts',
+      description: 'See your projected timeline on the right! The charts show your net worth growth and when you\'ll reach financial independence.',
+      position: 'center',
+    },
+  ];
+
+  const assetAllocationSteps: InteractiveStep[] = [
+    {
+      page: '/asset-allocation',
+      title: '📊 Portfolio Overview',
+      description: 'This page shows all your assets organized by class. The demo includes sample ETFs like VTI (stocks) and BND (bonds).',
+      position: 'center',
+    },
+    {
+      page: '/asset-allocation',
+      title: '⚖️ Target Allocations',
+      description: 'Set target percentages for each asset class. The tool will show you what to buy/sell to stay balanced.',
+      position: 'center',
+    },
+    {
+      page: '/asset-allocation',
+      title: '💹 DCA Helper',
+      description: 'Use the Dollar Cost Averaging helper to see how to allocate your regular investment contributions.',
+      position: 'center',
+    },
+  ];
+
+  const expenseTrackerSteps: InteractiveStep[] = [
+    {
+      page: '/expense-tracker',
+      title: '📝 Transaction Tracking',
+      description: 'Log your income and expenses with categories. The demo shows sample transactions to illustrate the format.',
+      position: 'center',
+    },
+    {
+      page: '/expense-tracker',
+      title: '📊 Budget Analysis',
+      description: 'See your spending breakdown by category and compare to the 50/30/20 budgeting rule (needs/wants/savings).',
+      position: 'center',
+    },
+    {
+      page: '/expense-tracker',
+      title: '🔗 FIRE Integration',
+      description: 'Your income and expenses can automatically sync to the FIRE Calculator for accurate savings calculations!',
+      position: 'center',
+    },
+  ];
+
+  const netWorthSteps: InteractiveStep[] = [
+    {
+      page: '/net-worth-tracker',
+      title: '💰 Assets & Cash',
+      description: 'Track all your assets, bank accounts, and cash holdings. See the total value and how it changes over time.',
+      position: 'center',
+    },
+    {
+      page: '/net-worth-tracker',
+      title: '📈 Historical View',
+      description: 'Monthly snapshots let you see your wealth growth journey. Freeze months to lock in historical data.',
+      position: 'center',
+    },
+    {
+      page: '/net-worth-tracker',
+      title: '🔄 Sync Options',
+      description: 'Sync your asset data with the Asset Allocation page to keep everything consistent across tools!',
+      position: 'center',
+    },
+  ];
+
+  const pageTours: Record<string, { steps: InteractiveStep[]; nextPage: string | null; pageName: string }> = {
+    '/fire-calculator': { steps: fireCalculatorSteps, nextPage: '/asset-allocation', pageName: 'Asset Allocation' },
+    '/asset-allocation': { steps: assetAllocationSteps, nextPage: '/expense-tracker', pageName: 'Cashflow Tracker' },
+    '/expense-tracker': { steps: expenseTrackerSteps, nextPage: '/net-worth-tracker', pageName: 'Net Worth Tracker' },
+    '/net-worth-tracker': { steps: netWorthSteps, nextPage: null, pageName: '' },
+  };
+
+  // Handle element highlighting
+  useEffect(() => {
+    if (tourPhase === 'interactive' && currentPageTour) {
+      const currentTour = pageTours[currentPageTour];
+      if (currentTour && currentTour.steps[interactiveStep]) {
+        const step = currentTour.steps[interactiveStep];
+        if (step.elementSelector) {
+          // Wait for the page to render
+          const timer = setTimeout(() => {
+            const element = document.querySelector(step.elementSelector!) as HTMLElement;
+            if (element) {
+              setHighlightedElement(element);
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 300);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+    return () => setHighlightedElement(null);
+  }, [tourPhase, currentPageTour, interactiveStep]);
+
+  // Clear highlight when phase changes
+  useEffect(() => {
+    if (tourPhase !== 'interactive') {
+      setHighlightedElement(null);
+    }
+  }, [tourPhase]);
+
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -251,6 +399,8 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     saveTourCompleted(true);
     setIsVisible(false);
     setShowEndDialog(false);
+    setTourPhase('overview');
+    setHighlightedElement(null);
     onTourComplete?.();
     
     // Reload the page to reflect data changes
@@ -268,42 +418,258 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     completeTour(false);
   };
 
+  // Start the interactive tour
+  const startInteractiveTour = () => {
+    setShowEndDialog(false);
+    setTourPhase('interactive');
+    setCurrentPageTour('/fire-calculator');
+    setInteractiveStep(0);
+    navigate('/fire-calculator');
+  };
+
+  // Handle next step in interactive tour
+  const handleInteractiveNext = () => {
+    if (!currentPageTour) return;
+    
+    const currentTour = pageTours[currentPageTour];
+    if (!currentTour) return;
+
+    if (interactiveStep < currentTour.steps.length - 1) {
+      setInteractiveStep(interactiveStep + 1);
+    } else {
+      // Show prompt to continue to next page or finish
+      setShowContinuePrompt(true);
+    }
+  };
+
+  // Handle previous step in interactive tour
+  const handleInteractivePrev = () => {
+    if (interactiveStep > 0) {
+      setInteractiveStep(interactiveStep - 1);
+    }
+  };
+
+  // Continue to next page in interactive tour
+  const continueToNextPage = () => {
+    if (!currentPageTour) return;
+    
+    const currentTour = pageTours[currentPageTour];
+    if (currentTour?.nextPage) {
+      setCurrentPageTour(currentTour.nextPage);
+      setInteractiveStep(0);
+      setShowContinuePrompt(false);
+      navigate(currentTour.nextPage);
+    } else {
+      finishInteractiveTour();
+    }
+  };
+
+  // Finish the interactive tour
+  const finishInteractiveTour = () => {
+    setShowContinuePrompt(false);
+    setTourPhase('end');
+    setHighlightedElement(null);
+    setShowEndDialog(true);
+  };
+
+  // Skip interactive tour and go to end
+  const skipInteractiveTour = () => {
+    setShowContinuePrompt(false);
+    setTourPhase('end');
+    setHighlightedElement(null);
+    setShowEndDialog(true);
+  };
+
   if (!isVisible) return null;
 
+  // Interactive tour - show continue prompt
+  if (showContinuePrompt && currentPageTour) {
+    const currentTour = pageTours[currentPageTour];
+    const hasNextPage = currentTour?.nextPage;
+    
+    return (
+      <div className="tour-overlay tour-overlay-transparent" role="dialog" aria-modal="true">
+        <div className="tour-modal tour-continue-modal">
+          <div className="tour-continue-header">
+            <span className="tour-continue-icon">✨</span>
+            <h2>Page Tour Complete!</h2>
+          </div>
+          <div className="tour-continue-content">
+            {hasNextPage ? (
+              <>
+                <p>
+                  You've explored this page. Would you like to continue with the <strong>{currentTour.pageName}</strong> tour?
+                </p>
+                <div className="tour-continue-actions">
+                  <button 
+                    className="tour-btn tour-btn-secondary"
+                    onClick={finishInteractiveTour}
+                  >
+                    Finish Tour
+                  </button>
+                  <button 
+                    className="tour-btn tour-btn-primary"
+                    onClick={continueToNextPage}
+                  >
+                    Continue to {currentTour.pageName} →
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>
+                  You've completed the interactive tour of all pages!
+                </p>
+                <div className="tour-continue-actions">
+                  <button 
+                    className="tour-btn tour-btn-primary"
+                    onClick={finishInteractiveTour}
+                  >
+                    Finish Tour
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Interactive tour - show step tooltip
+  if (tourPhase === 'interactive' && currentPageTour) {
+    const currentTour = pageTours[currentPageTour];
+    const currentInteractiveStep = currentTour?.steps[interactiveStep];
+    
+    if (currentInteractiveStep) {
+      return (
+        <>
+          {/* Highlight overlay */}
+          {highlightedElement && (
+            <div className="tour-highlight-overlay">
+              <div 
+                className="tour-highlight-box"
+                style={{
+                  top: highlightedElement.offsetTop - 8,
+                  left: highlightedElement.offsetLeft - 8,
+                  width: highlightedElement.offsetWidth + 16,
+                  height: highlightedElement.offsetHeight + 16,
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Tooltip */}
+          <div className="tour-tooltip-container">
+            <div className="tour-tooltip">
+              <div className="tour-tooltip-header">
+                <h3>{currentInteractiveStep.title}</h3>
+                <button 
+                  className="tour-tooltip-skip"
+                  onClick={skipInteractiveTour}
+                  aria-label="Skip interactive tour"
+                >
+                  Skip
+                </button>
+              </div>
+              <p>{currentInteractiveStep.description}</p>
+              <div className="tour-tooltip-footer">
+                <button
+                  className="tour-btn tour-btn-secondary tour-btn-small"
+                  onClick={handleInteractivePrev}
+                  disabled={interactiveStep === 0}
+                >
+                  ← Back
+                </button>
+                <span className="tour-tooltip-count">
+                  {interactiveStep + 1} / {currentTour.steps.length}
+                </span>
+                <button
+                  className="tour-btn tour-btn-primary tour-btn-small"
+                  onClick={handleInteractiveNext}
+                >
+                  {interactiveStep === currentTour.steps.length - 1 ? 'Done' : 'Next →'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
+  }
+
   if (showEndDialog) {
+    // Check if we're coming from overview phase (offer interactive tour) or from interactive/end phase
+    const showInteractiveOption = tourPhase === 'overview';
+    
     return (
       <div className="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="tour-end-title">
         <div className="tour-modal tour-end-modal">
           <div className="tour-end-header">
             <span className="tour-end-icon">🎉</span>
-            <h2 id="tour-end-title">Tour Complete!</h2>
+            <h2 id="tour-end-title">{showInteractiveOption ? 'Overview Complete!' : 'Tour Complete!'}</h2>
           </div>
           <div className="tour-end-content">
-            <p>
-              Great! You've seen all the main features of Fire Tools. We've loaded 
-              some demo data so you can explore the tools right away.
-            </p>
-            <p className="tour-end-question">
-              <strong>What would you like to do with the demo data?</strong>
-            </p>
+            {showInteractiveOption ? (
+              <>
+                <p>
+                  Great! You've seen an overview of Fire Tools. We've loaded demo data so you can explore.
+                </p>
+                <p className="tour-end-question">
+                  <strong>Would you like a hands-on walkthrough of each page?</strong>
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  Great! You've completed the tour of Fire Tools. We've loaded demo data so you can explore.
+                </p>
+                <p className="tour-end-question">
+                  <strong>What would you like to do with the demo data?</strong>
+                </p>
+              </>
+            )}
           </div>
           <div className="tour-end-actions">
-            <button 
-              className="tour-btn tour-btn-secondary"
-              onClick={handleClearData}
-            >
-              <span className="tour-btn-icon">🗑️</span>
-              Start Fresh
-              <span className="tour-btn-hint">Clear all demo data</span>
-            </button>
-            <button 
-              className="tour-btn tour-btn-primary"
-              onClick={handleKeepData}
-            >
-              <span className="tour-btn-icon">✨</span>
-              Keep Demo Data
-              <span className="tour-btn-hint">Explore with sample data</span>
-            </button>
+            {showInteractiveOption ? (
+              <>
+                <button 
+                  className="tour-btn tour-btn-secondary"
+                  onClick={handleKeepData}
+                >
+                  <span className="tour-btn-icon">✨</span>
+                  Explore on My Own
+                  <span className="tour-btn-hint">Keep demo data</span>
+                </button>
+                <button 
+                  className="tour-btn tour-btn-primary"
+                  onClick={startInteractiveTour}
+                >
+                  <span className="tour-btn-icon">🎯</span>
+                  Yes, Guide Me!
+                  <span className="tour-btn-hint">Interactive walkthrough</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className="tour-btn tour-btn-secondary"
+                  onClick={handleClearData}
+                >
+                  <span className="tour-btn-icon">🗑️</span>
+                  Start Fresh
+                  <span className="tour-btn-hint">Clear all demo data</span>
+                </button>
+                <button 
+                  className="tour-btn tour-btn-primary"
+                  onClick={handleKeepData}
+                >
+                  <span className="tour-btn-icon">✨</span>
+                  Keep Demo Data
+                  <span className="tour-btn-hint">Explore with sample data</span>
+                </button>
+              </>
+            )}
           </div>
           <p className="tour-end-note">
             <span className="tour-note-icon">💡</span>

@@ -614,7 +614,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
             <p className="setting-help">Restart the guided tour to learn about Fire Tools features</p>
             <button className="secondary-btn" onClick={() => {
               clearTourPreference();
-              showMessage('success', 'Tour reset! Refresh the page to start the guided tour.');
+              window.location.href = '/';
             }}>
               🔄 Restart Tour
             </button>
