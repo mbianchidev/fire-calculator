@@ -85,7 +85,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
           </p>
           <p>
             This quick tour will show you the main features and how to get the most 
-            out of the application. We&apos;ll also load some demo data so you can see 
+            out of the application. We'll also load some demo data so you can see 
             everything in action.
           </p>
           <p className="tour-privacy-note">
@@ -186,7 +186,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       content: (
         <div className="tour-step-content">
           <p>
-            <strong>The real power comes from using tools together!</strong> Here&apos;s how 
+            <strong>The real power comes from using tools together!</strong> Here's how 
             they connect:
           </p>
           <div className="tour-integration-diagram">
@@ -280,7 +280,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
           </div>
           <div className="tour-end-content">
             <p>
-              Great! You&apos;ve seen all the main features of Fire Tools. We&apos;ve loaded 
+              Great! You've seen all the main features of Fire Tools. We've loaded 
               some demo data so you can explore the tools right away.
             </p>
             <p className="tour-end-question">
