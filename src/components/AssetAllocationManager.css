@@ -1848,18 +1848,6 @@ select:disabled {
   font-size: 0.9rem;
 }
 
-/* Shares info note */
-.shares-info-note {
-  background: #f3e5f5;
-  border: 1px solid #ce93d8;
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  color: #6a1b9a;
-  margin-top: -0.5rem;
-  font-weight: 500;
-}
-
 /* Override for Firefox */
 @-moz-document url-prefix() {
   select {
