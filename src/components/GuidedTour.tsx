@@ -21,7 +21,7 @@ interface InteractiveStep {
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
 
-type TourPhase = 'overview' | 'interactive' | 'end';
+type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'end';
 
 interface GuidedTourProps {
   onTourComplete?: () => void;
@@ -37,6 +37,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [interactiveStep, setInteractiveStep] = useState(0);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
+  const [keepDemoData, setKeepDemoData] = useState(true);
 
   // Check if tour should be shown on mount
   useEffect(() => {
@@ -338,7 +339,8 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Show end dialog instead of completing immediately
+      // After overview tour, first ask about demo data
+      setTourPhase('data-choice');
       setShowEndDialog(true);
     }
   };
@@ -352,6 +354,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const handleSkip = () => {
     // Show end dialog to ask about demo data
     if (demoDataLoaded) {
+      setTourPhase('data-choice');
       setShowEndDialog(true);
     } else {
       // If demo data wasn't loaded, just close the tour
@@ -377,13 +380,31 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     }
   };
 
-  const handleKeepData = () => {
-    completeTour(true);
-    navigate('/');
+  // Handle keeping demo data and proceed to interactive tour prompt
+  const handleKeepDataAndContinue = () => {
+    setKeepDemoData(true);
+    setTourPhase('interactive-prompt');
   };
 
-  const handleClearData = () => {
-    completeTour(false);
+  // Handle clearing data and proceed to interactive tour prompt
+  const handleClearDataAndContinue = () => {
+    setKeepDemoData(false);
+    clearAllData();
+    saveSettings(DEFAULT_SETTINGS);
+    setTourPhase('interactive-prompt');
+  };
+
+  // Finish tour without interactive walkthrough
+  const finishWithoutInteractive = () => {
+    saveTourCompleted(true);
+    setIsVisible(false);
+    setShowEndDialog(false);
+    onTourComplete?.();
+    navigate('/');
+    // Reload if data was cleared
+    if (!keepDemoData) {
+      window.location.reload();
+    }
   };
 
   // Start the interactive tour
@@ -435,15 +456,21 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   // Finish the interactive tour
   const finishInteractiveTour = () => {
     setShowContinuePrompt(false);
-    setTourPhase('end');
-    setShowEndDialog(true);
+    saveTourCompleted(true);
+    setIsVisible(false);
+    setShowEndDialog(false);
+    onTourComplete?.();
+    navigate('/');
   };
 
   // Skip interactive tour and go to end
   const skipInteractiveTour = () => {
     setShowContinuePrompt(false);
-    setTourPhase('end');
-    setShowEndDialog(true);
+    saveTourCompleted(true);
+    setIsVisible(false);
+    setShowEndDialog(false);
+    onTourComplete?.();
+    navigate('/');
   };
 
   if (!isVisible) return null;
@@ -502,7 +529,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     );
   }
 
-  // Interactive tour - show step tooltip
+  // Interactive tour - show step tooltip with dimmed background
   if (tourPhase === 'interactive' && currentPageTour) {
     const currentTour = pageTours[currentPageTour];
     const currentInteractiveStep = currentTour?.steps[interactiveStep];
@@ -510,6 +537,9 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     if (currentInteractiveStep) {
       return (
         <>
+          {/* Dimmed background overlay */}
+          <div className="tour-interactive-overlay" />
+          
           {/* Tooltip */}
           <div className="tour-tooltip-container">
             <div className="tour-tooltip">
@@ -550,85 +580,93 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   }
 
   if (showEndDialog) {
-    // Check if we're coming from overview phase (offer interactive tour) or from interactive/end phase
-    const showInteractiveOption = tourPhase === 'overview';
-    
-    return (
-      <div className="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="tour-end-title">
-        <div className="tour-modal tour-end-modal">
-          <div className="tour-end-header">
-            <span className="tour-end-icon">🎉</span>
-            <h2 id="tour-end-title">{showInteractiveOption ? 'Overview Complete!' : 'Tour Complete!'}</h2>
+    // Data choice phase - ask about keeping/clearing demo data first
+    if (tourPhase === 'data-choice') {
+      return (
+        <div className="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="tour-end-title">
+          <div className="tour-modal tour-end-modal">
+            <div className="tour-end-header">
+              <span className="tour-end-icon">🎉</span>
+              <h2 id="tour-end-title">Overview Complete!</h2>
+            </div>
+            <div className="tour-end-content">
+              <p>
+                Great! You've seen an overview of Fire Tools. We've loaded demo data so you can explore.
+              </p>
+              <p className="tour-end-question">
+                <strong>What would you like to do with the demo data?</strong>
+              </p>
+            </div>
+            <div className="tour-end-actions">
+              <button 
+                className="tour-btn tour-btn-secondary"
+                onClick={handleClearDataAndContinue}
+              >
+                <span className="tour-btn-icon">🗑️</span>
+                Start Fresh
+                <span className="tour-btn-hint">Clear all demo data</span>
+              </button>
+              <button 
+                className="tour-btn tour-btn-primary"
+                onClick={handleKeepDataAndContinue}
+              >
+                <span className="tour-btn-icon">✨</span>
+                Keep Demo Data
+                <span className="tour-btn-hint">Explore with sample data</span>
+              </button>
+            </div>
+            <p className="tour-end-note">
+              <span className="tour-note-icon">💡</span>
+              You can restart this tour anytime from Settings → Restart Tour
+            </p>
           </div>
-          <div className="tour-end-content">
-            {showInteractiveOption ? (
-              <>
-                <p>
-                  Great! You've seen an overview of Fire Tools. We've loaded demo data so you can explore.
-                </p>
-                <p className="tour-end-question">
-                  <strong>Would you like a hands-on walkthrough of each page?</strong>
-                </p>
-              </>
-            ) : (
-              <>
-                <p>
-                  Great! You've completed the tour of Fire Tools. We've loaded demo data so you can explore.
-                </p>
-                <p className="tour-end-question">
-                  <strong>What would you like to do with the demo data?</strong>
-                </p>
-              </>
-            )}
-          </div>
-          <div className="tour-end-actions">
-            {showInteractiveOption ? (
-              <>
-                <button 
-                  className="tour-btn tour-btn-secondary"
-                  onClick={handleKeepData}
-                >
-                  <span className="tour-btn-icon">✨</span>
-                  Explore on My Own
-                  <span className="tour-btn-hint">Keep demo data</span>
-                </button>
-                <button 
-                  className="tour-btn tour-btn-primary"
-                  onClick={startInteractiveTour}
-                >
-                  <span className="tour-btn-icon">🎯</span>
-                  Yes, Guide Me!
-                  <span className="tour-btn-hint">Interactive walkthrough</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  className="tour-btn tour-btn-secondary"
-                  onClick={handleClearData}
-                >
-                  <span className="tour-btn-icon">🗑️</span>
-                  Start Fresh
-                  <span className="tour-btn-hint">Clear all demo data</span>
-                </button>
-                <button 
-                  className="tour-btn tour-btn-primary"
-                  onClick={handleKeepData}
-                >
-                  <span className="tour-btn-icon">✨</span>
-                  Keep Demo Data
-                  <span className="tour-btn-hint">Explore with sample data</span>
-                </button>
-              </>
-            )}
-          </div>
-          <p className="tour-end-note">
-            <span className="tour-note-icon">💡</span>
-            You can restart this tour anytime from Settings → Restart Tour
-          </p>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    // Interactive tour prompt - ask if user wants guided walkthrough
+    if (tourPhase === 'interactive-prompt') {
+      return (
+        <div className="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="tour-prompt-title">
+          <div className="tour-modal tour-end-modal">
+            <div className="tour-end-header">
+              <span className="tour-end-icon">🎯</span>
+              <h2 id="tour-prompt-title">Interactive Walkthrough</h2>
+            </div>
+            <div className="tour-end-content">
+              <p>
+                Would you like a hands-on walkthrough of each page? We'll guide you through the key features and show you how everything works.
+              </p>
+              <p className="tour-end-question">
+                <strong>How this page works</strong> - Learn by doing!
+              </p>
+            </div>
+            <div className="tour-end-actions">
+              <button 
+                className="tour-btn tour-btn-secondary"
+                onClick={finishWithoutInteractive}
+              >
+                <span className="tour-btn-icon">✨</span>
+                Explore on My Own
+                <span className="tour-btn-hint">Skip walkthrough</span>
+              </button>
+              <button 
+                className="tour-btn tour-btn-primary"
+                onClick={startInteractiveTour}
+              >
+                <span className="tour-btn-icon">🎯</span>
+                Yes, Guide Me!
+                <span className="tour-btn-hint">Interactive walkthrough</span>
+              </button>
+            </div>
+            <p className="tour-end-note">
+              <span className="tour-note-icon">💡</span>
+              You can restart this tour anytime from Settings → Restart Tour
+            </p>
+          </div>
+        </div>
+      );
+    }
   }
 
   const step = tourSteps[currentStep];

@@ -498,6 +498,20 @@
   min-width: 140px;
 }
 
+/* Interactive tour overlay - dims the page */
+.tour-interactive-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 9999;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
 /* Tooltip container */
 .tour-tooltip-container {
   position: fixed;
