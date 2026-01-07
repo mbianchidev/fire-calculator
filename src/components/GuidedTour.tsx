@@ -638,7 +638,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
                 Would you like a hands-on walkthrough of each page? We'll guide you through the key features and show you how everything works.
               </p>
               <p className="tour-end-question">
-                <strong>How this page works</strong> - Learn by doing!
+                <strong>Learn by doing!</strong> We'll walk you through each tool step by step.
               </p>
             </div>
             <div className="tour-end-actions">
