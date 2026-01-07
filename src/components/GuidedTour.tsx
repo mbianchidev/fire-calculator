@@ -19,6 +19,9 @@ interface InteractiveStep {
   title: string;
   description: string;
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  elementSelector?: string; // CSS selector to highlight specific element
+  inputSelector?: string; // CSS selector for input to validate (required when starting fresh)
+  inputLabel?: string; // Label for the input field for validation message
 }
 
 type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'end';
@@ -38,6 +41,8 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
   const [keepDemoData, setKeepDemoData] = useState(true);
+  const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Check if tour should be shown on mount
   useEffect(() => {
@@ -86,6 +91,80 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       loadDemoData();
     }
   }, [currentStep, demoDataLoaded, loadDemoData]);
+
+  // Highlight elements during interactive tour
+  useEffect(() => {
+    if (tourPhase !== 'interactive' || !currentPageTour) {
+      // Clean up highlight when not in interactive mode
+      if (highlightedElement) {
+        highlightedElement.classList.remove('tour-highlight');
+        setHighlightedElement(null);
+      }
+      return;
+    }
+
+    const currentTour = pageTours[currentPageTour];
+    const currentInteractiveStep = currentTour?.steps[interactiveStep];
+    
+    // Remove highlight from previous element
+    if (highlightedElement) {
+      highlightedElement.classList.remove('tour-highlight');
+    }
+
+    // Add highlight to new element
+    if (currentInteractiveStep?.elementSelector) {
+      // Small delay to ensure DOM is ready after navigation
+      const timeoutId = setTimeout(() => {
+        const element = document.querySelector(currentInteractiveStep.elementSelector!) as HTMLElement;
+        if (element) {
+          element.classList.add('tour-highlight');
+          setHighlightedElement(element);
+          // Scroll element into view
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setHighlightedElement(null);
+    }
+  }, [tourPhase, currentPageTour, interactiveStep, highlightedElement]);
+
+  // Validate input when trying to proceed (only when starting fresh)
+  const validateCurrentStep = useCallback((): boolean => {
+    // If user kept demo data, no validation needed
+    if (keepDemoData) {
+      setValidationError(null);
+      return true;
+    }
+
+    if (tourPhase !== 'interactive' || !currentPageTour) {
+      return true;
+    }
+
+    const currentTour = pageTours[currentPageTour];
+    const currentInteractiveStep = currentTour?.steps[interactiveStep];
+
+    // If no input selector, no validation needed
+    if (!currentInteractiveStep?.inputSelector) {
+      setValidationError(null);
+      return true;
+    }
+
+    // Find the input and check if it has a value
+    const input = document.querySelector(currentInteractiveStep.inputSelector) as HTMLInputElement;
+    if (input) {
+      const value = input.value?.trim();
+      if (!value || value === '0' || value === '') {
+        setValidationError(`Please enter a value for ${currentInteractiveStep.inputLabel || 'this field'} to continue`);
+        input.focus();
+        return false;
+      }
+    }
+
+    setValidationError(null);
+    return true;
+  }, [keepDemoData, tourPhase, currentPageTour, interactiveStep]);
 
   const tourSteps: TourStep[] = [
     {
@@ -235,75 +314,94 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const fireCalculatorSteps: InteractiveStep[] = [
     {
       page: '/fire-calculator',
-      title: '💰 Initial Values & Asset Allocation',
-      description: 'Start by entering your current savings and how your investments are split between stocks, bonds, and cash. You can also sync this from the Asset Allocation page!',
+      title: '💰 Initial Savings',
+      description: 'Enter your current savings or portfolio value. This is your starting point for FIRE calculations.',
       position: 'center',
+      elementSelector: '[data-tour="initial-savings"]',
+      inputSelector: 'input[name="initialSavings"], input[aria-label*="Initial Savings"]',
+      inputLabel: 'Initial Savings',
     },
     {
       page: '/fire-calculator',
-      title: '💵 Income Section',
-      description: 'Enter your annual income, expected growth rate, and any side income. This determines how much you can save each year toward FIRE.',
+      title: '💵 Annual Income',
+      description: 'Enter your annual net labor income. This determines how much you can save each year toward FIRE.',
       position: 'center',
+      elementSelector: '[data-tour="income-section"]',
+      inputSelector: 'input[name="annualLaborIncome"], input[aria-label*="Labor Income"]',
+      inputLabel: 'Annual Income',
     },
     {
       page: '/fire-calculator',
-      title: '🏠 Expenses Section',
-      description: 'Set your current annual expenses and what you expect to spend in retirement. Lower expenses = faster path to FIRE!',
+      title: '🏠 Annual Expenses',
+      description: 'Set your current annual expenses. Lower expenses mean a faster path to FIRE!',
       position: 'center',
+      elementSelector: '[data-tour="expenses-section"]',
+      inputSelector: 'input[name="currentAnnualExpenses"], input[aria-label*="Current Annual Expenses"]',
+      inputLabel: 'Annual Expenses',
     },
     {
       page: '/fire-calculator',
-      title: '📊 FIRE Parameters',
-      description: 'The withdrawal rate (typically 4%) determines your FIRE target. Adjust it to see how it affects your timeline.',
+      title: '📊 Withdrawal Rate',
+      description: 'The withdrawal rate (typically 3-4%) determines your FIRE target. A 4% rate means you need 25x your annual expenses.',
       position: 'center',
+      elementSelector: '[data-tour="fire-params"]',
+      inputSelector: 'input[name="desiredWithdrawalRate"], input[aria-label*="Withdrawal Rate"]',
+      inputLabel: 'Withdrawal Rate',
     },
     {
       page: '/fire-calculator',
       title: '📈 Results & Charts',
-      description: 'See your projected timeline on the right! The charts show your net worth growth and when you\'ll reach financial independence.',
+      description: 'See your projected timeline! The charts show your net worth growth and when you\'ll reach financial independence.',
       position: 'center',
+      elementSelector: '[data-tour="results-section"]',
     },
   ];
 
   const assetAllocationSteps: InteractiveStep[] = [
     {
       page: '/asset-allocation',
-      title: '📊 Portfolio Overview',
-      description: 'This page shows all your assets organized by class. The demo includes sample ETFs like VTI (stocks) and BND (bonds).',
+      title: '📊 Your Assets',
+      description: 'Add your assets here - stocks, bonds, ETFs, etc. Click "Add Asset" to enter a new holding with its value and asset class.',
       position: 'center',
+      elementSelector: '[data-tour="asset-list"]',
     },
     {
       page: '/asset-allocation',
       title: '⚖️ Target Allocations',
-      description: 'Set target percentages for each asset class. The tool will show you what to buy/sell to stay balanced.',
+      description: 'Set your target percentages for each asset class. The tool shows you what to buy or sell to stay balanced.',
       position: 'center',
+      elementSelector: '[data-tour="target-allocations"]',
     },
     {
       page: '/asset-allocation',
       title: '💹 DCA Helper',
-      description: 'Use the Dollar Cost Averaging helper to see how to allocate your regular investment contributions.',
+      description: 'Use the Dollar Cost Averaging helper to see how to allocate your regular investment contributions across asset classes.',
       position: 'center',
+      elementSelector: '[data-tour="dca-helper"]',
     },
   ];
 
   const expenseTrackerSteps: InteractiveStep[] = [
     {
       page: '/expense-tracker',
-      title: '📝 Transaction Tracking',
-      description: 'Log your income and expenses with categories. The demo shows sample transactions to illustrate the format.',
+      title: '📝 Add Transactions',
+      description: 'Track your income and expenses here. Click "Add Income" or "Add Expense" to log transactions with categories and dates.',
       position: 'center',
+      elementSelector: '[data-tour="transaction-actions"]',
     },
     {
       page: '/expense-tracker',
       title: '📊 Budget Analysis',
       description: 'See your spending breakdown by category and compare to the 50/30/20 budgeting rule (needs/wants/savings).',
       position: 'center',
+      elementSelector: '[data-tour="budget-analysis"]',
     },
     {
       page: '/expense-tracker',
       title: '🔗 FIRE Integration',
-      description: 'Your income and expenses can automatically sync to the FIRE Calculator for accurate savings calculations!',
+      description: 'Your income and expenses can automatically sync to the FIRE Calculator for accurate savings rate calculations!',
       position: 'center',
+      elementSelector: '[data-tour="fire-integration"]',
     },
   ];
 
@@ -311,20 +409,23 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/net-worth-tracker',
       title: '💰 Assets & Cash',
-      description: 'Track all your assets, bank accounts, and cash holdings. See the total value and how it changes over time.',
+      description: 'Track all your assets, bank accounts, and cash holdings. Click the Add buttons to enter new items.',
       position: 'center',
+      elementSelector: '[data-tour="assets-section"]',
     },
     {
       page: '/net-worth-tracker',
       title: '📈 Historical View',
-      description: 'Monthly snapshots let you see your wealth growth journey. Freeze months to lock in historical data.',
+      description: 'Monthly snapshots let you see your wealth growth journey. Navigate between months to view historical data.',
       position: 'center',
+      elementSelector: '[data-tour="historical-chart"]',
     },
     {
       page: '/net-worth-tracker',
       title: '🔄 Sync Options',
-      description: 'Sync your asset data with the Asset Allocation page to keep everything consistent across tools!',
+      description: 'Enable sync to automatically keep your asset data consistent with the Asset Allocation page!',
       position: 'center',
+      elementSelector: '[data-tour="sync-options"]',
     },
   ];
 
@@ -413,6 +514,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     setTourPhase('interactive');
     setCurrentPageTour('/fire-calculator');
     setInteractiveStep(0);
+    setValidationError(null);
     navigate('/fire-calculator');
   };
 
@@ -420,11 +522,17 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const handleInteractiveNext = () => {
     if (!currentPageTour) return;
     
+    // Validate current step before proceeding
+    if (!validateCurrentStep()) {
+      return;
+    }
+    
     const currentTour = pageTours[currentPageTour];
     if (!currentTour) return;
 
     if (interactiveStep < currentTour.steps.length - 1) {
       setInteractiveStep(interactiveStep + 1);
+      setValidationError(null);
     } else {
       // Show prompt to continue to next page or finish
       setShowContinuePrompt(true);
@@ -435,6 +543,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const handleInteractivePrev = () => {
     if (interactiveStep > 0) {
       setInteractiveStep(interactiveStep - 1);
+      setValidationError(null);
     }
   };
 
@@ -447,6 +556,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       setCurrentPageTour(currentTour.nextPage);
       setInteractiveStep(0);
       setShowContinuePrompt(false);
+      setValidationError(null);
       navigate(currentTour.nextPage);
     } else {
       finishInteractiveTour();
@@ -533,6 +643,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   if (tourPhase === 'interactive' && currentPageTour) {
     const currentTour = pageTours[currentPageTour];
     const currentInteractiveStep = currentTour?.steps[interactiveStep];
+    const hasInputValidation = !keepDemoData && currentInteractiveStep?.inputSelector;
     
     if (currentInteractiveStep) {
       return (
@@ -554,6 +665,18 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
                 </button>
               </div>
               <p>{currentInteractiveStep.description}</p>
+              {hasInputValidation && (
+                <p className="tour-tooltip-hint">
+                  <span className="tour-hint-icon">✏️</span>
+                  Enter a value in the highlighted field to continue
+                </p>
+              )}
+              {validationError && (
+                <p className="tour-tooltip-error">
+                  <span className="tour-error-icon">⚠️</span>
+                  {validationError}
+                </p>
+              )}
               <div className="tour-tooltip-footer">
                 <button
                   className="tour-btn tour-btn-secondary tour-btn-small"

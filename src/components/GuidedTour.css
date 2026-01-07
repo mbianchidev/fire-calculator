@@ -636,3 +636,73 @@
     width: 100%;
   }
 }
+
+/* Element highlight styles */
+.tour-highlight {
+  position: relative;
+  z-index: 10000 !important;
+  box-shadow: 0 0 0 4px rgba(85, 104, 212, 0.6), 0 0 20px rgba(85, 104, 212, 0.4) !important;
+  border-radius: 8px;
+  animation: tourPulse 2s ease-in-out infinite;
+}
+
+@keyframes tourPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(85, 104, 212, 0.6), 0 0 20px rgba(85, 104, 212, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(85, 104, 212, 0.8), 0 0 30px rgba(85, 104, 212, 0.6);
+  }
+}
+
+/* Make highlighted input fields editable above the overlay */
+.tour-highlight input,
+.tour-highlight select,
+.tour-highlight textarea,
+.tour-highlight button {
+  position: relative;
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+
+/* Tooltip hint for input fields */
+.tour-tooltip-hint {
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  background: #f0f9ff;
+  border-top: 1px solid #bae6fd;
+  color: #0369a1;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tour-hint-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Tooltip error message */
+.tour-tooltip-error {
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.tour-error-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Ensure highlighted elements are above the overlay */
+.tour-interactive-overlay ~ * .tour-highlight {
+  pointer-events: auto;
+}
