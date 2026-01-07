@@ -23,7 +23,7 @@ export const SliderInput: React.FC<SliderInputProps> = ({
   onChange,
   min,
   max,
-  step = 0.5,
+  step = 0.1,
   id,
   showValue = true,
   formatValue = (v) => `${v}%`,

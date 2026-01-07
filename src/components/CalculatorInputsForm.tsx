@@ -447,7 +447,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
             onChange={(value) => handleChange('expectedStockReturn', value)}
             min={-10}
             max={20}
-            step={0.5}
+            step={0.1}
           />
         </div>
         <div className="form-group">
@@ -458,7 +458,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
             onChange={(value) => handleChange('expectedBondReturn', value)}
             min={-5}
             max={15}
-            step={0.5}
+            step={0.1}
           />
         </div>
         <div className="form-group">
@@ -469,8 +469,13 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
             onChange={(value) => handleChange('expectedCashReturn', value)}
             min={-10}
             max={5}
-            step={0.5}
+            step={0.1}
           />
+          {inputs.expectedCashReturn > 0 && (
+            <div className="deflation-warning" role="alert">
+              <span aria-hidden="true">⚠️</span> A positive value indicates deflation. Long periods of deflation are historically rare - consider this carefully in your projections.
+            </div>
+          )}
         </div>
         </div>)}
       </div>

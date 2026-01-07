@@ -370,6 +370,17 @@ body {
   font-size: 0.9rem;
 }
 
+.deflation-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  color: #856404;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .validation-error-banner {
   background-color: #fff3cd;
   border: 2px solid #ffc107;
