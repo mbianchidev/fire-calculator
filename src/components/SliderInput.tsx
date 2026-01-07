@@ -8,7 +8,6 @@ interface SliderInputProps {
   step?: number;
   id?: string;
   showValue?: boolean;
-  formatValue?: (value: number) => string;
   unit?: string;
   className?: string;
   disabled?: boolean;
@@ -26,7 +25,6 @@ export const SliderInput: React.FC<SliderInputProps> = ({
   step = 0.1,
   id,
   showValue = true,
-  formatValue = (v) => `${v}%`,
   unit = '%',
   className = '',
   disabled = false,
@@ -119,10 +117,6 @@ export const SliderInput: React.FC<SliderInputProps> = ({
             <span className="slider-value-unit">{unit}</span>
           </div>
         )}
-      </div>
-      <div className="slider-bounds">
-        <span className="slider-min">{formatValue(min)}</span>
-        <span className="slider-max">{formatValue(max)}</span>
       </div>
     </div>
   );

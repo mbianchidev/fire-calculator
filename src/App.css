@@ -1362,19 +1362,6 @@ body {
   font-weight: 500;
 }
 
-.slider-bounds {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
-  padding: 0 2px;
-}
-
-.slider-min,
-.slider-max {
-  font-size: 0.75rem;
-  color: #999;
-}
-
 /* Responsive adjustments for slider */
 @media (max-width: 768px) {
   .slider-wrapper {
