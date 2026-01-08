@@ -25,9 +25,11 @@ interface InteractiveStep {
   allowZero?: boolean; // Whether zero is a valid value for this field
   clickAction?: string; // CSS selector for button to click to open dialog
   dialogSelector?: string; // CSS selector for dialog to wait for
+  isDialogStep?: boolean; // Whether this step is inside a dialog
+  closeDialogAfter?: boolean; // Whether to close the dialog after this step
 }
 
-type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'end';
+type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'dialog' | 'end';
 
 interface GuidedTourProps {
   onTourComplete?: () => void;
@@ -47,6 +49,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [hadExistingData, setHadExistingData] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Check if tour should be shown on mount
   useEffect(() => {
@@ -410,9 +413,37 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/asset-allocation',
       title: '➕ Add New Assets',
-      description: 'Click "Add Asset" to add a new holding to your portfolio. You\'ll enter the asset class, ticker, number of shares, and price per share.',
+      description: 'Click "Add Asset" to add a new holding to your portfolio. Let\'s open the dialog to see how it works!',
       position: 'center',
       elementSelector: '[data-tour="add-asset-button"]',
+      clickAction: '[data-tour="add-asset-button"] button',
+      dialogSelector: '.dialog',
+    },
+    // Add Asset Dialog steps
+    {
+      page: '/asset-allocation',
+      title: '📝 Asset Class Selection',
+      description: 'First, choose the asset class (Stocks, Bonds, Cash, Crypto, or Real Estate). This determines how the asset is categorized in your portfolio.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/asset-allocation',
+      title: '🏷️ Asset Details',
+      description: 'Enter the asset name, ticker symbol (e.g., AAPL, VTI), number of shares you own, and the price per share. The total value is calculated automatically.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/asset-allocation',
+      title: '🎯 Target Allocation',
+      description: 'Set your target allocation mode: "%" for percentage of the asset class, "SET" for a fixed amount, or "OFF" to exclude from rebalancing.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
     },
     {
       page: '/asset-allocation',
@@ -424,9 +455,37 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/asset-allocation',
       title: '💹 DCA Helper',
-      description: 'The DCA (Dollar Cost Averaging) Helper calculates how to split a lump sum investment across your assets to maintain target allocations.',
+      description: 'The DCA (Dollar Cost Averaging) Helper calculates how to split a lump sum investment. Let\'s see how it works!',
       position: 'center',
       elementSelector: '[data-tour="dca-helper"]',
+      clickAction: '[data-tour="dca-helper"] button',
+      dialogSelector: '.dca-dialog',
+    },
+    // DCA Helper Dialog steps
+    {
+      page: '/asset-allocation',
+      title: '💰 Enter Investment Amount',
+      description: 'Enter the amount you want to invest. The DCA Helper will calculate how to split it across your assets according to your target allocations.',
+      position: 'center',
+      elementSelector: '.dca-dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/asset-allocation',
+      title: '📊 Investment Breakdown',
+      description: 'After calculating, you\'ll see exactly how much to invest in each asset and how many shares to buy. Current prices are fetched from Yahoo Finance.',
+      position: 'center',
+      elementSelector: '.dca-dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/asset-allocation',
+      title: '✅ Confirm Investments',
+      description: 'After making your investments, you can confirm the actual shares purchased to track deviations from the suggested amounts.',
+      position: 'center',
+      elementSelector: '.dca-dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
     },
   ];
 
@@ -434,9 +493,56 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/expense-tracker',
       title: '📝 Add Transactions',
-      description: 'Track your income and expenses here. Click "Add Income" to log salary, dividends, or other earnings. Click "Add Expense" to record your spending.',
+      description: 'Track your income and expenses here. Let\'s see how to add income first!',
       position: 'center',
       elementSelector: '[data-tour="transaction-actions"]',
+      clickAction: '.btn-add.income',
+      dialogSelector: '.dialog',
+    },
+    // Add Income Dialog steps
+    {
+      page: '/expense-tracker',
+      title: '📅 Date & Amount',
+      description: 'Select the date when you received the income and enter the amount. This helps track your income over time.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/expense-tracker',
+      title: '💼 Income Source',
+      description: 'Choose the income source: Salary, Bonus, Dividend, Freelance, Investment, Rental, or Other. This categorizes your income for better analytics.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
+    },
+    {
+      page: '/expense-tracker',
+      title: '💸 Add Expense',
+      description: 'Now let\'s see how to add an expense. Click "Add Expense" to record your spending.',
+      position: 'center',
+      elementSelector: '[data-tour="transaction-actions"]',
+      clickAction: '.btn-add.expense',
+      dialogSelector: '.dialog',
+    },
+    // Add Expense Dialog steps
+    {
+      page: '/expense-tracker',
+      title: '📅 Expense Details',
+      description: 'Enter the date, amount, and a description of the expense. Be specific to help you track spending patterns.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/expense-tracker',
+      title: '🏷️ Category & Type',
+      description: 'Select a category (Housing, Food, Transport, etc.) and classify as Need or Want. This powers the 50/30/20 budget analysis.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
     },
     {
       page: '/expense-tracker',
@@ -465,9 +571,56 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/net-worth-tracker',
       title: '💰 Monthly Data Entry',
-      description: 'Log your assets, cash, pensions, and financial operations. Click "Log Asset" to add stocks/ETFs, "Log Cash" for bank accounts, or "Log Operation" for dividends and trades.',
+      description: 'Log your assets, cash, pensions, and financial operations. Let\'s see how to log an asset!',
       position: 'center',
       elementSelector: '[data-tour="assets-section"]',
+      clickAction: '.btn-entry.asset',
+      dialogSelector: '.dialog',
+    },
+    // Log Asset Dialog steps
+    {
+      page: '/net-worth-tracker',
+      title: '📊 Asset Information',
+      description: 'Enter the asset class, name, and ticker symbol. Choose from Stocks, Bonds, Cash, Crypto, or Real Estate.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/net-worth-tracker',
+      title: '💵 Shares & Price',
+      description: 'Enter the number of shares you hold and the current price per share. The total value is calculated automatically.',
+      position: 'center',
+      elementSelector: '.dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
+    },
+    {
+      page: '/net-worth-tracker',
+      title: '📝 Log Operations',
+      description: 'Track financial operations like dividends, purchases, and sales. Let\'s see how!',
+      position: 'center',
+      elementSelector: '[data-tour="assets-section"]',
+      clickAction: '.btn-entry.operation',
+      dialogSelector: '.net-worth-dialog',
+    },
+    // Log Operation Dialog steps
+    {
+      page: '/net-worth-tracker',
+      title: '📅 Operation Details',
+      description: 'Select the date and operation type: Dividend, Purchase, Sale, Deposit, Withdrawal, Interest, or Tax.',
+      position: 'center',
+      elementSelector: '.net-worth-dialog',
+      isDialogStep: true,
+    },
+    {
+      page: '/net-worth-tracker',
+      title: '💰 Amount & Description',
+      description: 'Enter the amount and a description. Income operations (dividends, interest) increase your net worth; expenses (taxes) decrease it.',
+      position: 'center',
+      elementSelector: '.net-worth-dialog',
+      isDialogStep: true,
+      closeDialogAfter: true,
     },
     {
       page: '/net-worth-tracker',
@@ -619,26 +772,112 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     const currentTour = pageTours[currentPageTour];
     if (!currentTour) return;
 
-    if (interactiveStep < currentTour.steps.length - 1) {
-      setInteractiveStep(interactiveStep + 1);
+    const currentInteractiveStep = currentTour.steps[interactiveStep];
+    const nextStepIndex = interactiveStep + 1;
+    const nextStep = nextStepIndex < currentTour.steps.length ? currentTour.steps[nextStepIndex] : null;
+
+    // If current step has closeDialogAfter, close the dialog first
+    if (currentInteractiveStep?.closeDialogAfter && dialogOpen) {
+      // Find and click the close button or overlay
+      const closeButton = document.querySelector('.dialog-close, .dialog-overlay') as HTMLElement;
+      if (closeButton) {
+        if (closeButton.classList.contains('dialog-overlay')) {
+          // Find the actual close button inside
+          const actualClose = document.querySelector('.dialog-close') as HTMLElement;
+          if (actualClose) actualClose.click();
+        } else {
+          closeButton.click();
+        }
+      }
+      setDialogOpen(false);
+    }
+
+    // If next step has clickAction (needs to open a dialog), handle it
+    if (nextStep?.clickAction) {
+      // Move to next step first
+      setInteractiveStep(nextStepIndex);
+      setValidationError(null);
+      
+      // Small delay to allow UI to update, then click the button
+      setTimeout(() => {
+        const button = document.querySelector(nextStep.clickAction!) as HTMLElement;
+        if (button) {
+          button.click();
+          setDialogOpen(true);
+          
+          // Wait for dialog to appear
+          const waitForDialog = () => {
+            const dialog = document.querySelector(nextStep.dialogSelector || '.dialog');
+            if (dialog) {
+              // Move to the first dialog step (which is the next step after this one)
+              setTimeout(() => {
+                setInteractiveStep(nextStepIndex + 1);
+              }, 300);
+            } else {
+              // Keep waiting
+              setTimeout(waitForDialog, 100);
+            }
+          };
+          setTimeout(waitForDialog, 200);
+        }
+      }, 200);
+      return;
+    }
+
+    if (nextStepIndex < currentTour.steps.length) {
+      setInteractiveStep(nextStepIndex);
       setValidationError(null);
     } else {
       // Show prompt to continue to next page or finish
+      // First close any open dialog
+      if (dialogOpen) {
+        const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+        if (closeButton) closeButton.click();
+        setDialogOpen(false);
+      }
       setShowContinuePrompt(true);
     }
   };
 
   // Handle previous step in interactive tour
   const handleInteractivePrev = () => {
+    const currentTour = currentPageTour ? pageTours[currentPageTour] : null;
+    const currentInteractiveStep = currentTour?.steps[interactiveStep];
+    
+    // If we're in a dialog, going back should stay in dialog or close it
+    if (currentInteractiveStep?.isDialogStep) {
+      // Check if previous step is also a dialog step
+      const prevStep = interactiveStep > 0 ? currentTour?.steps[interactiveStep - 1] : null;
+      if (prevStep?.isDialogStep) {
+        // Stay in dialog, go to previous step
+        setInteractiveStep(interactiveStep - 1);
+        setValidationError(null);
+        return;
+      } else if (prevStep?.clickAction) {
+        // Previous step is the one that opened the dialog, close dialog and go back
+        const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+        if (closeButton) closeButton.click();
+        setDialogOpen(false);
+        setInteractiveStep(interactiveStep - 1);
+        setValidationError(null);
+        return;
+      }
+    }
+    
     if (interactiveStep > 0) {
       setInteractiveStep(interactiveStep - 1);
       setValidationError(null);
     } else if (currentPageTour) {
       // At start of page - go to previous page's last step
-      const currentTour = pageTours[currentPageTour];
       if (currentTour?.previousPage) {
         const prevPageTour = pageTours[currentTour.previousPage];
         if (prevPageTour) {
+          // Close any open dialog first
+          if (dialogOpen) {
+            const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+            if (closeButton) closeButton.click();
+            setDialogOpen(false);
+          }
           setCurrentPageTour(currentTour.previousPage);
           setInteractiveStep(prevPageTour.steps.length - 1);
           setValidationError(null);
@@ -651,6 +890,13 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   // Continue to next page in interactive tour
   const continueToNextPage = () => {
     if (!currentPageTour) return;
+    
+    // Close any open dialog first
+    if (dialogOpen) {
+      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+      if (closeButton) closeButton.click();
+      setDialogOpen(false);
+    }
     
     const currentTour = pageTours[currentPageTour];
     if (currentTour?.nextPage) {
@@ -666,6 +912,13 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
 
   // Finish the interactive tour
   const finishInteractiveTour = () => {
+    // Close any open dialog first
+    if (dialogOpen) {
+      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+      if (closeButton) closeButton.click();
+      setDialogOpen(false);
+    }
+    
     // Clean up tour state
     setShowContinuePrompt(false);
     saveTourCompleted(true);
@@ -689,6 +942,13 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
 
   // Skip interactive tour and go to end
   const skipInteractiveTour = () => {
+    // Close any open dialog first
+    if (dialogOpen) {
+      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+      if (closeButton) closeButton.click();
+      setDialogOpen(false);
+    }
+    
     // Clean up tour state
     setShowContinuePrompt(false);
     saveTourCompleted(true);

@@ -672,6 +672,41 @@
   pointer-events: auto !important;
 }
 
+/* Dialog highlight during tour - ensure dialog is above overlay and highlighted */
+.tour-interactive-mode .dialog,
+.tour-interactive-mode .dca-dialog,
+.tour-interactive-mode .net-worth-dialog,
+.tour-interactive-mode .dialog-content {
+  z-index: 10001 !important;
+}
+
+/* When dialog is highlighted, ensure all its inputs are accessible */
+.tour-interactive-mode .dialog.tour-highlight input,
+.tour-interactive-mode .dialog.tour-highlight select,
+.tour-interactive-mode .dialog.tour-highlight textarea,
+.tour-interactive-mode .dialog.tour-highlight button,
+.tour-interactive-mode .dca-dialog.tour-highlight input,
+.tour-interactive-mode .dca-dialog.tour-highlight select,
+.tour-interactive-mode .dca-dialog.tour-highlight textarea,
+.tour-interactive-mode .dca-dialog.tour-highlight button,
+.tour-interactive-mode .net-worth-dialog.tour-highlight input,
+.tour-interactive-mode .net-worth-dialog.tour-highlight select,
+.tour-interactive-mode .net-worth-dialog.tour-highlight textarea,
+.tour-interactive-mode .net-worth-dialog.tour-highlight button,
+.tour-interactive-mode .dialog-content.tour-highlight input,
+.tour-interactive-mode .dialog-content.tour-highlight select,
+.tour-interactive-mode .dialog-content.tour-highlight textarea,
+.tour-interactive-mode .dialog-content.tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: auto !important;
+}
+
+/* Ensure dialog overlay doesn't block dialog during tour */
+.tour-interactive-mode .dialog-overlay {
+  z-index: 10000 !important;
+}
+
 /* Tooltip hint for input fields */
 .tour-tooltip-hint {
   margin: 0;
@@ -718,7 +753,7 @@
 .tour-interactive-mode input:not(.tour-highlight input),
 .tour-interactive-mode select:not(.tour-highlight select),
 .tour-interactive-mode textarea:not(.tour-highlight textarea),
-.tour-interactive-mode button:not(.tour-highlight button):not(.tour-tooltip button):not(.tour-tooltip-skip):not(.tour-btn) {
+.tour-interactive-mode button:not(.tour-highlight button):not(.tour-tooltip button):not(.tour-tooltip-skip):not(.tour-btn):not(.dialog-close) {
   pointer-events: none !important;
   opacity: 0.5 !important;
   cursor: not-allowed !important;
@@ -728,7 +763,7 @@
 .tour-interactive-mode [data-tour]:not(.tour-highlight) input,
 .tour-interactive-mode [data-tour]:not(.tour-highlight) select,
 .tour-interactive-mode [data-tour]:not(.tour-highlight) textarea,
-.tour-interactive-mode [data-tour]:not(.tour-highlight) button:not(.tour-btn) {
+.tour-interactive-mode [data-tour]:not(.tour-highlight) button:not(.tour-btn):not(.dialog-close) {
   pointer-events: none !important;
   opacity: 0.5 !important;
   cursor: not-allowed !important;
@@ -738,9 +773,9 @@
 .tour-interactive-mode aside input:not(.tour-highlight input),
 .tour-interactive-mode aside select:not(.tour-highlight select),
 .tour-interactive-mode aside textarea:not(.tour-highlight textarea),
-.tour-interactive-mode main input:not(.tour-highlight input),
-.tour-interactive-mode main select:not(.tour-highlight select),
-.tour-interactive-mode main textarea:not(.tour-highlight textarea) {
+.tour-interactive-mode main input:not(.tour-highlight input):not(.dialog input):not(.dca-dialog input):not(.net-worth-dialog input),
+.tour-interactive-mode main select:not(.tour-highlight select):not(.dialog select):not(.dca-dialog select):not(.net-worth-dialog select),
+.tour-interactive-mode main textarea:not(.tour-highlight textarea):not(.dialog textarea):not(.dca-dialog textarea):not(.net-worth-dialog textarea) {
   pointer-events: none !important;
   opacity: 0.5 !important;
   cursor: not-allowed !important;
@@ -760,6 +795,13 @@
 .tour-interactive-mode .tour-tooltip button,
 .tour-interactive-mode .tour-tooltip-skip,
 .tour-interactive-mode .tour-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+/* Keep dialog close buttons enabled during tour */
+.tour-interactive-mode .dialog-close {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
