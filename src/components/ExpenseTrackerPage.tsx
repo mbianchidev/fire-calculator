@@ -607,7 +607,7 @@ export function ExpenseTrackerPage() {
 
       <main className="expense-tracker-main" id="main-content">
         {/* How to Use Section */}
-        <section className="allocation-info collapsible-section" data-tour="fire-integration">
+        <section className="allocation-info collapsible-section">
           <button 
             className="collapsible-header" 
             onClick={() => setIsHowToUseOpen(!isHowToUseOpen)}
@@ -793,6 +793,7 @@ export function ExpenseTrackerPage() {
             aria-selected={activeTab === 'budgets'}
             onClick={() => setActiveTab('budgets')}
             className={`tab ${activeTab === 'budgets' ? 'active' : ''}`}
+            data-tour="budgets-tab"
           >
             <span aria-hidden="true">💵</span> Budgets
           </button>
@@ -801,6 +802,7 @@ export function ExpenseTrackerPage() {
             aria-selected={activeTab === 'analytics'}
             onClick={() => setActiveTab('analytics')}
             className={`tab ${activeTab === 'analytics' ? 'active' : ''}`}
+            data-tour="analytics-tab"
           >
             <span aria-hidden="true">📊</span> Analytics
           </button>
