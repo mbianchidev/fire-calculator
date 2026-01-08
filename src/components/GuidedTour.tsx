@@ -93,6 +93,20 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     }
   }, [currentStep, demoDataLoaded, loadDemoData]);
 
+  // Add/remove tour-interactive-mode class on body during interactive tour
+  useEffect(() => {
+    if (tourPhase === 'interactive' && currentPageTour) {
+      document.body.classList.add('tour-interactive-mode');
+    } else {
+      document.body.classList.remove('tour-interactive-mode');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('tour-interactive-mode');
+    };
+  }, [tourPhase, currentPageTour]);
+
   // Highlight elements during interactive tour
   useEffect(() => {
     if (tourPhase !== 'interactive' || !currentPageTour) {

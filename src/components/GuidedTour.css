@@ -706,3 +706,54 @@
 .tour-interactive-overlay ~ * .tour-highlight {
   pointer-events: auto;
 }
+
+/* Disable all inputs on the page during interactive tour except highlighted ones */
+.tour-interactive-mode input:not(.tour-highlight input),
+.tour-interactive-mode select:not(.tour-highlight select),
+.tour-interactive-mode textarea:not(.tour-highlight textarea),
+.tour-interactive-mode button:not(.tour-highlight button):not(.tour-tooltip button):not(.tour-tooltip-skip):not(.tour-btn) {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* More specific selectors for inputs outside of highlighted sections */
+.tour-interactive-mode [data-tour]:not(.tour-highlight) input,
+.tour-interactive-mode [data-tour]:not(.tour-highlight) select,
+.tour-interactive-mode [data-tour]:not(.tour-highlight) textarea,
+.tour-interactive-mode [data-tour]:not(.tour-highlight) button:not(.tour-btn) {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Ensure inputs outside data-tour sections are also disabled */
+.tour-interactive-mode aside input:not(.tour-highlight input),
+.tour-interactive-mode aside select:not(.tour-highlight select),
+.tour-interactive-mode aside textarea:not(.tour-highlight textarea),
+.tour-interactive-mode main input:not(.tour-highlight input),
+.tour-interactive-mode main select:not(.tour-highlight select),
+.tour-interactive-mode main textarea:not(.tour-highlight textarea) {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Keep highlighted section inputs enabled */
+.tour-interactive-mode .tour-highlight input,
+.tour-interactive-mode .tour-highlight select,
+.tour-interactive-mode .tour-highlight textarea,
+.tour-interactive-mode .tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: auto !important;
+}
+
+/* Keep tour tooltip buttons enabled */
+.tour-interactive-mode .tour-tooltip button,
+.tour-interactive-mode .tour-tooltip-skip,
+.tour-interactive-mode .tour-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
