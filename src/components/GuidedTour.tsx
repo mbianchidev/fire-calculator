@@ -29,10 +29,26 @@ interface InteractiveStep {
   closeDialogAfter?: boolean; // Whether to close the dialog after this step
 }
 
-type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'dialog' | 'end';
+type TourPhase = 'overview' | 'data-choice' | 'interactive-prompt' | 'interactive' | 'end';
 
 interface GuidedTourProps {
   onTourComplete?: () => void;
+}
+
+// Constants for tour timing
+const DIALOG_WAIT_INTERVAL_MS = 100; // How often to check for dialog appearance
+const DIALOG_WAIT_TIMEOUT_MS = 3000; // Maximum time to wait for dialog
+const DIALOG_TRANSITION_DELAY_MS = 300; // Delay for dialog opening animation
+const UI_UPDATE_DELAY_MS = 200; // Delay to allow UI to update before clicking
+
+// Helper function to close any open dialog
+function closeAnyOpenDialog(): boolean {
+  const closeButton = document.querySelector('.dialog-close') as HTMLElement;
+  if (closeButton) {
+    closeButton.click();
+    return true;
+  }
+  return false;
 }
 
 export function GuidedTour({ onTourComplete }: GuidedTourProps) {
@@ -778,17 +794,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
 
     // If current step has closeDialogAfter, close the dialog first
     if (currentInteractiveStep?.closeDialogAfter && dialogOpen) {
-      // Find and click the close button or overlay
-      const closeButton = document.querySelector('.dialog-close, .dialog-overlay') as HTMLElement;
-      if (closeButton) {
-        if (closeButton.classList.contains('dialog-overlay')) {
-          // Find the actual close button inside
-          const actualClose = document.querySelector('.dialog-close') as HTMLElement;
-          if (actualClose) actualClose.click();
-        } else {
-          closeButton.click();
-        }
-      }
+      closeAnyOpenDialog();
       setDialogOpen(false);
     }
 
@@ -798,29 +804,34 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       setInteractiveStep(nextStepIndex);
       setValidationError(null);
       
-      // Small delay to allow UI to update, then click the button
+      // Delay to allow UI to update, then click the button
       setTimeout(() => {
         const button = document.querySelector(nextStep.clickAction!) as HTMLElement;
         if (button) {
           button.click();
           setDialogOpen(true);
           
-          // Wait for dialog to appear
+          // Wait for dialog to appear with timeout to prevent infinite loop
+          let waitTime = 0;
           const waitForDialog = () => {
             const dialog = document.querySelector(nextStep.dialogSelector || '.dialog');
             if (dialog) {
-              // Move to the first dialog step (which is the next step after this one)
+              // Move to the first dialog step after dialog opening animation
               setTimeout(() => {
                 setInteractiveStep(nextStepIndex + 1);
-              }, 300);
+              }, DIALOG_TRANSITION_DELAY_MS);
+            } else if (waitTime < DIALOG_WAIT_TIMEOUT_MS) {
+              // Keep waiting until timeout
+              waitTime += DIALOG_WAIT_INTERVAL_MS;
+              setTimeout(waitForDialog, DIALOG_WAIT_INTERVAL_MS);
             } else {
-              // Keep waiting
-              setTimeout(waitForDialog, 100);
+              // Timeout reached, proceed anyway
+              setInteractiveStep(nextStepIndex + 1);
             }
           };
-          setTimeout(waitForDialog, 200);
+          setTimeout(waitForDialog, UI_UPDATE_DELAY_MS);
         }
-      }, 200);
+      }, UI_UPDATE_DELAY_MS);
       return;
     }
 
@@ -831,8 +842,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       // Show prompt to continue to next page or finish
       // First close any open dialog
       if (dialogOpen) {
-        const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-        if (closeButton) closeButton.click();
+        closeAnyOpenDialog();
         setDialogOpen(false);
       }
       setShowContinuePrompt(true);
@@ -855,8 +865,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
         return;
       } else if (prevStep?.clickAction) {
         // Previous step is the one that opened the dialog, close dialog and go back
-        const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-        if (closeButton) closeButton.click();
+        closeAnyOpenDialog();
         setDialogOpen(false);
         setInteractiveStep(interactiveStep - 1);
         setValidationError(null);
@@ -874,8 +883,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
         if (prevPageTour) {
           // Close any open dialog first
           if (dialogOpen) {
-            const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-            if (closeButton) closeButton.click();
+            closeAnyOpenDialog();
             setDialogOpen(false);
           }
           setCurrentPageTour(currentTour.previousPage);
@@ -893,8 +901,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     
     // Close any open dialog first
     if (dialogOpen) {
-      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-      if (closeButton) closeButton.click();
+      closeAnyOpenDialog();
       setDialogOpen(false);
     }
     
@@ -914,8 +921,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const finishInteractiveTour = () => {
     // Close any open dialog first
     if (dialogOpen) {
-      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-      if (closeButton) closeButton.click();
+      closeAnyOpenDialog();
       setDialogOpen(false);
     }
     
@@ -944,8 +950,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const skipInteractiveTour = () => {
     // Close any open dialog first
     if (dialogOpen) {
-      const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-      if (closeButton) closeButton.click();
+      closeAnyOpenDialog();
       setDialogOpen(false);
     }
     
