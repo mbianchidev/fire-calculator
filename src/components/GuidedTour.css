@@ -784,11 +784,19 @@
 /* Keep highlighted section inputs enabled */
 .tour-interactive-mode .tour-highlight input,
 .tour-interactive-mode .tour-highlight select,
-.tour-interactive-mode .tour-highlight textarea,
-.tour-interactive-mode .tour-highlight button {
+.tour-interactive-mode .tour-highlight textarea {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: auto !important;
+}
+
+/* Buttons inside highlighted sections need pointer cursor and high z-index */
+.tour-interactive-mode .tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
 }
 
 /* Keep tour tooltip buttons enabled */
@@ -827,10 +835,13 @@
 
 /* Keep tab buttons clickable when they are highlighted for user click */
 .tour-interactive-mode button.tour-highlight,
-.tour-interactive-mode [data-tour].tour-highlight button {
+.tour-interactive-mode [data-tour].tour-highlight button,
+.tour-interactive-mode .tour-highlight button,
+.tour-interactive-mode .tour-highlight > button {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
+  z-index: 10002 !important;
 }
 
 /* Keep run-simulation button enabled when highlighted */
@@ -838,4 +849,16 @@
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
+  z-index: 10002 !important;
+}
+
+/* Ensure buttons inside highlighted data-tour sections are fully clickable (higher specificity) */
+body.tour-interactive-mode [data-tour].tour-highlight button.action-btn,
+body.tour-interactive-mode [data-tour].tour-highlight button.primary-btn,
+body.tour-interactive-mode [data-tour].tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
 }
