@@ -608,7 +608,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   };
 
   // Handle previous step in interactive tour
-  // Handle previous step in interactive tour
   const handleInteractivePrev = () => {
     if (interactiveStep > 0) {
       setInteractiveStep(interactiveStep - 1);
@@ -829,7 +828,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
                 <strong>What would you like to do?</strong>
               </p>
             </div>
-            <div className={`tour-end-actions ${hadExistingData ? 'tour-end-actions-three' : ''}`}>
+            <div className="tour-end-actions">
               <button 
                 className="tour-btn tour-btn-secondary"
                 onClick={handleClearDataAndContinue}
