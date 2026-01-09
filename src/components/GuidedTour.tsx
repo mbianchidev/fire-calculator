@@ -883,15 +883,12 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     setActionCompleted(false);
     setWaitingForUserClick(false);
 
-    // If current step has closeDialogAfter, close the dialog first
-    if (currentInteractiveStep?.closeDialogAfter && dialogOpen) {
-      closeAnyOpenDialog();
-      setDialogOpen(false);
-    }
-
-    // Also close dialog if moving from a dialog step to a non-dialog step
-    // This handles the case where closeDialogAfter might not be set but the dialog should still close
-    if (currentInteractiveStep?.isDialogStep && nextStep && !nextStep.isDialogStep && dialogOpen) {
+    // Close dialog if current step requires it or if moving from a dialog step to a non-dialog step
+    const shouldCloseDialog = dialogOpen && (
+      currentInteractiveStep?.closeDialogAfter ||
+      (currentInteractiveStep?.isDialogStep && nextStep && !nextStep.isDialogStep)
+    );
+    if (shouldCloseDialog) {
       closeAnyOpenDialog();
       setDialogOpen(false);
     }
