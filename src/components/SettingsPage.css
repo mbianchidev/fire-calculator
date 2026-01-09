@@ -13,7 +13,7 @@
 }
 
 .settings-container {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -156,7 +156,7 @@
   flex: 1;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--border-primary);
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-md);
   font-size: 0.85rem;
   cursor: pointer;
@@ -270,7 +270,7 @@
 }
 
 .secondary-btn {
-  background: #ffffff;
+  background: var(--bg-secondary);
   color: var(--color-neutral-700);
   border: 1px solid var(--border-primary);
   padding: 0.625rem 1.25rem;

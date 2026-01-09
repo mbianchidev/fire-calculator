@@ -7,7 +7,7 @@
 }
 
 .not-found-container {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
   max-width: 550px;
@@ -95,7 +95,7 @@
 }
 
 .btn-calculator {
-  background: #ffffff;
+  background: var(--bg-secondary);
   color: var(--color-neutral-700);
   border: 1px solid var(--border-primary);
 }

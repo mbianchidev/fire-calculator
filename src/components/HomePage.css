@@ -96,7 +96,7 @@
 .hero-section {
   text-align: center;
   padding: 2.5rem 2rem;
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   margin-bottom: 2rem;
   box-shadow: var(--shadow-md);
@@ -129,7 +129,7 @@
 }
 
 .feature-card {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
   box-shadow: var(--shadow-md);
@@ -203,7 +203,7 @@
 }
 
 .info-section {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 2rem;
   box-shadow: var(--shadow-md);

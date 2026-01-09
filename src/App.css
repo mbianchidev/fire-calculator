@@ -156,7 +156,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: #ffffff;
+  background: var(--bg-secondary);
   box-shadow: var(--shadow-sm);
   position: relative;
   border-bottom: 1px solid var(--border-primary);
@@ -244,7 +244,7 @@ body {
 
 .sidebar {
   flex: 0 0 380px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
@@ -255,7 +255,7 @@ body {
 
 .main-content {
   flex: 1;
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
@@ -330,7 +330,7 @@ body {
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  background: #ffffff;
+  background: var(--bg-secondary);
 }
 
 .form-group input[type="number"]:focus,
@@ -632,7 +632,7 @@ body {
 
 /* Monte Carlo Base Data Section */
 .mc-base-data-section {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -1280,7 +1280,7 @@ body {
   display: grid;
   gap: 0.375rem;
   margin-top: 0.75rem;
-  background: #ffffff;
+  background: var(--bg-secondary);
   padding: 0.875rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);

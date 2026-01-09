@@ -37,7 +37,7 @@
   top: calc(100% + 6px);
   right: 0;
   min-width: 180px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   z-index: 1000;

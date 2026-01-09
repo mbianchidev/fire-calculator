@@ -137,7 +137,7 @@
 .asset-class-table {
   width: 100%;
   border-collapse: collapse;
-  background: #ffffff;
+  background: var(--bg-secondary);
 }
 
 .allocation-table th,
@@ -473,7 +473,7 @@
 }
 
 .dialog-content {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   max-width: 550px;
@@ -646,7 +646,7 @@
 .assets-table {
   width: 100%;
   border-collapse: collapse;
-  background: #ffffff;
+  background: var(--bg-secondary);
 }
 
 /* Table scroll wrapper for mobile */
