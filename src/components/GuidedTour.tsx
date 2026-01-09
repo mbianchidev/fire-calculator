@@ -742,7 +742,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     {
       page: '/monte-carlo',
       title: '⚙️ Simulation Parameters',
-      description: 'Adjust the simulation settings: number of simulations, stock/bond volatility, and black swan event probability. These affect how conservative or optimistic your projections are. Try changing some values!',
+      description: 'Adjust the simulation settings: number of simulations (1000-100000), stock/bond volatility (higher = more uncertain), and black swan event probability. These affect how conservative or optimistic your projections are.',
       position: 'center',
       elementSelector: '[data-tour="monte-carlo-params"]',
     },
