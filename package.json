@@ -30,7 +30,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "jsdom": "^27.4.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.0",
+    "vite": "^7.3.1",
     "vitest": "^4.0.16"
   },
   "dependencies": {
@@ -40,7 +40,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-is": "^19.2.3",
-    "react-router-dom": "^7.11.0",
+    "react-router-dom": "^7.12.0",
     "recharts": "^3.6.0"
   }
 }
