@@ -77,7 +77,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
   const [keepDemoData, setKeepDemoData] = useState(true);
-  const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
+  const [highlightedElements, setHighlightedElements] = useState<HTMLElement[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [hadExistingData, setHadExistingData] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -209,18 +209,18 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   useEffect(() => {
     if (tourPhase !== 'interactive' || !currentPageTour) {
       // Clean up highlight when not in interactive mode
-      if (highlightedElement) {
-        highlightedElement.classList.remove('tour-highlight');
-        setHighlightedElement(null);
+      if (highlightedElements.length > 0) {
+        highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
+        setHighlightedElements([]);
       }
       return;
     }
 
     // When showing the continue prompt, remove all highlights so the dialog is visible
     if (showContinuePrompt) {
-      if (highlightedElement) {
-        highlightedElement.classList.remove('tour-highlight');
-        setHighlightedElement(null);
+      if (highlightedElements.length > 0) {
+        highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
+        setHighlightedElements([]);
       }
       return;
     }
@@ -228,29 +228,40 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     const currentTour = pageTours[currentPageTour];
     const currentInteractiveStep = currentTour?.steps[interactiveStep];
     
-    // Remove highlight from previous element
-    if (highlightedElement) {
-      highlightedElement.classList.remove('tour-highlight');
+    // Remove highlight from previous elements
+    if (highlightedElements.length > 0) {
+      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
     }
 
-    // Add highlight to new element
+    // Add highlight to new element(s)
     if (currentInteractiveStep?.elementSelector) {
       // Small delay to ensure DOM is ready after navigation
       const timeoutId = setTimeout(() => {
-        const element = document.querySelector(currentInteractiveStep.elementSelector!) as HTMLElement;
-        if (element) {
-          element.classList.add('tour-highlight');
-          setHighlightedElement(element);
-          // Scroll element into view
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Support multiple selectors separated by comma
+        const selectors = currentInteractiveStep.elementSelector!.split(',').map(s => s.trim());
+        const elements: HTMLElement[] = [];
+        
+        selectors.forEach(selector => {
+          const element = document.querySelector(selector) as HTMLElement;
+          if (element) {
+            element.classList.add('tour-highlight');
+            elements.push(element);
+          }
+        });
+        
+        setHighlightedElements(elements);
+        
+        // Scroll first element into view
+        if (elements.length > 0) {
+          elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 100);
       
       return () => clearTimeout(timeoutId);
     } else {
-      setHighlightedElement(null);
+      setHighlightedElements([]);
     }
-  }, [tourPhase, currentPageTour, interactiveStep, highlightedElement, showContinuePrompt]);
+  }, [tourPhase, currentPageTour, interactiveStep, highlightedElements, showContinuePrompt]);
 
   // Validate input when trying to proceed (only when starting fresh)
   const validateCurrentStep = useCallback((): boolean => {
@@ -660,7 +671,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       title: '💵 Budget Categories',
       description: 'Here you can set monthly budget limits for each expense category. The progress bars show how much you\'ve spent vs. your budget. Edit the amounts to customize your spending goals.',
       position: 'center',
-      elementSelector: '[data-tour="budgets-content"]',
+      elementSelector: '[data-tour="expense-tabs"], [data-tour="budgets-content"]',
     },
     {
       page: '/expense-tracker',
@@ -675,7 +686,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       title: '📊 Spending Insights',
       description: 'View detailed charts and analytics: spending trends over time, category breakdowns, and monthly comparisons. Use the view selector to switch between monthly, quarterly, and yearly perspectives.',
       position: 'center',
-      elementSelector: '[data-tour="analytics-content"]',
+      elementSelector: '[data-tour="expense-tabs"], [data-tour="analytics-content"]',
     },
   ];
 
@@ -695,7 +706,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       title: '📊 Asset Information',
       description: 'Enter the asset class, name, and ticker symbol. Choose from Stocks, Bonds, Cash, Crypto, or Real Estate.',
       position: 'center',
-      elementSelector: '.dialog',
+      elementSelector: '.dialog-content',
       isDialogStep: true,
     },
     {
@@ -703,7 +714,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       title: '💵 Shares & Price',
       description: 'Enter the number of shares you hold and the current price per share. The total value is calculated automatically.',
       position: 'center',
-      elementSelector: '.dialog',
+      elementSelector: '.dialog-content',
       isDialogStep: true,
       closeDialogAfter: true,
     },
@@ -1113,9 +1124,9 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     document.body.classList.remove('tour-interactive-mode');
     
     // Remove any highlight from elements
-    if (highlightedElement) {
-      highlightedElement.classList.remove('tour-highlight');
-      setHighlightedElement(null);
+    if (highlightedElements.length > 0) {
+      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
+      setHighlightedElements([]);
     }
     
     onTourComplete?.();
@@ -1142,9 +1153,9 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     document.body.classList.remove('tour-interactive-mode');
     
     // Remove any highlight from elements
-    if (highlightedElement) {
-      highlightedElement.classList.remove('tour-highlight');
-      setHighlightedElement(null);
+    if (highlightedElements.length > 0) {
+      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
+      setHighlightedElements([]);
     }
     
     onTourComplete?.();

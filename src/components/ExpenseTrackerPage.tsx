@@ -779,7 +779,7 @@ export function ExpenseTrackerPage() {
         )}
 
         {/* Tabs */}
-        <div className="tabs" role="tablist" aria-label="Expense tracker sections">
+        <div className="tabs" role="tablist" aria-label="Expense tracker sections" data-tour="expense-tabs">
           <button
             role="tab"
             aria-selected={activeTab === 'transactions'}
