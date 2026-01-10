@@ -519,13 +519,13 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Tooltip container */
+/* Tooltip container - highest z-index to always be above everything */
 .tour-tooltip-container {
   position: fixed;
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10001;
+  z-index: 10003;
   width: 100%;
   max-width: 450px;
   padding: 0 1rem;
@@ -666,14 +666,19 @@
   border-radius: 8px;
   animation: tourPulse 2s ease-in-out infinite;
   isolation: isolate;
-  opacity: 1 !important;
+}
+
+/* Non-button highlighted elements get white background */
+.tour-highlight:not(button) {
   background-color: white !important;
+  opacity: 1 !important;
 }
 
 /* For buttons with data-tour that are highlighted, preserve their original background but keep glow */
 button.tour-highlight,
 button[data-tour].tour-highlight {
-  background-color: var(--primary-color, #5568d4) !important;
+  background-color: inherit !important;
+  opacity: 1 !important;
 }
 
 @keyframes tourPulse {
@@ -803,9 +808,26 @@ button[data-tour].tour-highlight {
   cursor: not-allowed !important;
 }
 
-/* Dim non-highlighted data-tour sections, but NOT inputs/buttons (they get their own rules) */
+/* 
+ * Dim non-highlighted data-tour sections using a pseudo-element overlay
+ * to avoid opacity inheritance issues with child elements.
+ * This makes highlighted buttons inside remain fully visible.
+ */
 .tour-interactive-mode [data-tour]:not(.tour-highlight) {
-  opacity: 0.6;
+  position: relative;
+}
+
+.tour-interactive-mode [data-tour]:not(.tour-highlight)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
 }
 
 /* Keep the highlighted section and ALL its contents at full opacity */
