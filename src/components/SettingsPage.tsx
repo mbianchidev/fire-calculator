@@ -10,6 +10,7 @@ import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import { clearTourPreference } from '../utils/tourPreferences';
 import { exportAllDataAsJSON, importAllDataFromJSON, serializeAllDataExport } from '../utils/dataExportImport';
+import { Tooltip } from './Tooltip';
 import './SettingsPage.css';
 
 interface SettingsPageProps {
@@ -392,7 +393,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         <section className="settings-section">
           <h2>👤 Account</h2>
           <div className="setting-item">
-            <label htmlFor="accountName">Account Name</label>
+            <div className="label-with-tooltip">
+              <label htmlFor="accountName">Account Name</label>
+              <Tooltip content="Choose a name for your portfolio that will appear in the app header and throughout the interface. This helps you identify your account, especially if you manage multiple portfolios.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <input
               id="accountName"
               type="text"
@@ -409,7 +415,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
         <section className="settings-section">
           <h2>🎨 Display</h2>
           <div className="setting-item">
-            <label htmlFor="defaultCurrency">Default Currency</label>
+            <div className="label-with-tooltip">
+              <label htmlFor="defaultCurrency">Default Currency</label>
+              <Tooltip content="Select your preferred currency for all financial data. When you change currencies, all existing values (assets, expenses, net worth, and FIRE calculator inputs) will be automatically converted using current exchange rates.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <select
               id="defaultCurrency"
               value={settings.currencySettings.defaultCurrency}
@@ -482,7 +493,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
             <span className="setting-help">This currency will be used as default across all pages</span>
           </div>
           <div className="setting-item">
-            <label>Decimal Separator</label>
+            <div className="label-with-tooltip">
+              <label>Decimal Separator</label>
+              <Tooltip content="Choose how decimal numbers are formatted. Point format (1,000.00) is common in the US and UK. Comma format (1.000,00) is used in many European countries. This affects how you input and view numbers throughout the app.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <div className="toggle-group">
               <button
                 className={`toggle-btn ${settings.decimalSeparator === '.' ? 'active' : ''}`}
@@ -499,7 +515,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
             </div>
           </div>
           <div className="setting-item">
-            <label htmlFor="decimalPlaces">Decimal Places</label>
+            <div className="label-with-tooltip">
+              <label htmlFor="decimalPlaces">Decimal Places</label>
+              <Tooltip content="Control the precision of small numbers. This setting only affects values below 1,000 to keep small amounts precise while keeping large amounts readable. For example, with 2 decimal places: 123.45 displays as '123.45' but 1,234.56 displays as '1,235'.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <select
               id="decimalPlaces"
               value={settings.decimalPlaces ?? 2}
@@ -527,7 +548,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
 
         {/* Currency Settings */}
         <section className="settings-section">
-          <h2>💱 Currency Conversion Fallback Rates</h2>
+          <div className="section-header-with-tooltip">
+            <h2>💱 Currency Conversion Fallback Rates</h2>
+            <Tooltip content="These are backup exchange rates used when the live API is unavailable or slow. The app attempts to fetch real-time rates first. You can customize these rates based on your preferences or recent market rates." position="right" maxWidth={350}>
+              <span className="info-icon section-info-icon" aria-label="More information">i</span>
+            </Tooltip>
+          </div>
           <p className="section-description">
             These rates are used when the live exchange rate API is unavailable.
             All values convert to {settings.currencySettings.defaultCurrency} (the default currency).
@@ -565,7 +591,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           <h2>💾 Data Management</h2>
           
           <div className="data-management-group">
-            <h3>Export All Data</h3>
+            <div className="subsection-header-with-tooltip">
+              <h3>Export All Data</h3>
+              <Tooltip content="Back up all your financial data. JSON format exports everything in one file that's easy to re-import. Separate files give you CSV/JSON files for each tool, useful for spreadsheet analysis." position="right" maxWidth={350}>
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <p className="setting-help">Export all your data in a single file or as separate files</p>
             <div className="export-buttons">
               <button className="primary-btn" onClick={handleExportAllJSON}>
@@ -578,7 +609,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           </div>
 
           <div className="data-management-group">
-            <h3>Import All Data</h3>
+            <div className="subsection-header-with-tooltip">
+              <h3>Import All Data</h3>
+              <Tooltip content="Restore your data from a previously exported JSON file. All imported values will be automatically converted to your current default currency. This overwrites existing data." position="right" maxWidth={350}>
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <p className="setting-help">Import all data from a single JSON file. Data will be converted to your current currency.</p>
             <label className="primary-btn import-label">
               📤 Import All Data (JSON)
@@ -587,7 +623,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           </div>
 
           <div className="data-management-group">
-            <h3>Import Individual Files</h3>
+            <div className="subsection-header-with-tooltip">
+              <h3>Import Individual Files</h3>
+              <Tooltip content="Import data for specific tools from CSV or JSON files. Useful if you want to update only one tool's data or migrate from other applications." position="right" maxWidth={350}>
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <p className="setting-help">Import data from individual CSV/JSON files for each tool.</p>
             <div className="import-buttons">
               <label className="secondary-btn import-label">
@@ -621,7 +662,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           </div>
 
           <div className="data-management-group">
-            <h3>📦 Demo Data</h3>
+            <div className="subsection-header-with-tooltip">
+              <h3>📦 Demo Data</h3>
+              <Tooltip content="Load realistic sample data to explore all features of Fire Tools. Great for testing the app or learning how to use it. This will overwrite your current data, so export first if needed!" position="right" maxWidth={350}>
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
             <p className="setting-help">Load sample data to explore the application</p>
             <button className="secondary-btn" onClick={handleLoadDemoData}>
               🎮 Load Demo Data
