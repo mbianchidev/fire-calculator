@@ -513,7 +513,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  /* Removed backdrop-filter: blur to prevent blurriness on highlighted elements */
+  /* No blur to keep highlighted content crisp */
   z-index: 9999;
   pointer-events: none;
   animation: fadeIn 0.3s ease-out;
@@ -661,33 +661,10 @@
 /* Element highlight styles */
 .tour-highlight {
   position: relative;
-  z-index: 10001 !important;
+  z-index: 10000 !important;
   box-shadow: 0 0 0 4px rgba(85, 104, 212, 0.6), 0 0 20px rgba(85, 104, 212, 0.4) !important;
   border-radius: 8px;
   animation: tourPulse 2s ease-in-out infinite;
-  isolation: isolate;
-  opacity: 1 !important;
-}
-
-/* 
- * Section highlights get white background.
- * Div wrappers should be transparent to let buttons inside show their colors.
- * Buttons preserve their original background.
- */
-section.tour-highlight {
-  background-color: white !important;
-}
-
-/* Div wrappers around buttons should be transparent */
-div.tour-highlight {
-  background-color: transparent !important;
-}
-
-/* Buttons preserve their original background color */
-button.tour-highlight,
-button[data-tour].tour-highlight {
-  background-color: inherit !important;
-  opacity: 1 !important;
 }
 
 @keyframes tourPulse {
@@ -806,60 +783,26 @@ button[data-tour].tour-highlight {
   cursor: not-allowed !important;
 }
 
-/* 
- * Disable buttons inside non-highlighted data-tour sections.
- * The :not([data-tour]) ensures we don't disable buttons that ARE themselves the data-tour element
- * (like budget/analytics tabs which have data-tour directly on the button).
- */
+/* Disable buttons INSIDE non-highlighted data-tour sections, but NOT buttons that ARE the data-tour element */
 .tour-interactive-mode [data-tour]:not(.tour-highlight) button:not([data-tour]) {
   pointer-events: none !important;
   opacity: 0.5 !important;
   cursor: not-allowed !important;
 }
 
-/* 
- * Dim non-highlighted data-tour sections using a pseudo-element overlay
- * to avoid opacity inheritance issues with child elements.
- * This makes highlighted buttons inside remain fully visible.
- * Note: This ONLY applies to [data-tour] elements that do NOT have .tour-highlight
- */
-.tour-interactive-mode [data-tour]:not(.tour-highlight):not(button) {
-  position: relative;
-}
-
-.tour-interactive-mode [data-tour]:not(.tour-highlight):not(button)::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.5);
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-/* Ensure buttons with data-tour that are NOT highlighted still work but appear dimmed */
+/* Buttons that ARE the data-tour element (like budget/analytics tabs) should be dimmed but not disabled when not highlighted */
 .tour-interactive-mode button[data-tour]:not(.tour-highlight) {
   opacity: 0.5 !important;
   pointer-events: none !important;
 }
 
-/* Keep the highlighted section and ALL its contents at full opacity */
-.tour-interactive-mode .tour-highlight,
-.tour-interactive-mode [data-tour].tour-highlight {
-  opacity: 1 !important;
-}
-
-/* Ensure highlighted buttons with data-tour (like budget/analytics tabs) are fully visible and clickable */
-body.tour-interactive-mode button[data-tour].tour-highlight {
+/* Buttons with data-tour AND tour-highlight should be fully enabled */
+.tour-interactive-mode button[data-tour].tour-highlight {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
   z-index: 10002 !important;
   position: relative !important;
-  background-color: inherit !important;
 }
 
 /* Keep highlighted section inputs AND buttons enabled (this rule enables buttons too!) */
@@ -918,17 +861,13 @@ body.tour-interactive-mode button[data-tour].tour-highlight {
   position: relative !important;
 }
 
-/* Ensure ALL buttons inside highlighted sections are fully clickable (consolidated rule) */
+/* Ensure ALL buttons inside highlighted sections are fully clickable (consolidated rule with high specificity) */
 body.tour-interactive-mode button.tour-highlight,
-body.tour-interactive-mode button[data-tour].tour-highlight,
 body.tour-interactive-mode .tour-highlight button,
 body.tour-interactive-mode .tour-highlight > button,
 body.tour-interactive-mode [data-tour].tour-highlight button,
-body.tour-interactive-mode *[data-tour].tour-highlight button,
-body.tour-interactive-mode div.tour-highlight button,
-body.tour-interactive-mode section.tour-highlight button,
-body.tour-interactive-mode .tour-highlight .action-btn,
-body.tour-interactive-mode .tour-highlight .primary-btn {
+body.tour-interactive-mode [data-tour].tour-highlight button.action-btn,
+body.tour-interactive-mode [data-tour].tour-highlight button.primary-btn {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
@@ -936,20 +875,24 @@ body.tour-interactive-mode .tour-highlight .primary-btn {
   position: relative !important;
 }
 
-/* Ensure all content inside highlighted sections is visible and not dimmed */
-body.tour-interactive-mode .tour-highlight,
-body.tour-interactive-mode .tour-highlight * {
+/* Ultra-high specificity for any button inside ANY element with tour-highlight class */
+body.tour-interactive-mode *[data-tour].tour-highlight button,
+body.tour-interactive-mode [data-tour].tour-highlight button,
+body.tour-interactive-mode div.tour-highlight button,
+body.tour-interactive-mode section.tour-highlight button {
+  pointer-events: auto !important;
   opacity: 1 !important;
+  cursor: pointer !important;
 }
 
-/* Specifically ensure tables inside highlighted sections are fully visible */
-body.tour-interactive-mode .tour-highlight table,
-body.tour-interactive-mode .tour-highlight table *,
-body.tour-interactive-mode .tour-highlight .breakdown-table,
-body.tour-interactive-mode .tour-highlight .breakdown-table *,
-body.tour-interactive-mode .tour-highlight tbody,
-body.tour-interactive-mode .tour-highlight tbody tr,
-body.tour-interactive-mode .tour-highlight tbody td {
-  opacity: 1 !important;
+/* Specifically target action-btn and primary-btn inside any tour-highlight container */
+body.tour-interactive-mode .tour-highlight .action-btn,
+body.tour-interactive-mode .tour-highlight .primary-btn,
+body.tour-interactive-mode .tour-highlight button.action-btn,
+body.tour-interactive-mode .tour-highlight button.primary-btn {
   pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
 }

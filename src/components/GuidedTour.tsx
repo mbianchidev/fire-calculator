@@ -216,6 +216,15 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       return;
     }
 
+    // When showing the continue prompt, remove all highlights so the dialog is visible
+    if (showContinuePrompt) {
+      if (highlightedElement) {
+        highlightedElement.classList.remove('tour-highlight');
+        setHighlightedElement(null);
+      }
+      return;
+    }
+
     const currentTour = pageTours[currentPageTour];
     const currentInteractiveStep = currentTour?.steps[interactiveStep];
     
@@ -241,7 +250,7 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     } else {
       setHighlightedElement(null);
     }
-  }, [tourPhase, currentPageTour, interactiveStep, highlightedElement]);
+  }, [tourPhase, currentPageTour, interactiveStep, highlightedElement, showContinuePrompt]);
 
   // Validate input when trying to proceed (only when starting fresh)
   const validateCurrentStep = useCallback((): boolean => {
