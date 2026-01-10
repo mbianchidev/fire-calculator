@@ -47,10 +47,21 @@ const ACTION_CHECK_INTERVAL_MS = 200; // How often to check for action completio
 
 // Helper function to close any open dialog
 function closeAnyOpenDialog(): boolean {
-  const closeButton = document.querySelector('.dialog-close') as HTMLElement;
-  if (closeButton) {
-    closeButton.click();
-    return true;
+  // Try multiple selectors for dialog close buttons
+  const selectors = [
+    '.dialog.tour-highlight .dialog-close',
+    '.net-worth-dialog .dialog-close',
+    '.dca-dialog .dialog-close',
+    '.dialog-content .dialog-close',
+    '.dialog-close'
+  ];
+  
+  for (const selector of selectors) {
+    const closeButton = document.querySelector(selector) as HTMLElement;
+    if (closeButton) {
+      closeButton.click();
+      return true;
+    }
   }
   return false;
 }
