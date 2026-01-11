@@ -1,0 +1,94 @@
+.theme-toggle {
+  --toggle-width: 3.5rem;
+  --toggle-height: 2rem;
+  --toggle-padding: 0.25rem;
+  --thumb-size: calc(var(--toggle-height) - var(--toggle-padding) * 2);
+  
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.theme-toggle:hover {
+  opacity: 0.8;
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+}
+
+.theme-toggle:focus-visible .theme-toggle__track {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-primary);
+}
+
+.theme-toggle__track {
+  width: var(--toggle-width);
+  height: var(--toggle-height);
+  padding: var(--toggle-padding);
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--toggle-height);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.theme-toggle__thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  background: var(--color-surface-primary);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle[aria-checked="false"] .theme-toggle__thumb {
+  transform: translateX(0);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__thumb {
+  transform: translateX(calc(var(--toggle-width) - var(--thumb-size) - var(--toggle-padding) * 2));
+}
+
+.theme-toggle__icon {
+  width: 1rem;
+  height: 1rem;
+  stroke: var(--color-text-primary);
+  fill: none;
+  transition: opacity 0.3s ease;
+  position: absolute;
+}
+
+.theme-toggle__icon--moon {
+  fill: var(--color-text-primary);
+}
+
+.theme-toggle[aria-checked="false"] .theme-toggle__icon--sun {
+  opacity: 1;
+}
+
+.theme-toggle[aria-checked="false"] .theme-toggle__icon--moon {
+  opacity: 0;
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__icon--sun {
+  opacity: 0;
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__icon--moon {
+  opacity: 1;
+}
+
+/* Mobile touch-friendly sizing */
+@media (max-width: 768px) {
+  .theme-toggle {
+    --toggle-width: 4rem;
+    --toggle-height: 2.25rem;
+  }
+}

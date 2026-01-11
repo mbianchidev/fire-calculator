@@ -1,3 +1,152 @@
+/* ===========================
+   CSS Variable System for Theming
+   =========================== */
+
+/* Light Mode Colors */
+:root {
+  /* Backgrounds */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary: #F3F4F6;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Surfaces */
+  --color-surface-primary: #FFFFFF;
+  --color-surface-secondary: #F9FAFB;
+  --color-surface-hover: #F3F4F6;
+  --color-surface-active: #E5E7EB;
+  
+  /* Text */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #888888;
+  --color-text-muted: #999999;
+  --color-text-inverse: #FFFFFF;
+  
+  /* Borders */
+  --color-border-primary: #E0E0E0;
+  --color-border-secondary: #D1D5DB;
+  --color-border-focus: #5568d4;
+  
+  /* Brand Colors */
+  --color-primary: #5568d4;
+  --color-primary-hover: #4556c3;
+  --color-primary-subtle: #EFF6FF;
+  --color-secondary: #764ba2;
+  
+  /* Brand Gradients */
+  --gradient-brand: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #4556c3 0%, #6a4190 100%);
+  --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  
+  /* Semantic Colors */
+  --color-success: #4CAF50;
+  --color-success-bg: #d4edda;
+  --color-success-text: #155724;
+  --color-warning: #ffc107;
+  --color-warning-bg: #fff3cd;
+  --color-warning-text: #856404;
+  --color-error: #f44336;
+  --color-error-bg: #f8d7da;
+  --color-error-text: #721c24;
+  --color-info: #5568d4;
+  --color-info-bg: #EFF6FF;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-primary);
+  
+  /* Scrollbars */
+  --scrollbar-track: #F3F4F6;
+  --scrollbar-thumb: #D1D5DB;
+  --scrollbar-thumb-hover: #9CA3AF;
+  
+  /* Code blocks */
+  --color-code-bg: #F3F4F6;
+  --color-code-text: #333333;
+  
+  /* Interactive elements */
+  --color-interactive-bg: #F3F4F6;
+  --color-interactive-hover: #E5E7EB;
+}
+
+/* Dark Mode Colors - Applied when data-theme="dark" (Default on First Visit) */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --color-bg-primary: #0F0F0F;
+  --color-bg-secondary: #171717;
+  --color-bg-tertiary: #1F1F1F;
+  --color-bg-elevated: #262626;
+  --color-bg-overlay: rgba(0, 0, 0, 0.75);
+  
+  /* Surfaces */
+  --color-surface-primary: #171717;
+  --color-surface-secondary: #1F1F1F;
+  --color-surface-hover: #262626;
+  --color-surface-active: #2E2E2E;
+  
+  /* Text */
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A3A3A3;
+  --color-text-tertiary: #737373;
+  --color-text-muted: #525252;
+  --color-text-inverse: #0F0F0F;
+  
+  /* Borders */
+  --color-border-primary: #262626;
+  --color-border-secondary: #333333;
+  --color-border-focus: #6B7FE8;
+  
+  /* Brand Colors - Adjusted for dark mode */
+  --color-primary: #6B7FE8;
+  --color-primary-hover: #7C8EEE;
+  --color-primary-subtle: #1E2440;
+  --color-secondary: #8B5FBF;
+  
+  /* Brand Gradients - Adjusted for dark mode */
+  --gradient-brand: linear-gradient(135deg, #6B7FE8 0%, #8B5FBF 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #7C8EEE 0%, #9C6FCF 100%);
+  --gradient-accent: linear-gradient(135deg, #F5A3FF 0%, #FF6B87 100%);
+  
+  /* Semantic Colors */
+  --color-success: #4ADE80;
+  --color-success-bg: #052e16;
+  --color-success-text: #86EFAC;
+  --color-warning: #FBBF24;
+  --color-warning-bg: #422006;
+  --color-warning-text: #FDE68A;
+  --color-error: #F87171;
+  --color-error-bg: #450a0a;
+  --color-error-text: #FCA5A5;
+  --color-info: #6B7FE8;
+  --color-info-bg: #1E2440;
+  
+  /* Shadows - Enhanced for dark mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+  
+  /* Scrollbars */
+  --scrollbar-track: #1F1F1F;
+  --scrollbar-thumb: #404040;
+  --scrollbar-thumb-hover: #525252;
+  
+  /* Code blocks */
+  --color-code-bg: #1F1F1F;
+  --color-code-text: #E5E7EB;
+  
+  /* Interactive elements */
+  --color-interactive-bg: #1F1F1F;
+  --color-interactive-hover: #262626;
+}
+
 body {
   margin: 0;
   padding: 0;

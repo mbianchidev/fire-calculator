@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/fire-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FIRE Tools - Comprehensive financial planning calculator for Financial Independence Retire Early (FIRE). Calculate your path to financial freedom with Monte Carlo simulations and asset allocation management." />
+    <meta name="theme-color" content="#0F0F0F" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+    <!-- Flash Prevention: Apply theme before page renders -->
+    <script>
+      (function() {
+        // NOTE: This storage key must match STORAGE_KEY in src/hooks/useTheme.ts
+        const STORAGE_KEY = 'fire-tools-theme';
+        const stored = localStorage.getItem(STORAGE_KEY);
+        // Default to 'dark' if no preference is stored
+        const theme = stored || 'dark';
+        const resolvedTheme = theme === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        document.documentElement.setAttribute('data-theme', resolvedTheme);
+        // Add no-transitions class temporarily to prevent transitions on page load
+        document.documentElement.classList.add('no-transitions');
+      })();
+    </script>
     <!-- Preconnect hints for faster resource loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,7 +43,7 @@
           sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+        background: var(--gradient-brand);
         min-height: 100vh;
       }
       #root {
@@ -38,18 +56,18 @@
         flex-direction: column;
       }
       .app-header {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--color-surface-primary);
         padding: 2rem;
         text-align: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
       }
       .app-header h1 {
         font-size: 2.5rem;
-        color: #333;
+        color: var(--color-text-primary);
         margin-bottom: 0.5rem;
       }
       .app-header p {
-        color: #666;
+        color: var(--color-text-secondary);
         font-size: 1.1rem;
       }
       .app-nav {
@@ -58,8 +76,8 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem 2rem;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        background: var(--color-surface-primary);
+        box-shadow: var(--shadow-md);
       }
       .nav-links {
         display: flex;
@@ -71,7 +89,7 @@
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
         text-decoration: none;
-        color: #333;
+        color: var(--color-text-primary);
         font-weight: 500;
         background: transparent;
         min-height: 44px;
@@ -91,16 +109,16 @@
       .hero-section {
         text-align: center;
         padding: 3rem 2rem;
-        background: white;
+        background: var(--color-surface-primary);
         border-radius: 16px;
         margin-bottom: 3rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-lg);
         /* Prevent CLS by reserving minimum height based on content */
         min-height: 180px;
       }
       .hero-title {
         font-size: 3.5rem;
-        color: #333;
+        color: var(--color-text-primary);
         margin-bottom: 1rem;
         font-weight: bold;
         /* Prevent CLS from font loading by reserving line height */
@@ -108,7 +126,7 @@
       }
       .hero-subtitle {
         font-size: 1.3rem;
-        color: #666;
+        color: var(--color-text-secondary);
         max-width: 700px;
         margin: 0 auto;
         line-height: 1.6;
@@ -124,7 +142,7 @@
           border: none;
           font-size: 1.75rem;
           cursor: pointer;
-          color: #5568d4;
+          color: var(--color-primary);
         }
         .nav-links {
           display: none;

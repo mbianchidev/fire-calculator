@@ -14,6 +14,7 @@ import { NetWorthTrackerPage } from './components/NetWorthTrackerPage';
 import { HomePage } from './components/HomePage';
 import { DataManagement } from './components/DataManagement';
 import { ProfileMenu } from './components/ProfileMenu';
+import { ThemeToggle } from './components/ThemeToggle';
 import { SettingsPage } from './components/SettingsPage';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { CookiePolicyPage } from './components/CookiePolicyPage';
@@ -97,7 +98,10 @@ function Navigation({ accountName }: { accountName: string }) {
           <span aria-hidden="true" className="nav-emoji">🎲</span> Monte Carlo
         </Link>
       </div>
-      <ProfileMenu accountName={accountName} />
+      <div className="nav-actions">
+        <ThemeToggle />
+        <ProfileMenu accountName={accountName} />
+      </div>
     </nav>
   );
 }

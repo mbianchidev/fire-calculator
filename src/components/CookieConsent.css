@@ -41,37 +41,37 @@
 .cookie-banner-title {
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 .cookie-banner-description {
   margin: 0 0 0.5rem 0;
-  color: #555;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .cookie-banner-description strong {
-  color: #333;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 .cookie-banner-links {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .cookie-banner-links a {
-  color: #5568d4;
+  color: var(--color-primary);
   text-decoration: underline;
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .cookie-banner-links a:hover {
-  color: #764ba2;
+  color: var(--color-secondary);
 }
 
 .cookie-banner-links a:focus {
@@ -85,8 +85,8 @@
 }
 
 .cookie-btn-acknowledge {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: var(--gradient-brand);
+  color: var(--color-text-inverse);
   border: none;
   padding: 0.875rem 2rem;
   border-radius: 8px;
