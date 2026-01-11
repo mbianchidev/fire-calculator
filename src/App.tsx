@@ -14,6 +14,7 @@ import { NetWorthTrackerPage } from './components/NetWorthTrackerPage';
 import { HomePage } from './components/HomePage';
 import { DataManagement } from './components/DataManagement';
 import { ProfileMenu } from './components/ProfileMenu';
+import { ThemeToggle } from './components/ThemeToggle';
 import { SettingsPage } from './components/SettingsPage';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { CookiePolicyPage } from './components/CookiePolicyPage';
@@ -24,6 +25,7 @@ import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './
 import { saveFireCalculatorInputs, loadFireCalculatorInputs, clearAllData, loadAssetAllocation } from './utils/cookieStorage';
 import { exportFireCalculatorToCSV, importFireCalculatorFromCSV } from './utils/csvExport';
 import { loadSettings, type UserSettings } from './utils/cookieSettings';
+import { useTheme } from './hooks/useTheme';
 import './App.css';
 import './components/AssetAllocationManager.css';
 import './components/ExpenseTrackerPage.css';
@@ -97,7 +99,10 @@ function Navigation({ accountName }: { accountName: string }) {
           <span aria-hidden="true" className="nav-emoji">🎲</span> Monte Carlo
         </Link>
       </div>
-      <ProfileMenu accountName={accountName} />
+      <div className="nav-actions">
+        <ThemeToggle />
+        <ProfileMenu accountName={accountName} />
+      </div>
     </nav>
   );
 }
@@ -291,6 +296,9 @@ function FIRECalculatorPage() {
 }
 
 function App() {
+  // Initialize theme on app load
+  useTheme();
+  
   // Use base path only in production (for GitHub Pages), not in local development
   const basename = import.meta.env.MODE === 'production' ? '/fire-tools' : '/';
   

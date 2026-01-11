@@ -13,6 +13,7 @@ vi.mock('./cookieSettings', () => ({
       useApiRates: true,
       lastApiUpdate: null,
     },
+    theme: 'dark' as const,
   })),
 }));
 

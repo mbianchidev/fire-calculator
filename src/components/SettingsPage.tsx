@@ -10,6 +10,7 @@ import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import { clearTourPreference } from '../utils/tourPreferences';
 import { exportAllDataAsJSON, importAllDataFromJSON, serializeAllDataExport } from '../utils/dataExportImport';
+import { useTheme } from '../hooks/useTheme';
 import { Tooltip } from './Tooltip';
 import './SettingsPage.css';
 
@@ -19,6 +20,7 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,13 +40,29 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
   useEffect(() => {
     const loaded = loadSettings();
     setSettings(loaded);
+    // Sync theme with loaded settings (only on mount)
+    if (loaded.theme && loaded.theme !== theme) {
+      setTheme(loaded.theme);
+    }
     setIsLoading(false);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount to avoid infinite loop
 
   // Show temporary message
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 3000);
+  };
+
+  // Handle theme change from settings
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    const newSettings = { ...settings, theme: newTheme };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+    onSettingsChange?.(newSettings);
+    const themeLabels = { light: 'Light mode', dark: 'Dark mode', system: 'System preference' };
+    showMessage('success', `Theme changed to ${themeLabels[newTheme]}!`);
   };
 
   // Handle settings change
@@ -533,6 +551,37 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
               <option value={4}>4 (e.g., 123.4567)</option>
             </select>
             <span className="setting-help">Number of decimal places shown for values below 1,000. Values at or above 1,000 show no decimals.</span>
+          </div>
+          
+          {/* Theme Setting */}
+          <div className="setting-item">
+            <div className="label-with-tooltip">
+              <label>Theme</label>
+              <Tooltip content="Choose your preferred color theme. 'Dark' uses a dark background with light text, 'Light' uses a light background with dark text, and 'System' automatically matches your device's theme preference.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
+            <div className="toggle-group">
+              <button
+                className={`toggle-btn ${theme === 'light' ? 'active' : ''}`}
+                onClick={() => handleThemeChange('light')}
+              >
+                ☀️ Light
+              </button>
+              <button
+                className={`toggle-btn ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => handleThemeChange('dark')}
+              >
+                🌙 Dark
+              </button>
+              <button
+                className={`toggle-btn ${theme === 'system' ? 'active' : ''}`}
+                onClick={() => handleThemeChange('system')}
+              >
+                💻 System
+              </button>
+            </div>
+            <span className="setting-help">Choose your preferred theme or match your device settings</span>
           </div>
         </section>
 

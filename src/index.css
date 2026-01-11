@@ -1,3 +1,238 @@
+/* =================================================================
+   CSS VARIABLES - Color System for Light and Dark Mode
+   ================================================================= */
+
+:root {
+  /* LIGHT MODE (Default) - Background Colors */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary: #F3F4F6;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-gradient: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+  --color-bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+  /* Surface Colors (cards, containers) */
+  --color-surface-primary: #FFFFFF;
+  --color-surface-secondary: #F9FAFB;
+  --color-surface-hover: #F3F4F6;
+  --color-surface-active: #E5E7EB;
+  --color-surface-overlay: rgba(255, 255, 255, 0.95);
+
+  /* Text Colors */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-tertiary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
+  --color-text-link: #3B82F6;
+
+  /* Border Colors */
+  --color-border-primary: #E5E7EB;
+  --color-border-secondary: #D1D5DB;
+  --color-border-focus: #5568d4;
+  --color-border-hover: #9CA3AF;
+
+  /* Brand Colors */
+  --color-primary: #5568d4;
+  --color-primary-hover: #764ba2;
+  --color-primary-subtle: #EFF6FF;
+  --color-primary-text: #FFFFFF;
+
+  /* Semantic Colors - Success */
+  --color-success: #22C55E;
+  --color-success-hover: #16A34A;
+  --color-success-bg: #F0FDF4;
+  --color-success-border: #86EFAC;
+  --color-success-text: #166534;
+
+  /* Semantic Colors - Warning */
+  --color-warning: #F59E0B;
+  --color-warning-hover: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FCD34D;
+  --color-warning-text: #92400E;
+
+  /* Semantic Colors - Error */
+  --color-error: #EF4444;
+  --color-error-hover: #DC2626;
+  --color-error-bg: #FEF2F2;
+  --color-error-border: #FCA5A5;
+  --color-error-text: #991B1B;
+
+  /* Semantic Colors - Info */
+  --color-info: #3B82F6;
+  --color-info-hover: #2563EB;
+  --color-info-bg: #EFF6FF;
+  --color-info-border: #93C5FD;
+  --color-info-text: #1E40AF;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-primary);
+  --focus-ring-offset: 2px;
+
+  /* Form Elements */
+  --color-input-bg: #FFFFFF;
+  --color-input-border: #D1D5DB;
+  --color-input-text: #111827;
+  --color-input-placeholder: #9CA3AF;
+  --color-input-disabled: #F3F4F6;
+
+  /* Scrollbar */
+  --scrollbar-track: #F3F4F6;
+  --scrollbar-thumb: #D1D5DB;
+  --scrollbar-thumb-hover: #9CA3AF;
+
+  /* Code */
+  --color-code-bg: #F3F4F6;
+  --color-code-text: #1F2937;
+
+  /* Chart Colors */
+  --chart-color-1: #5568d4;
+  --chart-color-2: #764ba2;
+  --chart-color-3: #f093fb;
+  --chart-color-4: #f5576c;
+  --chart-color-5: #4CAF50;
+  --chart-color-6: #FFC107;
+  --chart-grid: #E5E7EB;
+  --chart-text: #6B7280;
+  --chart-axis: #9CA3AF;
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+  --transition-theme: 0.3s;
+}
+
+/* DARK MODE */
+[data-theme="dark"], .dark {
+  /* Background Colors */
+  --color-bg-primary: #0F0F0F;
+  --color-bg-secondary: #171717;
+  --color-bg-tertiary: #1F1F1F;
+  --color-bg-elevated: #262626;
+  --color-bg-overlay: rgba(0, 0, 0, 0.75);
+  --color-bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+  --color-bg-gradient-alt: linear-gradient(135deg, #7c2d92 0%, #be123c 100%);
+
+  /* Surface Colors */
+  --color-surface-primary: #171717;
+  --color-surface-secondary: #1F1F1F;
+  --color-surface-hover: #262626;
+  --color-surface-active: #2E2E2E;
+  --color-surface-overlay: rgba(23, 23, 23, 0.95);
+
+  /* Text Colors */
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #D4D4D4;
+  --color-text-tertiary: #A3A3A3;
+  --color-text-muted: #737373;
+  --color-text-inverse: #0F0F0F;
+  --color-text-link: #60A5FA;
+
+  /* Border Colors */
+  --color-border-primary: #262626;
+  --color-border-secondary: #333333;
+  --color-border-focus: #60A5FA;
+  --color-border-hover: #404040;
+
+  /* Brand Colors */
+  --color-primary: #60A5FA;
+  --color-primary-hover: #3B82F6;
+  --color-primary-subtle: #172554;
+  --color-primary-text: #FFFFFF;
+
+  /* Semantic Colors - Success */
+  --color-success: #4ADE80;
+  --color-success-hover: #22C55E;
+  --color-success-bg: #052E16;
+  --color-success-border: #166534;
+  --color-success-text: #86EFAC;
+
+  /* Semantic Colors - Warning */
+  --color-warning: #FBBF24;
+  --color-warning-hover: #F59E0B;
+  --color-warning-bg: #422006;
+  --color-warning-border: #92400E;
+  --color-warning-text: #FCD34D;
+
+  /* Semantic Colors - Error */
+  --color-error: #F87171;
+  --color-error-hover: #EF4444;
+  --color-error-bg: #450A0A;
+  --color-error-border: #991B1B;
+  --color-error-text: #FCA5A5;
+
+  /* Semantic Colors - Info */
+  --color-info: #60A5FA;
+  --color-info-hover: #3B82F6;
+  --color-info-bg: #172554;
+  --color-info-border: #1E40AF;
+  --color-info-text: #93C5FD;
+
+  /* Shadows - Darker and more pronounced in dark mode */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-primary);
+
+  /* Form Elements */
+  --color-input-bg: #1F1F1F;
+  --color-input-border: #404040;
+  --color-input-text: #FAFAFA;
+  --color-input-placeholder: #737373;
+  --color-input-disabled: #262626;
+
+  /* Scrollbar */
+  --scrollbar-track: #1F1F1F;
+  --scrollbar-thumb: #404040;
+  --scrollbar-thumb-hover: #525252;
+
+  /* Code */
+  --color-code-bg: #1F1F1F;
+  --color-code-text: #E5E7EB;
+
+  /* Chart Colors - Slightly adjusted for dark mode */
+  --chart-color-1: #60A5FA;
+  --chart-color-2: #A78BFA;
+  --chart-color-3: #F472B6;
+  --chart-color-4: #FB7185;
+  --chart-color-5: #4ADE80;
+  --chart-color-6: #FBBF24;
+  --chart-grid: #262626;
+  --chart-text: #A3A3A3;
+  --chart-axis: #737373;
+}
+
+/* Smooth color transitions when theme changes */
+*, *::before, *::after {
+  transition: background-color var(--transition-theme) ease,
+              border-color var(--transition-theme) ease,
+              color var(--transition-theme) ease,
+              box-shadow var(--transition-theme) ease;
+}
+
+/* Disable transitions on page load to prevent flash */
+.no-transitions, 
+.no-transitions *, 
+.no-transitions *::before, 
+.no-transitions *::after {
+  transition: none !important;
+}
+
+/* Base body styles */
 body {
   margin: 0;
   padding: 0;

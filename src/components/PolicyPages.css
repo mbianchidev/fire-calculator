@@ -1,13 +1,13 @@
 /* Policy pages shared styles */
 .policy-page {
   flex: 1;
-  background: white;
+  background: var(--color-surface-primary);
   border-radius: 12px;
   margin: 2rem auto;
   max-width: 1000px;
   width: 100%;
   padding: 0 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .policy-container {
@@ -17,17 +17,17 @@
 }
 
 .policy-container h1 {
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+  background: var(--color-bg-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .last-updated {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
@@ -39,21 +39,21 @@
 }
 
 .policy-section h2 {
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 1.8rem;
   margin-bottom: 1rem;
   margin-top: 2rem;
 }
 
 .policy-section h3 {
-  color: #555;
+  color: var(--color-text-secondary);
   font-size: 1.4rem;
   margin-bottom: 0.75rem;
   margin-top: 1.5rem;
 }
 
 .policy-section h4 {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   margin-top: 1rem;
@@ -79,22 +79,22 @@
 }
 
 .policy-section a {
-  color: #5568d4;
+  color: var(--color-primary);
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .policy-section a:hover {
-  color: #764ba2;
+  color: var(--color-primary-hover);
 }
 
 .policy-section a:focus {
-  outline: 3px solid #5568d4;
+  outline: 3px solid var(--color-border-focus);
   outline-offset: 2px;
 }
 
 .policy-section code {
-  background: #f5f5f5;
+  background: var(--color-bg-secondary);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-family: 'Monaco', 'Courier New', monospace;
@@ -103,7 +103,7 @@
 }
 
 .policy-section strong {
-  color: #333;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -118,8 +118,8 @@
 }
 
 .policy-table thead {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-bg-gradient);
+  color: var(--color-text-inverse);
 }
 
 .policy-table th {
@@ -131,7 +131,7 @@
 
 .policy-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--color-border-primary);
   color: #444;
   font-size: 0.95rem;
 }
@@ -160,8 +160,8 @@
 }
 
 .cookie-table thead {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-bg-gradient);
+  color: var(--color-text-inverse);
 }
 
 .cookie-table th {
@@ -174,7 +174,7 @@
 
 .cookie-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--color-border-primary);
   color: #444;
   font-size: 0.9rem;
   vertical-align: top;
@@ -336,19 +336,19 @@
   }
 
   .policy-container h1 {
-    -webkit-text-fill-color: #333;
-    color: #333;
+    -webkit-text-fill-color: var(--color-text-primary);
+    color: var(--color-text-primary);
   }
 
   .policy-section a {
-    color: #333;
+    color: var(--color-text-primary);
     text-decoration: underline;
   }
 
   .policy-table thead,
   .cookie-table thead {
     background: #333 !important;
-    color: white !important;
+    color: var(--color-text-inverse) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

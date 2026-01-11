@@ -5,15 +5,61 @@
     <link rel="icon" type="image/svg+xml" href="/fire-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FIRE Tools - Comprehensive financial planning calculator for Financial Independence Retire Early (FIRE). Calculate your path to financial freedom with Monte Carlo simulations and asset allocation management." />
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0F0F0F" media="(prefers-color-scheme: dark)">
     <!-- Preconnect hints for faster resource loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <title>FIRE Calculator - Financial Independence Retire Early</title>
+    <!-- Theme initialization to prevent flash of wrong theme -->
+    <script>
+      (function() {
+        // Quick theme check from localStorage before settings load
+        const quickTheme = localStorage.getItem('fire-tools-theme');
+        
+        // Helper to get system preference
+        const getSystemTheme = () => {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        
+        // Determine which theme to apply
+        let themeToApply;
+        if (quickTheme) {
+          themeToApply = quickTheme === 'system' ? getSystemTheme() : quickTheme;
+        } else {
+          // Default to dark mode as per requirements
+          themeToApply = 'dark';
+        }
+        
+        // Apply theme
+        document.documentElement.setAttribute('data-theme', themeToApply);
+        if (themeToApply === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+        
+        // Add no-transitions class to prevent transition flash on load
+        document.documentElement.classList.add('no-transitions');
+      })();
+    </script>
     <!-- Inline critical CSS to prevent render blocking -->
     <style>
-      /* Critical above-the-fold styles */
+      /* Critical above-the-fold styles with CSS variables */
+      :root {
+        --crit-bg-gradient: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+        --crit-surface: rgba(255, 255, 255, 0.95);
+        --crit-text-primary: #333;
+        --crit-text-secondary: #666;
+        --crit-primary: #5568d4;
+      }
+      [data-theme="dark"], .dark {
+        --crit-bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+        --crit-surface: rgba(23, 23, 23, 0.95);
+        --crit-text-primary: #FAFAFA;
+        --crit-text-secondary: #D4D4D4;
+        --crit-primary: #60A5FA;
+      }
       * {
         box-sizing: border-box;
         margin: 0;
@@ -25,7 +71,7 @@
           sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+        background: var(--crit-bg-gradient);
         min-height: 100vh;
       }
       #root {
@@ -38,18 +84,18 @@
         flex-direction: column;
       }
       .app-header {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--crit-surface);
         padding: 2rem;
         text-align: center;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
       .app-header h1 {
         font-size: 2.5rem;
-        color: #333;
+        color: var(--crit-text-primary);
         margin-bottom: 0.5rem;
       }
       .app-header p {
-        color: #666;
+        color: var(--crit-text-secondary);
         font-size: 1.1rem;
       }
       .app-nav {
@@ -58,7 +104,7 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem 2rem;
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--crit-surface);
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
       .nav-links {
@@ -71,7 +117,7 @@
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
         text-decoration: none;
-        color: #333;
+        color: var(--crit-text-primary);
         font-weight: 500;
         background: transparent;
         min-height: 44px;
@@ -91,7 +137,7 @@
       .hero-section {
         text-align: center;
         padding: 3rem 2rem;
-        background: white;
+        background: var(--crit-surface);
         border-radius: 16px;
         margin-bottom: 3rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -100,7 +146,7 @@
       }
       .hero-title {
         font-size: 3.5rem;
-        color: #333;
+        color: var(--crit-text-primary);
         margin-bottom: 1rem;
         font-weight: bold;
         /* Prevent CLS from font loading by reserving line height */
@@ -108,7 +154,7 @@
       }
       .hero-subtitle {
         font-size: 1.3rem;
-        color: #666;
+        color: var(--crit-text-secondary);
         max-width: 700px;
         margin: 0 auto;
         line-height: 1.6;
@@ -124,7 +170,7 @@
           border: none;
           font-size: 1.75rem;
           cursor: pointer;
-          color: #5568d4;
+          color: var(--crit-primary);
         }
         .nav-links {
           display: none;
