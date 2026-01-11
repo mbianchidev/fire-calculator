@@ -77,7 +77,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [currentPageTour, setCurrentPageTour] = useState<string | null>(null);
   const [keepDemoData, setKeepDemoData] = useState(true);
-  const [highlightedElements, setHighlightedElements] = useState<HTMLElement[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [hadExistingData, setHadExistingData] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -207,31 +206,30 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
 
   // Highlight elements during interactive tour
   useEffect(() => {
+    // Helper function to clean up highlights
+    const cleanupHighlights = () => {
+      document.querySelectorAll('.tour-highlight').forEach(el => {
+        el.classList.remove('tour-highlight');
+      });
+    };
+
     if (tourPhase !== 'interactive' || !currentPageTour) {
       // Clean up highlight when not in interactive mode
-      if (highlightedElements.length > 0) {
-        highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
-        setHighlightedElements([]);
-      }
+      cleanupHighlights();
       return;
     }
 
     // When showing the continue prompt, remove all highlights so the dialog is visible
     if (showContinuePrompt) {
-      if (highlightedElements.length > 0) {
-        highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
-        setHighlightedElements([]);
-      }
+      cleanupHighlights();
       return;
     }
 
     const currentTour = pageTours[currentPageTour];
     const currentInteractiveStep = currentTour?.steps[interactiveStep];
     
-    // Remove highlight from previous elements
-    if (highlightedElements.length > 0) {
-      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
-    }
+    // Remove highlight from previous elements first
+    cleanupHighlights();
 
     // Add highlight to new element(s)
     if (currentInteractiveStep?.elementSelector) {
@@ -239,29 +237,22 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
       const timeoutId = setTimeout(() => {
         // Support multiple selectors separated by comma
         const selectors = currentInteractiveStep.elementSelector!.split(',').map(s => s.trim());
-        const elements: HTMLElement[] = [];
         
         selectors.forEach(selector => {
           const element = document.querySelector(selector) as HTMLElement;
           if (element) {
             element.classList.add('tour-highlight');
-            elements.push(element);
+            // Scroll first element into view
+            if (selectors.indexOf(selector) === 0) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
           }
         });
-        
-        setHighlightedElements(elements);
-        
-        // Scroll first element into view
-        if (elements.length > 0) {
-          elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
       }, 100);
       
       return () => clearTimeout(timeoutId);
-    } else {
-      setHighlightedElements([]);
     }
-  }, [tourPhase, currentPageTour, interactiveStep, highlightedElements, showContinuePrompt]);
+  }, [tourPhase, currentPageTour, interactiveStep, showContinuePrompt]);
 
   // Validate input when trying to proceed (only when starting fresh)
   const validateCurrentStep = useCallback((): boolean => {
@@ -438,9 +429,6 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
               <span className="tour-integration-text">Net Worth syncs with Asset Allocation</span>
             </div>
           </div>
-          <p className="tour-tip">
-            <strong>💡 Tip:</strong> Each tool can also work independently if you prefer!
-          </p>
         </div>
       ),
     },
@@ -1103,10 +1091,9 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     document.body.classList.remove('tour-interactive-mode');
     
     // Remove any highlight from elements
-    if (highlightedElements.length > 0) {
-      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
-      setHighlightedElements([]);
-    }
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+      el.classList.remove('tour-highlight');
+    });
     
     onTourComplete?.();
     navigate('/');
@@ -1132,10 +1119,9 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     document.body.classList.remove('tour-interactive-mode');
     
     // Remove any highlight from elements
-    if (highlightedElements.length > 0) {
-      highlightedElements.forEach(el => el.classList.remove('tour-highlight'));
-      setHighlightedElements([]);
-    }
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+      el.classList.remove('tour-highlight');
+    });
     
     onTourComplete?.();
     
