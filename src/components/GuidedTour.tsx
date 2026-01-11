@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadTourCompleted, saveTourCompleted } from '../utils/tourPreferences';
 import { saveFireCalculatorInputs, saveAssetAllocation, saveExpenseTrackerData, saveNetWorthTrackerData, clearAllData, loadFireCalculatorInputs, loadAssetAllocation } from '../utils/cookieStorage';
@@ -82,6 +82,12 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [waitingForUserClick, setWaitingForUserClick] = useState(false);
   const [actionCompleted, setActionCompleted] = useState(false);
+  
+  // Dragging state for tooltip
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   // Check if tour should be shown on mount
   useEffect(() => {
@@ -311,6 +317,61 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
     setValidationError(null);
     return true;
   }, [keepDemoData, tourPhase, currentPageTour, interactiveStep]);
+
+  // Drag handlers for tooltip
+  const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Only allow dragging from the header
+    if (!(e.target as HTMLElement).closest('.tour-tooltip-header')) return;
+    if ((e.target as HTMLElement).tagName === 'BUTTON') return; // Don't drag when clicking buttons
+    
+    e.preventDefault();
+    setIsDragging(true);
+    
+    const tooltipEl = tooltipRef.current;
+    if (tooltipEl) {
+      const rect = tooltipEl.getBoundingClientRect();
+      dragOffset.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  }, []);
+
+  const handleDragMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !tooltipRef.current) return;
+    
+    const tooltipEl = tooltipRef.current;
+    const rect = tooltipEl.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate new position
+    let newX = e.clientX - dragOffset.current.x;
+    let newY = e.clientY - dragOffset.current.y;
+    
+    // Constrain to viewport boundaries with padding
+    const padding = 10;
+    newX = Math.max(padding, Math.min(viewportWidth - rect.width - padding, newX));
+    newY = Math.max(padding, Math.min(viewportHeight - rect.height - padding, newY));
+    
+    setTooltipPosition({ x: newX, y: newY });
+  }, [isDragging]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add global mouse event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDragMove, handleDragEnd]);
 
   const tourSteps: TourStep[] = [
     {
@@ -1267,9 +1328,23 @@ export function GuidedTour({ onTourComplete }: GuidedTourProps) {
           <div className="tour-interactive-overlay" />
           
           {/* Tooltip */}
-          <div className="tour-tooltip-container">
+          <div 
+            ref={tooltipRef}
+            className={`tour-tooltip-container ${isDragging ? 'tour-dragging' : ''}`}
+            style={tooltipPosition ? {
+              position: 'fixed',
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y}px`,
+              bottom: 'auto',
+              transform: 'none'
+            } : undefined}
+          >
             <div className="tour-tooltip">
-              <div className="tour-tooltip-header">
+              <div 
+                className="tour-tooltip-header tour-draggable"
+                onMouseDown={handleDragStart}
+                title="Drag to move"
+              >
                 <h3>{currentInteractiveStep.title}</h3>
                 <div className="tour-tooltip-skip-options">
                   <button 

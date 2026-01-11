@@ -836,6 +836,22 @@
   pointer-events: auto !important;
 }
 
+/* Ensure all content inside highlighted sections is visible - critical for table data */
+body.tour-interactive-mode .tour-highlight,
+body.tour-interactive-mode .tour-highlight * {
+  opacity: 1 !important;
+}
+
+/* Specifically ensure breakdown-table and all its children are fully visible */
+body.tour-interactive-mode .tour-highlight .breakdown-table,
+body.tour-interactive-mode .tour-highlight .breakdown-table *,
+body.tour-interactive-mode .tour-highlight table *,
+body.tour-interactive-mode .tour-highlight tbody tr,
+body.tour-interactive-mode .tour-highlight tbody td {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
 /* Keep tour tooltip buttons enabled */
 .tour-interactive-mode .tour-tooltip button,
 .tour-interactive-mode .tour-tooltip-skip,
@@ -914,4 +930,23 @@ body.tour-interactive-mode .tour-highlight button.primary-btn {
   cursor: pointer !important;
   z-index: 10002 !important;
   position: relative !important;
+}
+
+/* Draggable tooltip styles */
+.tour-tooltip-header.tour-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.tour-tooltip-header.tour-draggable:active {
+  cursor: grabbing;
+}
+
+.tour-tooltip-container.tour-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.tour-tooltip-container.tour-dragging .tour-tooltip {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
 }
