@@ -459,7 +459,7 @@ export function HistoricalNetWorthChart({
             labelStyle={{ color: '#F8FAFC', fontWeight: 'bold' }}
             contentStyle={{
               background: '#1A1D26',
-              border: '1px solid #790979',
+              border: '1px solid #147896',
               borderRadius: '8px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
               color: '#F8FAFC',
@@ -503,10 +503,10 @@ export function HistoricalNetWorthChart({
           <Line
             type="monotone"
             dataKey="netWorth"
-            stroke="#790979"
+            stroke="#147896"
             strokeWidth={3}
-            dot={{ fill: '#790979', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, fill: '#790979' }}
+            dot={{ fill: '#147896', strokeWidth: 2, r: 4 }}
+            activeDot={{ r: 6, fill: '#147896' }}
             name="netWorth"
             connectNulls={false}
           />
@@ -516,11 +516,11 @@ export function HistoricalNetWorthChart({
             <Line
               type="monotone"
               dataKey="forecast"
-              stroke="#B453B4"
+              stroke="#38BDF8"
               strokeWidth={2}
               strokeDasharray="5 5"
-              dot={{ fill: '#B453B4', strokeWidth: 2, r: 3 }}
-              activeDot={{ r: 5, fill: '#B453B4' }}
+              dot={{ fill: '#38BDF8', strokeWidth: 2, r: 3 }}
+              activeDot={{ r: 5, fill: '#38BDF8' }}
               name="forecast"
               connectNulls={true}
             />

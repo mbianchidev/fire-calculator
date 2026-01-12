@@ -27,17 +27,17 @@
   --text-muted: #64748B;
   --text-inverse: #0A0B0E;
   
-  /* Accent Colors - Purple Primary */
-  --accent-primary: #790979;
-  --accent-primary-dark: #5C075C;
-  --accent-primary-light: #A020A0;
-  --accent-glow: rgba(121, 9, 121, 0.4);
-  --accent-glow-strong: rgba(121, 9, 121, 0.6);
+  /* Accent Colors - Blue Marine Primary */
+  --accent-primary: #147896;
+  --accent-primary-dark: #0E5A70;
+  --accent-primary-light: #1A9BC2;
+  --accent-glow: rgba(20, 120, 150, 0.4);
+  --accent-glow-strong: rgba(20, 120, 150, 0.6);
   
-  /* Accent Colors - Light Purple/Magenta Secondary */
-  --accent-gold: #B453B4;
-  --accent-gold-dark: #9A3D9A;
-  --accent-gold-glow: rgba(180, 83, 180, 0.4);
+  /* Accent Colors - Sky Blue Secondary */
+  --accent-gold: #38BDF8;
+  --accent-gold-dark: #0EA5E9;
+  --accent-gold-glow: rgba(56, 189, 248, 0.4);
   
   /* Semantic Colors */
   --success: #22C55E;

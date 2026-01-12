@@ -69,7 +69,7 @@ export const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
     padding: '5px 10px',
     border: '1px solid #3A3D46',
     borderRadius: '4px',
-    background: isActive ? '#790979' : '#1A1D26',
+    background: isActive ? '#147896' : '#1A1D26',
     color: isActive ? 'white' : '#94A3B8',
     cursor: 'pointer',
     fontSize: '12px',
@@ -159,7 +159,7 @@ export const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
           <Tooltip 
             formatter={(value) => formatCurrency(Number(value))} 
             labelFormatter={(label) => `Age ${label}`}
-            contentStyle={{ background: '#1A1D26', border: '1px solid #790979', borderRadius: '8px', color: '#F8FAFC' }}
+            contentStyle={{ background: '#1A1D26', border: '1px solid #147896', borderRadius: '8px', color: '#F8FAFC' }}
             labelStyle={{ color: '#F8FAFC' }}
             itemStyle={{ color: '#F8FAFC' }}
           />

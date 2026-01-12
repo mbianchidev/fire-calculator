@@ -149,14 +149,14 @@ export const MonteCarloChart: React.FC<MonteCarloChartProps> = ({ result }) => {
             <Tooltip 
               formatter={(value) => [`${value} simulations`, 'Count']}
               labelFormatter={(label) => `Years: ${label}`}
-              contentStyle={{ background: '#1A1D26', border: '1px solid #790979', borderRadius: '8px', color: '#F8FAFC' }}
+              contentStyle={{ background: '#1A1D26', border: '1px solid #147896', borderRadius: '8px', color: '#F8FAFC' }}
               labelStyle={{ color: '#F8FAFC' }}
               itemStyle={{ color: '#F8FAFC' }}
             />
             <Legend wrapperStyle={{ paddingTop: '12px', color: '#F8FAFC' }} />
             <Bar 
               dataKey="count" 
-              fill="#790979" 
+              fill="#147896" 
               name="Simulations"
             />
             {distributionData.stats && (() => {
@@ -164,10 +164,10 @@ export const MonteCarloChart: React.FC<MonteCarloChartProps> = ({ result }) => {
               return medianBinIndex >= 0 ? (
                 <ReferenceLine 
                   x={distributionData.bins[medianBinIndex].range}
-                  stroke="#B453B4" 
+                  stroke="#38BDF8" 
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  label={{ value: 'Median', position: 'top', fill: '#B453B4' }}
+                  label={{ value: 'Median', position: 'top', fill: '#38BDF8' }}
                 />
               ) : null;
             })()}

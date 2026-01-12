@@ -67,7 +67,7 @@ export const NetWorthChart: React.FC<NetWorthChartProps> = ({
     padding: '5px 10px',
     border: '1px solid #3A3D46',
     borderRadius: '4px',
-    background: isActive ? '#790979' : '#1A1D26',
+    background: isActive ? '#147896' : '#1A1D26',
     color: isActive ? 'white' : '#94A3B8',
     cursor: 'pointer',
     fontSize: '12px',
@@ -157,13 +157,13 @@ export const NetWorthChart: React.FC<NetWorthChartProps> = ({
           <Tooltip 
             formatter={(value) => formatCurrency(Number(value))} 
             labelFormatter={(label) => `Age ${label}`}
-            contentStyle={{ background: '#1A1D26', border: '1px solid #790979', borderRadius: '8px', color: '#F8FAFC' }}
+            contentStyle={{ background: '#1A1D26', border: '1px solid #147896', borderRadius: '8px', color: '#F8FAFC' }}
             labelStyle={{ color: '#F8FAFC' }}
             itemStyle={{ color: '#F8FAFC' }}
           />
           <Legend wrapperStyle={{ paddingTop: '12px', color: '#F8FAFC' }} />
           <Line type="monotone" dataKey="Net Worth" stroke="#22C55E" strokeWidth={2} />
-          <Line type="monotone" dataKey="FIRE Target" stroke="#790979" strokeWidth={2} strokeDasharray="5 5" />
+          <Line type="monotone" dataKey="FIRE Target" stroke="#147896" strokeWidth={2} strokeDasharray="5 5" />
         </LineChart>
       </ResponsiveContainer>
     </section>
