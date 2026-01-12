@@ -47,8 +47,11 @@
   --color-success-bg: #F0FDF4;
   --color-warning: #F59E0B;
   --color-warning-bg: #FFFBEB;
+  --color-warning-muted: #fff3cd;
+  --color-warning-text: #856404;
   --color-error: #EF4444;
   --color-error-bg: #FEF2F2;
+  --color-error-muted: #fff5f5;
   --color-info: #3B82F6;
   --color-info-bg: #EFF6FF;
   
@@ -127,8 +130,11 @@
   --color-success-bg: #052E16;
   --color-warning: #FBBF24;
   --color-warning-bg: #422006;
+  --color-warning-muted: #422006;
+  --color-warning-text: #fbbf24;
   --color-error: #F87171;
   --color-error-bg: #450A0A;
+  --color-error-muted: #450A0A;
   --color-info: #60A5FA;
   --color-info-bg: #172554;
   
@@ -469,7 +475,7 @@ body {
 
 .input-error {
   border-color: var(--color-error) !important;
-  background-color: var(--color-text-inverse)5f5;
+  background-color: var(--color-error-muted);
 }
 
 .input-error:focus {
@@ -564,23 +570,23 @@ body {
 }
 
 .deflation-warning {
-  background-color: var(--color-text-inverse)3cd;
-  border: 1px solid #ffc107;
+  background-color: var(--color-warning-muted);
+  border: 1px solid var(--color-warning);
   border-radius: 6px;
   padding: 0.75rem;
   margin-top: 0.5rem;
-  color: #856404;
+  color: var(--color-warning-text);
   font-size: 0.85rem;
   line-height: 1.4;
 }
 
 .validation-error-banner {
-  background-color: var(--color-text-inverse)3cd;
-  border: 2px solid #ffc107;
+  background-color: var(--color-warning-muted);
+  border: 2px solid var(--color-warning);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
-  color: #856404;
+  color: var(--color-warning-text);
 }
 
 .validation-error-banner strong {
@@ -849,10 +855,10 @@ body {
 .mc-base-data-note {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--color-surface-primary)8e6;
+  background: var(--color-warning-muted);
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #856404;
+  color: var(--color-warning-text);
   display: flex;
   align-items: center;
   gap: 0.5rem;

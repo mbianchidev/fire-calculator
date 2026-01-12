@@ -50,7 +50,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     saveSettings(newSettings);
     
     // Also save to localStorage for fast access by inline script
-    localStorage.setItem('fire-theme-preference', newTheme);
+    // Wrapped in try-catch for browsers with restricted storage (private browsing, etc.)
+    try {
+      localStorage.setItem('fire-theme-preference', newTheme);
+    } catch {
+      // Silently fail - cookie storage will still work
+    }
     
     // Resolve and apply
     const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
@@ -58,6 +63,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(resolved);
   }, []);
 
+  // Toggle between dark and light themes (not system)
   const toggleTheme = useCallback(() => {
     const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
@@ -70,7 +76,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     
     applyTheme(resolvedTheme);
     // Sync theme to localStorage on mount
-    localStorage.setItem('fire-theme-preference', theme);
+    try {
+      localStorage.setItem('fire-theme-preference', theme);
+    } catch {
+      // Silently fail - cookie storage will still work
+    }
     
     // Re-enable transitions after a brief delay
     setTimeout(() => {
