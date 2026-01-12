@@ -48,3 +48,4 @@ test-results.json
 *.tmp
 *.temp
 .cache
+*.backup
