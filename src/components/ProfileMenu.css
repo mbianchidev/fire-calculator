@@ -1,3 +1,7 @@
+/* ============================================================================
+   PROFILE MENU - Premium Fintech Dark Theme
+   ============================================================================ */
+
 .profile-menu-container {
   position: relative;
   display: flex;
@@ -17,20 +21,22 @@
 .profile-icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
+  color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 14px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all var(--transition-fast);
+  box-shadow: var(--glow-primary);
+  border: 2px solid var(--border-accent);
 }
 
 .profile-icon-button:hover .profile-icon {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px var(--accent-glow-strong);
 }
 
 .profile-dropdown {
@@ -38,12 +44,14 @@
   top: calc(100% + 8px);
   right: 0;
   min-width: 200px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-accent);
   z-index: 1000;
   overflow: hidden;
   animation: dropdownSlideIn 0.2s ease-out;
+  backdrop-filter: blur(20px);
 }
 
 @keyframes dropdownSlideIn {
@@ -59,32 +67,36 @@
 
 .profile-dropdown-header {
   padding: 12px 16px;
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
+  color: var(--text-inverse);
 }
 
 .profile-name {
   font-weight: 600;
   font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .profile-dropdown-divider {
   height: 1px;
-  background: #e0e0e0;
+  background: var(--border-subtle);
 }
 
 .profile-dropdown-item {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: #333;
+  color: var(--text-primary);
   text-decoration: none;
   font-size: 14px;
-  transition: background-color 0.2s;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
 }
 
 .profile-dropdown-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .dropdown-icon {
@@ -92,7 +104,6 @@
   font-size: 16px;
 }
 
-/* Mobile responsive */
 @media (max-width: 768px) {
   .profile-dropdown {
     min-width: 180px;
