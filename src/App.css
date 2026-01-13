@@ -183,6 +183,7 @@ body {
   box-shadow: 0 4px 30px var(--accent-glow);
   border-bottom: 1px solid var(--border-accent);
   position: relative;
+  z-index: 1000;
 }
 
 .nav-toggle {
