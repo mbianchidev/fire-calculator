@@ -229,7 +229,7 @@ body {
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
   text-decoration: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-weight: 500;
   transition: all var(--transition-base);
   background: transparent;
@@ -256,9 +256,9 @@ body {
 }
 
 .nav-link:hover {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
-  color: var(--text-primary);
-  box-shadow: var(--glow-primary);
+  background: transparent;
+  color: var(--accent-primary);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
@@ -269,7 +269,7 @@ body {
 
 .nav-link.active {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
-  color: var(--text-primary);
+  color: var(--text-inverse);
   box-shadow: var(--glow-primary);
 }
 

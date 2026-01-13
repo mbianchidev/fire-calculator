@@ -251,7 +251,7 @@
 }
 
 .cta-link {
-  color: var(--accent-primary);
+  color: var(--text-primary);
   font-weight: bold;
   font-size: 1.1rem;
   display: inline-flex;
@@ -260,9 +260,13 @@
   transition: all var(--transition-base);
 }
 
+.cta-link:hover {
+  color: var(--accent-primary);
+}
+
 .feature-card:hover .cta-link {
   transform: translateX(5px);
-  color: var(--accent-gold);
+  color: var(--accent-primary);
 }
 
 /* ============================================================================

@@ -2,147 +2,368 @@
    POLICY PAGES - Premium Fintech Dark Theme
    ============================================================================ */
 
+/* Policy pages shared styles */
 .policy-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
+  flex: 1;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  margin: 2rem auto;
+  max-width: 1000px;
+  width: 100%;
+  padding: 0 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .policy-container {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: 3rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-accent);
+  padding: 3rem 0;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.policy-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--border-accent);
-}
-
-.policy-header h1 {
-  font-family: var(--font-heading);
-  font-size: 2.5rem;
+.policy-container h1 {
   color: var(--text-primary);
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.policy-date {
+.last-updated {
   color: var(--text-muted);
   font-size: 0.95rem;
-  font-style: italic;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-subtle);
 }
 
-.policy-content h2 {
-  font-family: var(--font-heading);
-  font-size: 1.8rem;
+.policy-section {
+  margin-bottom: 2.5rem;
+}
+
+.policy-section h2 {
   color: var(--text-primary);
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
   margin-top: 2rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
 }
 
-.policy-content h3 {
-  font-family: var(--font-heading);
+.policy-section h3 {
+  color: var(--text-secondary);
   font-size: 1.4rem;
-  color: var(--text-secondary);
-  margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  font-weight: 600;
+  margin-top: 1.5rem;
 }
 
-.policy-content p {
+.policy-section h4 {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.policy-section p {
   color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 1rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
-.policy-content ul,
-.policy-content ol {
+.policy-section ul {
   margin-left: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.policy-section li {
   color: var(--text-secondary);
   line-height: 1.8;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
-.policy-content li {
-  margin-bottom: 0.75rem;
-}
-
-.policy-content a {
+.policy-section a {
   color: var(--accent-primary);
   text-decoration: underline;
-  font-weight: 500;
-  transition: color var(--transition-fast);
+  transition: color 0.2s;
 }
 
-.policy-content a:hover {
+.policy-section a:hover {
   color: var(--accent-gold);
 }
 
-.policy-content strong {
+.policy-section a:focus {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.policy-section code {
+  background: var(--bg-tertiary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--accent-gold);
+}
+
+.policy-section strong {
   color: var(--text-primary);
   font-weight: 600;
 }
 
-.policy-content code {
+/* Tables */
+.policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.policy-table thead {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  color: var(--text-inverse);
+}
+
+.policy-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.policy-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.policy-table tbody tr:hover {
   background: var(--bg-tertiary);
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.9em;
+}
+
+.policy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Cookie table specific styles */
+.cookie-table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.cookie-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 700px;
+}
+
+.cookie-table thead {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  color: var(--text-inverse);
+}
+
+.cookie-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.cookie-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+
+.cookie-table td:first-child {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
   color: var(--accent-gold);
-  border: 1px solid var(--border-subtle);
 }
 
-.policy-highlight {
-  background: rgba(0, 212, 170, 0.1);
+.cookie-table tbody tr:hover {
+  background: var(--bg-tertiary);
+}
+
+.cookie-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Info box */
+.info-box {
+  background: rgba(45, 212, 191, 0.1);
   border-left: 4px solid var(--accent-primary);
-  padding: 1rem 1.5rem;
+  padding: 1.5rem;
   margin: 1.5rem 0;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
 }
 
-.policy-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-left: 4px solid var(--warning);
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-  border-radius: var(--radius-sm);
+.info-box h4 {
+  color: var(--accent-primary);
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
 }
 
+.info-box p {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
   .policy-page {
-    padding: 1rem;
+    padding: 0 1rem;
+    margin: 1rem auto;
+    border-radius: 8px;
   }
 
   .policy-container {
-    padding: 1.5rem;
+    padding: 2rem 0;
   }
 
-  .policy-header h1 {
+  .policy-container h1 {
     font-size: 2rem;
   }
 
-  .policy-content h2 {
+  .policy-section h2 {
     font-size: 1.5rem;
   }
 
-  .policy-content h3 {
+  .policy-section h3 {
     font-size: 1.2rem;
   }
 
-  .policy-content p {
+  .policy-section p,
+  .policy-section li {
+    font-size: 0.95rem;
+  }
+
+  .policy-section ul {
+    margin-left: 1.5rem;
+  }
+
+  .policy-table,
+  .cookie-table {
+    font-size: 0.85rem;
+  }
+
+  .policy-table th,
+  .policy-table td,
+  .cookie-table th,
+  .cookie-table td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .cookie-table-wrapper {
+    margin: 1rem -1rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .policy-container h1 {
+    font-size: 1.75rem;
+  }
+
+  .policy-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .policy-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .last-updated {
+    font-size: 0.9rem;
+  }
+
+  .policy-table th,
+  .policy-table td,
+  .cookie-table th,
+  .cookie-table td {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8rem;
+  }
+
+  .info-box {
+    padding: 1rem;
+  }
+
+  .info-box h4 {
     font-size: 1rem;
   }
 
-  .policy-content ul,
-  .policy-content ol {
-    margin-left: 1.5rem;
+  .info-box p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
+  .policy-page {
+    max-width: 1200px;
+  }
+
+  .policy-container {
+    max-width: 1000px;
+  }
+
+  .policy-container h1 {
+    font-size: 3rem;
+  }
+
+  .policy-section h2 {
+    font-size: 2rem;
+  }
+
+  .policy-section p,
+  .policy-section li {
+    font-size: 1.05rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .policy-page {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  .policy-container h1 {
+    -webkit-text-fill-color: #333;
+    color: #333;
+  }
+
+  .policy-section a {
+    color: #333;
+    text-decoration: underline;
+  }
+
+  .policy-section p,
+  .policy-section li,
+  .policy-section h2,
+  .policy-section h3,
+  .policy-section h4 {
+    color: #333;
+  }
+
+  .policy-table thead,
+  .cookie-table thead {
+    background: #333 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
