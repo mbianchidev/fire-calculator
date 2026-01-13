@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CalculatorInputs } from '../types/calculator';
 import { NumberInput } from './NumberInput';
 import { SliderInput } from './SliderInput';
+import { MaterialIcon } from './MaterialIcon';
 import { calculateYearsOfExpenses } from '../utils/fireCalculator';
 import { 
   calculateAnnualExpensesFromTracker, 
@@ -132,7 +133,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-controls="initial-values-content"
         >
           <h3>
-            <span aria-hidden="true">💰</span> Initial Values 
+            <MaterialIcon name="savings" /> Initial Values 
             {inputs.useAssetAllocationValue && <span className="calculated-label"> - From Asset Allocation</span>}
             <span className="collapse-icon-small" aria-hidden="true">{openSections.initialValues ? '▼' : '▶'}</span>
           </h3>
@@ -172,7 +173,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-controls="asset-allocation-content"
         >
           <h3>
-            <span aria-hidden="true">📊</span> Asset Allocation 
+            <MaterialIcon name="pie_chart" /> Asset Allocation 
             {inputs.useAssetAllocationValue && <span className="calculated-label"> - From Asset Allocation</span>}
             <span className="collapse-icon-small" aria-hidden="true">{openSections.assetAllocation ? '▼' : '▶'}</span>
           </h3>
@@ -241,7 +242,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <div className="allocation-sum" role="status" aria-live="polite">
           Total: {(effectiveStocksPercent + effectiveBondsPercent + effectiveCashPercent).toFixed(2)}%
           {Math.abs((effectiveStocksPercent + effectiveBondsPercent + effectiveCashPercent) - 100) > 0.01 && 
-            <span className="warning"> <span aria-hidden="true">⚠️</span> Should equal 100%</span>
+            <span className="warning"> <MaterialIcon name="warning" size="small" /> Should equal 100%</span>
           }
         </div>
         </div>)}
@@ -254,7 +255,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.income}
           aria-controls="income-content"
         >
-          <h3><span aria-hidden="true">💵</span> Income <span className="collapse-icon-small" aria-hidden="true">{openSections.income ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="payments" /> Income <span className="collapse-icon-small" aria-hidden="true">{openSections.income ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.income && (<div id="income-content" className="form-section-content">
         <div className="form-group">
@@ -303,7 +304,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.pension}
           aria-controls="pension-content"
         >
-          <h3><span aria-hidden="true">🏦</span> Pension <span className="collapse-icon-small" aria-hidden="true">{openSections.pension ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="account_balance" /> Pension <span className="collapse-icon-small" aria-hidden="true">{openSections.pension ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.pension && (<div id="pension-content" className="form-section-content">
         <div className="form-group">
@@ -341,7 +342,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.expenses}
           aria-controls="expenses-content"
         >
-          <h3><span aria-hidden="true">💸</span> Expenses & Savings <span className="collapse-icon-small" aria-hidden="true">{openSections.expenses ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="shopping_cart" /> Expenses & Savings <span className="collapse-icon-small" aria-hidden="true">{openSections.expenses ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.expenses && (<div id="expenses-content" className="form-section-content">
         <div className="form-group">
@@ -394,7 +395,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.fireParams}
           aria-controls="fire-params-content"
         >
-          <h3><span aria-hidden="true">🎯</span> FIRE Parameters <span className="collapse-icon-small" aria-hidden="true">{openSections.fireParams ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="gps_fixed" /> FIRE Parameters <span className="collapse-icon-small" aria-hidden="true">{openSections.fireParams ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.fireParams && (<div id="fire-params-content" className="form-section-content">
         <div className="form-group">
@@ -436,7 +437,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.expectedReturns}
           aria-controls="expected-returns-content"
         >
-          <h3><span aria-hidden="true">📈</span> Expected Returns <span className="collapse-icon-small" aria-hidden="true">{openSections.expectedReturns ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="trending_up" /> Expected Returns <span className="collapse-icon-small" aria-hidden="true">{openSections.expectedReturns ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.expectedReturns && (<div id="expected-returns-content" className="form-section-content">
         <div className="form-group">
@@ -473,7 +474,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           />
           {inputs.expectedCashReturn > 0 && (
             <div className="deflation-warning" role="alert">
-              <span aria-hidden="true">⚠️</span> A positive value indicates deflation. Long periods of deflation are historically rare - consider this carefully in your projections.
+              <MaterialIcon name="warning" /> A positive value indicates deflation. Long periods of deflation are historically rare - consider this carefully in your projections.
             </div>
           )}
         </div>
@@ -487,7 +488,7 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
           aria-expanded={openSections.options}
           aria-controls="options-content"
         >
-          <h3><span aria-hidden="true">⚙️</span> Options <span className="collapse-icon-small" aria-hidden="true">{openSections.options ? '▼' : '▶'}</span></h3>
+          <h3><MaterialIcon name="settings" /> Options <span className="collapse-icon-small" aria-hidden="true">{openSections.options ? '▼' : '▶'}</span></h3>
         </button>
         {openSections.options && (<div id="options-content" className="form-section-content">
         <div className="form-group checkbox-group">

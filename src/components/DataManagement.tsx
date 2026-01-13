@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MaterialIcon } from './MaterialIcon';
 
 interface DataManagementProps {
   onExport: () => void;
@@ -32,7 +33,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         aria-controls="data-management-content"
       >
         <h4>
-          <span aria-hidden="true">💾</span> Data Management <span className="collapse-icon-small" aria-hidden="true">{isOpen ? '▼' : '▶'}</span>
+          <MaterialIcon name="save" /> Data Management <span className="collapse-icon-small" aria-hidden="true">{isOpen ? '▼' : '▶'}</span>
         </h4>
       </button>
       {isOpen && (
@@ -50,7 +51,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               }}
               aria-label="Load demo expense data for the current year"
             >
-              <span aria-hidden="true">🎲</span> Load Demo Data
+              <MaterialIcon name="casino" /> Load Demo Data
             </button>
           )}
           <button 
@@ -59,7 +60,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
             style={{ width: '100%', marginBottom: '8px', justifyContent: 'center' }}
             aria-label={`Export calculator data to ${formatLabel} file`}
           >
-            <span aria-hidden="true">📥</span> Export {formatLabel}
+            <MaterialIcon name="download" /> Export {formatLabel}
           </button>
           <label 
             className="action-btn import-btn" 
@@ -72,7 +73,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               }
             }}
           >
-            <span aria-hidden="true">📤</span> Import {formatLabel}
+            <MaterialIcon name="upload" /> Import {formatLabel}
             <input
               type="file"
               accept={acceptType}
@@ -87,7 +88,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
             style={{ width: '100%', backgroundColor: '#ef4444', color: 'white', justifyContent: 'center' }}
             aria-label="Reset all calculator data to defaults"
           >
-            <span aria-hidden="true">🔄</span> Reset All Data
+            <MaterialIcon name="refresh" /> Reset All Data
           </button>
         </div>
       )}

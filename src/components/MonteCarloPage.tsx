@@ -4,6 +4,7 @@ import { CalculationResult, CalculatorInputs } from '../types/calculator';
 import { DEFAULT_INPUTS } from '../utils/defaults';
 import { calculateFIRE, getEffectiveInputs } from '../utils/fireCalculator';
 import { loadFireCalculatorInputs, loadAssetAllocation } from '../utils/cookieStorage';
+import { MaterialIcon } from './MaterialIcon';
 import { MonteCarloSimulator } from './MonteCarloSimulator';
 
 export const MonteCarloPage: React.FC = () => {
@@ -94,7 +95,7 @@ export const MonteCarloPage: React.FC = () => {
     <div className="app-container monte-carlo-container">
       <main className="main-content" id="main-content">
         <header className="page-header">
-          <h2><span aria-hidden="true" className="page-header-emoji">🎲</span> Monte Carlo Simulations</h2>
+          <h2><MaterialIcon name="casino" className="page-header-icon" /> Monte Carlo Simulations</h2>
           <p className="page-description">
             Run multiple simulations with random market returns to assess the probability of reaching FIRE.
             This helps you understand the range of potential outcomes and the likelihood of success under different market conditions.
@@ -103,7 +104,7 @@ export const MonteCarloPage: React.FC = () => {
 
         {hasValidationErrors && (
           <div className="validation-error-banner" role="alert" aria-live="polite">
-            <strong><span aria-hidden="true">⚠️</span> Validation Error</strong>
+            <strong><MaterialIcon name="warning" /> Validation Error</strong>
             {result.validationErrors?.map((error, index) => (
               <div key={index} className="validation-error-message">{error}</div>
             ))}
