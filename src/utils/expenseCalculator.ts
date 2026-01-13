@@ -256,8 +256,8 @@ export function filterTransactions<T extends Transaction>(
     if (filter.searchTerm) {
       const searchLower = filter.searchTerm.toLowerCase();
       const descriptionMatches = transaction.description.toLowerCase().includes(searchLower);
-      // Normalize search term: replace comma with dot for amount comparison
-      const normalizedSearchTerm = filter.searchTerm.replace(',', '.');
+      // Normalize search term: replace all commas with dots for amount comparison
+      const normalizedSearchTerm = filter.searchTerm.replace(/,/g, '.');
       const amountString = transaction.amount.toString();
       const amountMatches = amountString.includes(filter.searchTerm) || amountString.includes(normalizedSearchTerm);
       if (!descriptionMatches && !amountMatches) {
