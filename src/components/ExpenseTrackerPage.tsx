@@ -45,6 +45,7 @@ import { ExpenseBreakdownChart } from './ExpenseBreakdownChart';
 import { SpendingTrendChart } from './SpendingTrendChart';
 import { MonthlyComparisonChart } from './MonthlyComparisonChart';
 import { ValidatedNumberInput } from './ValidatedNumberInput';
+import { MaterialIcon } from './MaterialIcon';
 import './ExpenseTrackerPage.css';
 
 // Month names for display
@@ -957,7 +958,7 @@ export function ExpenseTrackerPage() {
                 return (
                   <div key={category.id} className="budget-card">
                     <div className="budget-header">
-                      <span className="category-icon" aria-hidden="true">{category.icon}</span>
+                      <span className="category-icon" aria-hidden="true"><MaterialIcon name={category.icon} size="small" /></span>
                       <span className="category-name">{category.name}</span>
                       <span className={`expense-type-badge ${category.defaultExpenseType.toLowerCase()}`}>
                         {category.defaultExpenseType === 'NEED' ? 'Need' : 'Want'}
@@ -1133,7 +1134,7 @@ export function ExpenseTrackerPage() {
                       <tr key={item.category}>
                         <td>
                           <span className="category-icon" aria-hidden="true">
-                            {getCategoryInfo(item.category).icon}
+                            <MaterialIcon name={getCategoryInfo(item.category).icon} size="small" />
                           </span>
                           {getCategoryInfo(item.category).name}
                         </td>
@@ -1329,7 +1330,7 @@ function TransactionFormDialog({
                 onChange={(e) => setSource(e.target.value as IncomeSource)}
               >
                 {INCOME_SOURCES.map(s => (
-                  <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+                  <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
             </div>
@@ -1343,7 +1344,7 @@ function TransactionFormDialog({
                   onChange={(e) => handleCategoryChange(e.target.value as ExpenseCategory)}
                 >
                   {EXPENSE_CATEGORIES.map(c => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
