@@ -6,6 +6,7 @@ import {
   getActiveNotifications,
   getUnreadCount,
   markNotificationAsRead,
+  markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
   addNotification,
@@ -127,6 +128,16 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     refreshNotifications();
   };
 
+  const handleToggleReadStatus = (e: React.MouseEvent, notification: Notification) => {
+    e.stopPropagation();
+    if (notification.read) {
+      markNotificationAsUnread(notification.id);
+    } else {
+      markNotificationAsRead(notification.id);
+    }
+    refreshNotifications();
+  };
+
   const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
     e.stopPropagation();
     deleteNotification(notificationId);
@@ -212,13 +223,24 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                       <div className="notification-message">{notification.message}</div>
                       <div className="notification-time">{formatTimeAgo(notification.timestamp)}</div>
                     </div>
-                    <button
-                      className="notification-delete-btn"
-                      onClick={(e) => handleDeleteNotification(e, notification.id)}
-                      aria-label="Delete notification"
-                    >
-                      <MaterialIcon name="close" size="small" />
-                    </button>
+                    <div className="notification-actions">
+                      <button
+                        className="notification-read-btn"
+                        onClick={(e) => handleToggleReadStatus(e, notification)}
+                        aria-label={notification.read ? 'Mark as unread' : 'Mark as read'}
+                        title={notification.read ? 'Mark as unread' : 'Mark as read'}
+                      >
+                        <MaterialIcon name={notification.read ? 'mark_email_unread' : 'mark_email_read'} size="small" />
+                      </button>
+                      <button
+                        className="notification-delete-btn"
+                        onClick={(e) => handleDeleteNotification(e, notification.id)}
+                        aria-label="Delete notification"
+                        title="Delete"
+                      >
+                        <MaterialIcon name="close" size="small" />
+                      </button>
+                    </div>
                   </div>
                 );
               })

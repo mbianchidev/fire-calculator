@@ -130,6 +130,28 @@ export function markNotificationAsRead(notificationId: string): void {
 }
 
 /**
+ * Mark a specific notification as unread
+ */
+export function markNotificationAsUnread(notificationId: string): void {
+  try {
+    const state = loadNotificationState();
+    
+    const updatedNotifications = state.notifications.map(n =>
+      n.id === notificationId ? { ...n, read: false } : n
+    );
+    
+    const updatedState: NotificationState = {
+      ...state,
+      notifications: updatedNotifications,
+    };
+    
+    saveNotificationState(updatedState);
+  } catch (error) {
+    console.error('Failed to mark notification as unread:', error);
+  }
+}
+
+/**
  * Mark all notifications as read and update lastChecked timestamp
  */
 export function markAllNotificationsAsRead(): void {

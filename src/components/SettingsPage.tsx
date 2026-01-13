@@ -10,8 +10,9 @@ import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import { clearTourPreference } from '../utils/tourPreferences';
 import { exportAllDataAsJSON, importAllDataFromJSON, serializeAllDataExport } from '../utils/dataExportImport';
-import { loadNotificationState, updateNotificationPreferences, clearNotifications } from '../utils/notificationStorage';
+import { loadNotificationState, updateNotificationPreferences, clearNotifications, addNotification } from '../utils/notificationStorage';
 import { type NotificationPreferences, DEFAULT_NOTIFICATION_PREFERENCES } from '../types/notification';
+import { generateDemoTourNotifications } from '../utils/notificationGenerator';
 import { Tooltip } from './Tooltip';
 import { MaterialIcon } from './MaterialIcon';
 import './SettingsPage.css';
@@ -397,6 +398,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
     }
   };
 
+  // Trigger test notifications
+  const handleTriggerTestNotifications = () => {
+    const testNotifications = generateDemoTourNotifications();
+    testNotifications.forEach(notification => {
+      addNotification(notification);
+    });
+    showMessage('success', `${testNotifications.length} test notifications created! Check the notification bell.`);
+  };
+
   if (isLoading) {
     return <div className="settings-page loading">Loading settings...</div>;
   }
@@ -654,6 +664,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
               </div>
             </>
           )}
+
+          <div className="setting-item">
+            <div className="subsection-header-with-tooltip">
+              <h3><MaterialIcon name="science" /> Test Mode</h3>
+              <Tooltip content="Trigger sample notifications to test the notification system. This will add demo notifications to your notification bell so you can see how they look and work.">
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
+            <p className="setting-help">Create sample notifications to test the notification UI</p>
+            <button className="secondary-btn" onClick={handleTriggerTestNotifications}>
+              <MaterialIcon name="notifications_active" /> Trigger Test Notifications
+            </button>
+          </div>
 
           <div className="setting-item">
             <button className="secondary-btn" onClick={handleClearNotifications}>

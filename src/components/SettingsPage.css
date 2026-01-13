@@ -436,7 +436,7 @@
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   cursor: pointer;
   user-select: none;
   color: var(--text-primary);
@@ -448,6 +448,8 @@
   height: 1.25rem;
   cursor: pointer;
   accent-color: var(--accent-primary);
+  flex-shrink: 0;
+  margin-right: 0.25rem;
 }
 
 .checkbox-label span {
@@ -455,7 +457,7 @@
 }
 
 .checkbox-label + .setting-help {
-  margin-left: 2rem;
+  margin-left: 2.5rem;
 }
 
 /* Disabled button styles */

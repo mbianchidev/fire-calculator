@@ -2,7 +2,7 @@
 
 .notification-bell-container {
   position: relative;
-  z-index: 1;
+  z-index: 1000;
 }
 
 .notification-bell-button {
@@ -56,7 +56,7 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: 10000;
   overflow: hidden;
   animation: slideIn 0.2s ease-out;
 }
@@ -227,6 +227,20 @@
   color: #999;
 }
 
+.notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.notification-item:hover .notification-actions {
+  opacity: 1;
+}
+
+.notification-read-btn,
 .notification-delete-btn {
   flex-shrink: 0;
   background: transparent;
@@ -235,12 +249,12 @@
   padding: 0.25rem;
   border-radius: 4px;
   color: #999;
-  opacity: 0;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
-.notification-item:hover .notification-delete-btn {
-  opacity: 1;
+.notification-read-btn:hover {
+  color: #3498db;
+  background-color: rgba(52, 152, 219, 0.1);
 }
 
 .notification-delete-btn:hover {

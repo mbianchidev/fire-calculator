@@ -5,6 +5,7 @@ import {
   clearNotifications,
   addNotification,
   markNotificationAsRead,
+  markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
   getUnreadCount,
@@ -227,6 +228,45 @@ describe('Notification Storage utilities', () => {
       addNotification(second);
       
       markNotificationAsRead(second.id);
+      
+      const loaded = loadNotificationState();
+      const firstNotif = loaded.notifications.find(n => n.id === first.id);
+      const secondNotif = loaded.notifications.find(n => n.id === second.id);
+      
+      expect(firstNotif?.read).toBe(false);
+      expect(secondNotif?.read).toBe(true);
+    });
+  });
+
+  describe('markNotificationAsUnread', () => {
+    it('should mark a read notification as unread', () => {
+      const notification = createNotification('WELCOME', 'Welcome', 'Hello!');
+      addNotification(notification);
+      
+      // First mark as read
+      markNotificationAsRead(notification.id);
+      let loaded = loadNotificationState();
+      expect(loaded.notifications[0].read).toBe(true);
+      
+      // Then mark as unread
+      markNotificationAsUnread(notification.id);
+      loaded = loadNotificationState();
+      expect(loaded.notifications[0].read).toBe(false);
+    });
+
+    it('should not affect other notifications', () => {
+      const first = createNotification('WELCOME', 'First', 'First');
+      const second = createNotification('NEW_MONTH', 'Second', 'Second');
+      
+      addNotification(first);
+      addNotification(second);
+      
+      // Mark both as read
+      markNotificationAsRead(first.id);
+      markNotificationAsRead(second.id);
+      
+      // Then mark only first as unread
+      markNotificationAsUnread(first.id);
       
       const loaded = loadNotificationState();
       const firstNotif = loaded.notifications.find(n => n.id === first.id);
