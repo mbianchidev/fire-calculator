@@ -19,6 +19,7 @@ import {
   CategoryBudget,
   ExpenseCategory,
   Transaction,
+  generateTransactionId,
 } from '../types/expenseTracker';
 
 /**
@@ -222,6 +223,19 @@ export function filterTransactions<T extends Transaction>(
   filter: TransactionFilter
 ): T[] {
   return transactions.filter(transaction => {
+    // Transaction type filter (income vs expense)
+    if (filter.transactionType) {
+      const transactionType = 'source' in transaction ? 'income' : 'expense';
+      if (transactionType !== filter.transactionType) {
+        return false;
+      }
+    }
+
+    // Exact date filter
+    if (filter.filterDate && transaction.date !== filter.filterDate) {
+      return false;
+    }
+
     // Date range filter
     if (filter.startDate && transaction.date < filter.startDate) {
       return false;
@@ -238,15 +252,29 @@ export function filterTransactions<T extends Transaction>(
       return false;
     }
 
-    // Search term filter
+    // Search term filter - searches in description and amount (supports both . and , for decimals)
     if (filter.searchTerm) {
       const searchLower = filter.searchTerm.toLowerCase();
-      if (!transaction.description.toLowerCase().includes(searchLower)) {
+      const descriptionMatches = transaction.description.toLowerCase().includes(searchLower);
+      // Normalize search term: replace all commas with dots for amount comparison
+      const normalizedSearchTerm = filter.searchTerm.replace(/,/g, '.');
+      const amountString = transaction.amount.toString();
+      const amountMatches = amountString.includes(filter.searchTerm) || amountString.includes(normalizedSearchTerm);
+      if (!descriptionMatches && !amountMatches) {
         return false;
       }
     }
 
-    // Type-specific filters
+    // Recurring filter
+    if (filter.isRecurring !== undefined) {
+      // Treat undefined isRecurring as false for filtering purposes
+      const transactionIsRecurring = transaction.isRecurring ?? false;
+      if (transactionIsRecurring !== filter.isRecurring) {
+        return false;
+      }
+    }
+
+    // Type-specific filters - only apply to expenses
     if ('category' in transaction) {
       const expense = transaction as unknown as ExpenseEntry;
       if (filter.category && expense.category !== filter.category) {
@@ -254,6 +282,14 @@ export function filterTransactions<T extends Transaction>(
       }
       if (filter.expenseType && expense.expenseType !== filter.expenseType) {
         return false;
+      }
+    } else {
+      // This is an income transaction - exclude if filtering by expense category or expense type
+      if (filter.category) {
+        return false; // Income should not appear when filtering by expense category
+      }
+      if (filter.expenseType) {
+        return false; // Income should not appear when filtering by Needs/Wants
       }
     }
 
@@ -461,5 +497,58 @@ export function calculateYearToDateBreakdown(
     totalIncome,
     totalExpenses,
     average: calculateYearToDateAverage(ytdMonths),
+  };
+}
+
+/**
+ * Get the number of days in a given month
+ */
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
+/**
+ * Copy recurring transactions from a source month to a new target month
+ * @param sourceMonth - The month data to copy recurring transactions from
+ * @param targetYear - The target year for the new transactions
+ * @param targetMonth - The target month (1-12) for the new transactions
+ * @returns Object containing arrays of copied incomes and expenses
+ */
+export function copyRecurringTransactionsToNewMonth(
+  sourceMonth: MonthData,
+  targetYear: number,
+  targetMonth: number
+): { incomes: IncomeEntry[]; expenses: ExpenseEntry[] } {
+  const targetMonthDays = getDaysInMonth(targetYear, targetMonth);
+  
+  // Helper to update date to new month while preserving day (adjusting if needed)
+  const updateDateToTargetMonth = (originalDate: string): string => {
+    const day = parseInt(originalDate.split('-')[2], 10);
+    // Clamp day to the maximum days in the target month
+    const adjustedDay = Math.min(day, targetMonthDays);
+    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(adjustedDay).padStart(2, '0')}`;
+  };
+  
+  // Filter and copy recurring incomes
+  const recurringIncomes = sourceMonth.incomes
+    .filter(income => income.isRecurring === true)
+    .map(income => ({
+      ...income,
+      id: generateTransactionId(),
+      date: updateDateToTargetMonth(income.date),
+    }));
+  
+  // Filter and copy recurring expenses
+  const recurringExpenses = sourceMonth.expenses
+    .filter(expense => expense.isRecurring === true)
+    .map(expense => ({
+      ...expense,
+      id: generateTransactionId(),
+      date: updateDateToTargetMonth(expense.date),
+    }));
+  
+  return {
+    incomes: recurringIncomes,
+    expenses: recurringExpenses,
   };
 }

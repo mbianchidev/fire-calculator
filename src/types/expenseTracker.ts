@@ -52,6 +52,7 @@ export interface Transaction {
   amount: number;
   description: string;
   currency?: SupportedCurrency;
+  isRecurring?: boolean; // Whether this is a recurring transaction
 }
 
 // Income entry
@@ -171,12 +172,15 @@ export type SortDirection = 'asc' | 'desc';
 export interface TransactionFilter {
   startDate?: string;
   endDate?: string;
+  filterDate?: string; // Exact date filter (e.g., "2026-01-15")
   category?: ExpenseCategory;
   incomeSource?: IncomeSource;
   expenseType?: ExpenseType;
+  transactionType?: 'income' | 'expense'; // Filter by transaction type
   minAmount?: number;
   maxAmount?: number;
   searchTerm?: string;
+  isRecurring?: boolean; // Filter for recurring transactions
 }
 
 export interface TransactionSort {

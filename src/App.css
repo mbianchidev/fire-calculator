@@ -386,7 +386,8 @@ body {
 }
 
 .form-group input[type="number"],
-.form-group input[type="text"] {
+.form-group input[type="text"],
+.form-group input[type="date"] {
   width: 100%;
   padding: 0.6rem;
   border: 2px solid var(--border-subtle);
@@ -397,8 +398,19 @@ body {
   transition: all var(--transition-base);
 }
 
+/* Date input calendar icon styling for dark theme */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 .form-group input[type="number"]:focus,
-.form-group input[type="text"]:focus {
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus {
   outline: 3px solid var(--accent-primary);
   outline-offset: 2px;
   border-color: var(--accent-primary);

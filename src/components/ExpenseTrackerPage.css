@@ -415,6 +415,36 @@
   color: var(--text-secondary);
 }
 
+.transactions-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+  position: relative;
+  padding-right: 2rem;
+}
+
+.transactions-table th.sortable:hover {
+  background-color: rgba(102, 126, 234, 0.15);
+}
+
+.transactions-table .sort-indicator {
+  display: inline-block;
+  margin-left: 0.5rem;
+  opacity: 0.8;
+  font-size: 1em;
+  color: var(--accent-primary);
+  font-weight: bold;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.transactions-table th.sortable:hover .sort-indicator {
+  opacity: 1;
+  color: var(--accent-gold);
+}
+
 .transactions-table .amount-col {
   text-align: right;
   font-weight: 600;
@@ -434,6 +464,27 @@
 
 .expense-row {
   background: rgba(244, 67, 54, 0.05);
+}
+
+/* Recurring transaction styling */
+.recurring-row {
+  border-left: 3px solid var(--accent-primary);
+}
+
+.recurring-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.375rem;
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 4px;
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+.recurring-badge .material-symbols-outlined {
+  font-size: 0.9rem !important;
 }
 
 .type-badge {
@@ -456,6 +507,70 @@
 .type-badge.want {
   background: rgba(251, 146, 60, 0.2);
   color: var(--warning);
+}
+
+/* Sum row in transactions table */
+.transactions-table tfoot .sum-row {
+  background: var(--bg-tertiary);
+  border-top: 2px solid var(--border-subtle);
+}
+
+.transactions-table .sum-row td {
+  padding: 0.75rem 1rem;
+}
+
+.transactions-table .sum-row .sum-label {
+  text-align: right;
+}
+
+.transactions-table .sum-row .positive {
+  color: var(--success);
+}
+
+.transactions-table .sum-row .negative {
+  color: var(--error);
+}
+
+/* Amount range filter */
+.filter-group-amount-range {
+  flex-wrap: wrap;
+}
+
+.amount-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.amount-range-inputs input {
+  width: 70px;
+  padding: 0.4rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.amount-range-separator {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Date filter input fix */
+.date-filter-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  color-scheme: dark;
+}
+
+.date-filter-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .btn-icon {
@@ -758,6 +873,194 @@
   outline: 3px solid var(--accent-primary);
   outline-offset: 2px;
   border-color: var(--accent-primary);
+}
+
+/* Custom Select Dropdown with Icons */
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 0.6rem;
+  border: 2px solid var(--border-subtle);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.custom-select-trigger:hover {
+  border-color: var(--accent-primary);
+}
+
+.custom-select-trigger:focus {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-color: var(--accent-primary);
+}
+
+.custom-select-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custom-select-value .material-symbols-outlined {
+  color: var(--accent-primary);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-subtle);
+  border-radius: 6px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1100;
+  list-style: none;
+  padding: 0;
+  box-shadow: var(--shadow-lg);
+}
+
+.custom-select-option {
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.custom-select-option:hover {
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.custom-select-option.selected {
+  background: rgba(102, 126, 234, 0.25);
+  color: var(--accent-primary);
+}
+
+.custom-select-option .material-symbols-outlined {
+  color: var(--accent-primary);
+  font-size: 1.1rem;
+}
+
+/* Checkbox form group */
+.form-group-checkbox {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.form-group-checkbox .toggle-switch-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.form-group-checkbox .toggle-switch-label input[type="checkbox"] {
+  display: none;
+}
+
+.form-group-checkbox .toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 1.5rem;
+  background: var(--bg-elevated);
+  border-radius: 1rem;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  margin-right: 1rem;
+}
+
+.form-group-checkbox .toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.form-group-checkbox input[type="checkbox"]:checked + .toggle-switch {
+  background: var(--accent-primary);
+}
+
+.form-group-checkbox input[type="checkbox"]:checked + .toggle-switch::after {
+  transform: translateX(1.25rem);
+  background: var(--bg-primary);
+}
+
+.form-group-checkbox .toggle-switch-label .material-symbols-outlined {
+  color: var(--accent-primary);
+  margin-right: 0.5rem;
+}
+
+.form-group-checkbox .toggle-switch-label > span:last-child {
+  line-height: 1.5rem;
+}
+
+.checkbox-hint {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  padding-left: 3.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.checkbox-label-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label-inline .material-symbols-outlined {
+  color: var(--accent-primary);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
+.checkbox-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-text .material-symbols-outlined {
+  color: var(--accent-primary);
 }
 
 .dialog-actions {

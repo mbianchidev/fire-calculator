@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ExpenseTrackerData,
@@ -27,6 +27,7 @@ import {
   sortTransactions,
   calculateQuarterlyBreakdown,
   calculateYearToDateBreakdown,
+  copyRecurringTransactionsToNewMonth,
 } from '../utils/expenseCalculator';
 import {
   saveExpenseTrackerData,
@@ -179,7 +180,7 @@ export function ExpenseTrackerPage() {
     setSelectedMonth(currentMonth);
   }, [currentYear, currentMonth]);
 
-  // Auto-create month/year if it doesn't exist
+  // Auto-create month/year if it doesn't exist, and copy recurring transactions from previous month
   useEffect(() => {
     setData(prev => {
       const yearData = prev.years.find(y => y.year === selectedYear);
@@ -201,9 +202,36 @@ export function ExpenseTrackerPage() {
         newData.years.sort((a, b) => b.year - a.year); // Sort descending
       }
       
-      // Ensure month exists
+      // Ensure month exists and populate with recurring transactions
       if (!targetYear.months.find(m => m.month === selectedMonth)) {
         const monthData = createEmptyMonthData(selectedYear, selectedMonth);
+        
+        // Find the previous month to copy recurring transactions from
+        let prevMonth: number;
+        let prevYear: number;
+        if (selectedMonth === 1) {
+          prevMonth = 12;
+          prevYear = selectedYear - 1;
+        } else {
+          prevMonth = selectedMonth - 1;
+          prevYear = selectedYear;
+        }
+        
+        // Look for the previous month in the data
+        const prevYearData = newData.years.find(y => y.year === prevYear);
+        const prevMonthData = prevYearData?.months.find(m => m.month === prevMonth);
+        
+        // Copy recurring transactions from previous month if it exists
+        if (prevMonthData) {
+          const recurringTransactions = copyRecurringTransactionsToNewMonth(
+            prevMonthData,
+            selectedYear,
+            selectedMonth
+          );
+          monthData.incomes = recurringTransactions.incomes;
+          monthData.expenses = recurringTransactions.expenses;
+        }
+        
         targetYear.months.push(monthData);
         targetYear.months.sort((a, b) => a.month - b.month);
       }
@@ -319,6 +347,22 @@ export function ExpenseTrackerPage() {
     const filtered = filterTransactions(allTransactions, filter);
     return sortTransactions(filtered, sort);
   }, [currentMonthData, filter, sort]);
+
+  // Helper function to handle table header sorting
+  const handleTableSort = useCallback((field: TransactionSort['field']) => {
+    setSort(prevSort => ({
+      field,
+      direction: prevSort.field === field 
+        ? (prevSort.direction === 'asc' ? 'desc' : 'asc')
+        : 'asc'
+    }));
+  }, []);
+
+  // Helper function to get sort indicator for table headers
+  const getTransactionSortIndicator = useCallback((field: TransactionSort['field']) => {
+    if (sort.field !== field) return '⇅';
+    return sort.direction === 'asc' ? '↑' : '↓';
+  }, [sort]);
 
   // Get filtered months data based on analytics view
   const filteredMonthsData = useMemo(() => {
@@ -846,11 +890,65 @@ export function ExpenseTrackerPage() {
                 </button>
               </div>
               <div className="filter-group">
+                <label htmlFor="filter-transaction-type">Show:</label>
+                <select
+                  id="filter-transaction-type"
+                  value={filter.transactionType || ''}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    transactionType: e.target.value as 'income' | 'expense' || undefined,
+                    // Clear category filter if switching to income
+                    category: e.target.value === 'income' ? undefined : filter.category,
+                    // Clear expense type filter if switching to income  
+                    expenseType: e.target.value === 'income' ? undefined : filter.expenseType
+                  })}
+                >
+                  <option value="">All Transactions</option>
+                  <option value="expense">Only Expenses</option>
+                  <option value="income">Only Income</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label htmlFor="filter-category">Category:</label>
+                <select
+                  id="filter-category"
+                  value={filter.category || ''}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    category: e.target.value as ExpenseCategory || undefined,
+                    // When selecting a category, filter to expenses only; when clearing, reset to all transactions
+                    transactionType: e.target.value ? 'expense' : undefined
+                  })}
+                  disabled={filter.transactionType === 'income'}
+                >
+                  <option value="">All Categories</option>
+                  {EXPENSE_CATEGORIES.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label htmlFor="filter-date">Date:</label>
+                <input
+                  id="filter-date"
+                  type="date"
+                  className="date-filter-input"
+                  value={filter.filterDate || ''}
+                  onChange={(e) => setFilter({ ...filter, filterDate: e.target.value || undefined })}
+                />
+              </div>
+              <div className="filter-group">
                 <label htmlFor="filter-type">Type:</label>
                 <select
                   id="filter-type"
                   value={filter.expenseType || ''}
-                  onChange={(e) => setFilter({ ...filter, expenseType: e.target.value as ExpenseType || undefined })}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    expenseType: e.target.value as ExpenseType || undefined,
+                    // When selecting needs/wants, filter to expenses only; when clearing, reset to all transactions
+                    transactionType: e.target.value ? 'expense' : undefined
+                  })}
+                  disabled={filter.transactionType === 'income'}
                 >
                   <option value="">All</option>
                   <option value="NEED">Needs</option>
@@ -858,14 +956,50 @@ export function ExpenseTrackerPage() {
                 </select>
               </div>
               <div className="filter-group">
+                <label htmlFor="filter-recurring">Recurring:</label>
+                <select
+                  id="filter-recurring"
+                  value={filter.isRecurring === undefined ? '' : filter.isRecurring.toString()}
+                  onChange={(e) => setFilter({ ...filter, isRecurring: e.target.value === '' ? undefined : e.target.value === 'true' })}
+                >
+                  <option value="">All</option>
+                  <option value="true">Recurring only</option>
+                  <option value="false">One-time only</option>
+                </select>
+              </div>
+              <div className="filter-group">
                 <label htmlFor="filter-search">Search:</label>
                 <input
                   id="filter-search"
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search description or amount..."
                   value={filter.searchTerm || ''}
                   onChange={(e) => setFilter({ ...filter, searchTerm: e.target.value || undefined })}
                 />
+              </div>
+              <div className="filter-group filter-group-amount-range">
+                <label>Amount Range:</label>
+                <div className="amount-range-inputs">
+                  <input
+                    id="filter-min-amount"
+                    type="number"
+                    placeholder="Min"
+                    min="0"
+                    step="0.01"
+                    value={filter.minAmount ?? ''}
+                    onChange={(e) => setFilter({ ...filter, minAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                  <span className="amount-range-separator">-</span>
+                  <input
+                    id="filter-max-amount"
+                    type="number"
+                    placeholder="Max"
+                    min="0"
+                    step="0.01"
+                    value={filter.maxAmount ?? ''}
+                    onChange={(e) => setFilter({ ...filter, maxAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                </div>
               </div>
             </div>
 
@@ -879,11 +1013,17 @@ export function ExpenseTrackerPage() {
                 <table className="transactions-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th className="sortable" onClick={() => handleTableSort('date')}>
+                        Date <span className="sort-indicator">{getTransactionSortIndicator('date')}</span>
+                      </th>
                       <th>Description</th>
-                      <th>Category/Source</th>
+                      <th className="sortable" onClick={() => handleTableSort('category')}>
+                        Category/Source <span className="sort-indicator">{getTransactionSortIndicator('category')}</span>
+                      </th>
                       <th>Type</th>
-                      <th className="amount-col">Amount</th>
+                      <th className="sortable amount-col" onClick={() => handleTableSort('amount')}>
+                        Amount <span className="sort-indicator">{getTransactionSortIndicator('amount')}</span>
+                      </th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -891,10 +1031,17 @@ export function ExpenseTrackerPage() {
                     {filteredTransactions.map((transaction) => (
                       <tr 
                         key={transaction.id} 
-                        className={transaction.type === 'income' ? 'income-row' : 'expense-row'}
+                        className={`${transaction.type === 'income' ? 'income-row' : 'expense-row'}${transaction.isRecurring ? ' recurring-row' : ''}`}
                       >
                         <td>{transaction.date}</td>
-                        <td>{transaction.description}</td>
+                        <td>
+                          {transaction.description}
+                          {transaction.isRecurring && (
+                            <span className="recurring-badge" title="Recurring transaction">
+                              <MaterialIcon name="autorenew" size="small" />
+                            </span>
+                          )}
+                        </td>
                         <td>
                           {transaction.type === 'income' 
                             ? INCOME_SOURCES.find(s => s.id === (transaction as IncomeEntry).source)?.name
@@ -933,6 +1080,35 @@ export function ExpenseTrackerPage() {
                       </tr>
                     ))}
                   </tbody>
+                  {/* Sum row - only shown when filtering/searching */}
+                  {(filter.searchTerm || filter.category || filter.filterDate || filter.expenseType || filter.transactionType || filter.isRecurring !== undefined || filter.minAmount !== undefined || filter.maxAmount !== undefined) && filteredTransactions.length > 0 && (
+                    <tfoot>
+                      <tr className="sum-row">
+                        <td colSpan={4} className="sum-label">
+                          <strong>Sum of filtered transactions:</strong>
+                        </td>
+                        <td className="amount-col">
+                          <strong>
+                            {(() => {
+                              const totalIncome = filteredTransactions
+                                .filter(t => t.type === 'income')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              const totalExpenses = filteredTransactions
+                                .filter(t => t.type === 'expense')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              const netAmount = totalIncome - totalExpenses;
+                              return (
+                                <span className={netAmount >= 0 ? 'positive' : 'negative'}>
+                                  {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, data.currency)}
+                                </span>
+                              );
+                            })()}
+                          </strong>
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               )}
             </div>
@@ -1238,6 +1414,32 @@ function TransactionFormDialog({
     (initialData as ExpenseEntry)?.expenseType || 
     getCategoryInfo((initialData as ExpenseEntry)?.category || 'OTHER').defaultExpenseType
   );
+  
+  // Recurring state - common for both income and expense
+  const [isRecurring, setIsRecurring] = useState<boolean>(
+    initialData?.isRecurring ?? false
+  );
+  
+  // Custom dropdown state for category with icons
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (event.target && categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+    
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCategoryDropdownOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1255,6 +1457,7 @@ function TransactionFormDialog({
         description,
         source,
         currency,
+        isRecurring,
       });
     } else {
       onSubmit({
@@ -1265,6 +1468,7 @@ function TransactionFormDialog({
         subCategory: subCategory || undefined,
         expenseType,
         currency,
+        isRecurring,
       });
     }
   };
@@ -1338,15 +1542,40 @@ function TransactionFormDialog({
             <>
               <div className="form-group">
                 <label htmlFor="expense-category">Category</label>
-                <select
-                  id="expense-category"
-                  value={category}
-                  onChange={(e) => handleCategoryChange(e.target.value as ExpenseCategory)}
-                >
-                  {EXPENSE_CATEGORIES.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <div className="custom-select-container" ref={categoryDropdownRef}>
+                  <button
+                    type="button"
+                    className="custom-select-trigger"
+                    onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    aria-haspopup="listbox"
+                    aria-expanded={isCategoryDropdownOpen}
+                  >
+                    <span className="custom-select-value">
+                      <MaterialIcon name={getCategoryInfo(category).icon} size="small" />
+                      <span>{getCategoryInfo(category).name}</span>
+                    </span>
+                    <MaterialIcon name={isCategoryDropdownOpen ? 'expand_less' : 'expand_more'} size="small" />
+                  </button>
+                  {isCategoryDropdownOpen && (
+                    <ul className="custom-select-dropdown" role="listbox">
+                      {EXPENSE_CATEGORIES.map(c => (
+                        <li
+                          key={c.id}
+                          role="option"
+                          aria-selected={category === c.id}
+                          className={`custom-select-option ${category === c.id ? 'selected' : ''}`}
+                          onClick={() => {
+                            handleCategoryChange(c.id);
+                            setIsCategoryDropdownOpen(false);
+                          }}
+                        >
+                          <MaterialIcon name={c.icon} size="small" />
+                          <span>{c.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
               
               <div className="form-group">
@@ -1373,6 +1602,23 @@ function TransactionFormDialog({
               </div>
             </>
           )}
+          
+          {/* Recurring toggle - applies to both income and expense */}
+          <div className="form-group form-group-checkbox">
+            <label className="toggle-switch-label">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+              />
+              <span className="toggle-switch"></span>
+              <MaterialIcon name="autorenew" size="small" />
+              <span>Recurring transaction</span>
+            </label>
+            <span className="checkbox-hint">
+              Recurring transactions will be automatically copied to new months
+            </span>
+          </div>
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>
