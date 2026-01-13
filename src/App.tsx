@@ -268,6 +268,7 @@ function FIRECalculatorPage() {
           inputs={inputs} 
           onChange={setInputs} 
           assetAllocationData={assetAllocationData}
+          isPrivacyMode={isPrivacyMode}
         />
       </aside>
 

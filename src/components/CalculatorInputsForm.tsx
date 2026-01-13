@@ -3,6 +3,7 @@ import { CalculatorInputs } from '../types/calculator';
 import { NumberInput } from './NumberInput';
 import { SliderInput } from './SliderInput';
 import { MaterialIcon } from './MaterialIcon';
+import { PrivacyBlur } from './PrivacyBlur';
 import { calculateYearsOfExpenses } from '../utils/fireCalculator';
 import { 
   calculateAnnualExpensesFromTracker, 
@@ -22,9 +23,10 @@ interface CalculatorInputsProps {
   inputs: CalculatorInputs;
   onChange: (inputs: CalculatorInputs) => void;
   assetAllocationData?: AssetAllocationData; // Data from asset allocation page
+  isPrivacyMode?: boolean;
 }
 
-export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, onChange, assetAllocationData }) => {
+export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, onChange, assetAllocationData, isPrivacyMode = false }) => {
   // Get currency symbol from settings - recalculated on each render to pick up changes
   const settings = loadSettings();
   const currencySymbol = getCurrencySymbol(settings.currencySettings.defaultCurrency);
@@ -145,21 +147,25 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
             {inputs.useAssetAllocationValue && <span className="calculated-label"> - From Asset Allocation</span>}
           </label>
           {inputs.useAssetAllocationValue ? (
-            <input
-              id="initial-savings"
-              type="number"
-              inputMode="decimal"
-              value={effectivePortfolioValue.toFixed(2)}
-              readOnly
-              className="calculated-field"
-              aria-readonly="true"
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <input
+                id="initial-savings"
+                type="number"
+                inputMode="decimal"
+                value={effectivePortfolioValue.toFixed(2)}
+                readOnly
+                className="calculated-field"
+                aria-readonly="true"
+              />
+            </PrivacyBlur>
           ) : (
-            <NumberInput
-              id="initial-savings"
-              value={inputs.initialSavings}
-              onChange={(value) => handleChange('initialSavings', value)}
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <NumberInput
+                id="initial-savings"
+                value={inputs.initialSavings}
+                onChange={(value) => handleChange('initialSavings', value)}
+              />
+            </PrivacyBlur>
           )}
         </div>
         </div>)}
@@ -261,21 +267,25 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <div className="form-group">
           <label htmlFor="labor-income">Current Annual Labor Income (Net) ({currencySymbol})</label>
           {inputs.useExpenseTrackerIncome ? (
-            <input
-              id="labor-income"
-              type="number"
-              inputMode="decimal"
-              value={effectiveLaborIncome.toFixed(2)}
-              readOnly
-              className="calculated-field"
-              aria-readonly="true"
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <input
+                id="labor-income"
+                type="number"
+                inputMode="decimal"
+                value={effectiveLaborIncome.toFixed(2)}
+                readOnly
+                className="calculated-field"
+                aria-readonly="true"
+              />
+            </PrivacyBlur>
           ) : (
-            <NumberInput
-              id="labor-income"
-              value={inputs.annualLaborIncome}
-              onChange={(value) => handleChange('annualLaborIncome', value)}
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <NumberInput
+                id="labor-income"
+                value={inputs.annualLaborIncome}
+                onChange={(value) => handleChange('annualLaborIncome', value)}
+              />
+            </PrivacyBlur>
           )}
         </div>
         <div className="form-group">
@@ -288,11 +298,13 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         </div>
         <div className="form-group">
           <label htmlFor="other-income">Side Income / Working After FIRE (Annual) ({currencySymbol})</label>
-          <NumberInput
-            id="other-income"
-            value={inputs.otherIncome}
-            onChange={(value) => handleChange('otherIncome', value)}
-          />
+          <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+            <NumberInput
+              id="other-income"
+              value={inputs.otherIncome}
+              onChange={(value) => handleChange('otherIncome', value)}
+            />
+          </PrivacyBlur>
         </div>
         </div>)}
       </div>
@@ -318,19 +330,23 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         </div>
         <div className="form-group">
           <label htmlFor="state-pension">State Pension Income (Annual) ({currencySymbol})</label>
-          <NumberInput
-            id="state-pension"
-            value={inputs.statePensionIncome}
-            onChange={(value) => handleChange('statePensionIncome', value)}
-          />
+          <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+            <NumberInput
+              id="state-pension"
+              value={inputs.statePensionIncome}
+              onChange={(value) => handleChange('statePensionIncome', value)}
+            />
+          </PrivacyBlur>
         </div>
         <div className="form-group">
           <label htmlFor="private-pension">Private Pension Income (Annual) ({currencySymbol})</label>
-          <NumberInput
-            id="private-pension"
-            value={inputs.privatePensionIncome}
-            onChange={(value) => handleChange('privatePensionIncome', value)}
-          />
+          <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+            <NumberInput
+              id="private-pension"
+              value={inputs.privatePensionIncome}
+              onChange={(value) => handleChange('privatePensionIncome', value)}
+            />
+          </PrivacyBlur>
         </div>
         </div>)}
       </div>
@@ -348,42 +364,50 @@ export const CalculatorInputsForm: React.FC<CalculatorInputsProps> = ({ inputs, 
         <div className="form-group">
           <label htmlFor="current-expenses">Current Annual Expenses ({currencySymbol})</label>
           {inputs.useExpenseTrackerExpenses ? (
-            <input
-              id="current-expenses"
-              type="number"
-              inputMode="decimal"
-              value={effectiveCurrentExpenses.toFixed(2)}
-              readOnly
-              className="calculated-field"
-              aria-readonly="true"
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <input
+                id="current-expenses"
+                type="number"
+                inputMode="decimal"
+                value={effectiveCurrentExpenses.toFixed(2)}
+                readOnly
+                className="calculated-field"
+                aria-readonly="true"
+              />
+            </PrivacyBlur>
           ) : (
-            <NumberInput
-              id="current-expenses"
-              value={inputs.currentAnnualExpenses}
-              onChange={(value) => handleChange('currentAnnualExpenses', value)}
-            />
+            <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+              <NumberInput
+                id="current-expenses"
+                value={inputs.currentAnnualExpenses}
+                onChange={(value) => handleChange('currentAnnualExpenses', value)}
+              />
+            </PrivacyBlur>
           )}
         </div>
         <div className="form-group">
           <label htmlFor="fire-expenses">FIRE Annual Expenses ({currencySymbol})</label>
-          <NumberInput
-            id="fire-expenses"
-            value={inputs.fireAnnualExpenses}
-            onChange={(value) => handleChange('fireAnnualExpenses', value)}
-          />
+          <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+            <NumberInput
+              id="fire-expenses"
+              value={inputs.fireAnnualExpenses}
+              onChange={(value) => handleChange('fireAnnualExpenses', value)}
+            />
+          </PrivacyBlur>
         </div>
         <div className="form-group">
           <label htmlFor="savings-rate">Savings Rate (%) <span className="calculated-label">- Auto-calculated</span></label>
-          <input
-            id="savings-rate"
-            type="number"
-            inputMode="decimal"
-            value={effectiveSavingsRate.toFixed(2)}
-            readOnly
-            className="calculated-field"
-            aria-readonly="true"
-          />
+          <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+            <input
+              id="savings-rate"
+              type="number"
+              inputMode="decimal"
+              value={effectiveSavingsRate.toFixed(2)}
+              readOnly
+              className="calculated-field"
+              aria-readonly="true"
+            />
+          </PrivacyBlur>
         </div>
         </div>)}
       </div>

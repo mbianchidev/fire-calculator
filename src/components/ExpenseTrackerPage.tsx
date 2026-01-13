@@ -1261,10 +1261,12 @@ export function ExpenseTrackerPage() {
             {/* Monthly Comparison Chart */}
             <div className="chart-container">
               <h4>Monthly Spending Comparison</h4>
-              <MonthlyComparisonChart 
-                data={monthlyComparisonData}
-                currency={data.currency}
-              />
+              <PrivacyBlur isPrivacyMode={isPrivacyMode}>
+                <MonthlyComparisonChart 
+                  data={monthlyComparisonData}
+                  currency={data.currency}
+                />
+              </PrivacyBlur>
             </div>
 
             {/* Category Trends Chart */}

@@ -1257,7 +1257,7 @@
 /* Page Header with Privacy Toggle */
 .page-header-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
@@ -1299,15 +1299,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.3);
   border: none;
-  color: var(--text-secondary);
+  color: #000000;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.35rem;
   margin-left: 0.5rem;
-  border-radius: 4px;
+  border-radius: 50%;
   transition: all 0.2s ease;
   vertical-align: middle;
+  opacity: 1;
 }
 
 .privacy-eye-btn:hover {
