@@ -27,6 +27,7 @@ import {
   sortTransactions,
   calculateQuarterlyBreakdown,
   calculateYearToDateBreakdown,
+  copyRecurringTransactionsToNewMonth,
 } from '../utils/expenseCalculator';
 import {
   saveExpenseTrackerData,
@@ -179,7 +180,7 @@ export function ExpenseTrackerPage() {
     setSelectedMonth(currentMonth);
   }, [currentYear, currentMonth]);
 
-  // Auto-create month/year if it doesn't exist
+  // Auto-create month/year if it doesn't exist, and copy recurring transactions from previous month
   useEffect(() => {
     setData(prev => {
       const yearData = prev.years.find(y => y.year === selectedYear);
@@ -201,9 +202,36 @@ export function ExpenseTrackerPage() {
         newData.years.sort((a, b) => b.year - a.year); // Sort descending
       }
       
-      // Ensure month exists
+      // Ensure month exists and populate with recurring transactions
       if (!targetYear.months.find(m => m.month === selectedMonth)) {
         const monthData = createEmptyMonthData(selectedYear, selectedMonth);
+        
+        // Find the previous month to copy recurring transactions from
+        let prevMonth: number;
+        let prevYear: number;
+        if (selectedMonth === 1) {
+          prevMonth = 12;
+          prevYear = selectedYear - 1;
+        } else {
+          prevMonth = selectedMonth - 1;
+          prevYear = selectedYear;
+        }
+        
+        // Look for the previous month in the data
+        const prevYearData = newData.years.find(y => y.year === prevYear);
+        const prevMonthData = prevYearData?.months.find(m => m.month === prevMonth);
+        
+        // Copy recurring transactions from previous month if it exists
+        if (prevMonthData) {
+          const recurringTransactions = copyRecurringTransactionsToNewMonth(
+            prevMonthData,
+            selectedYear,
+            selectedMonth
+          );
+          monthData.incomes = recurringTransactions.incomes;
+          monthData.expenses = recurringTransactions.expenses;
+        }
+        
         targetYear.months.push(monthData);
         targetYear.months.sort((a, b) => a.month - b.month);
       }
@@ -858,6 +886,18 @@ export function ExpenseTrackerPage() {
                 </select>
               </div>
               <div className="filter-group">
+                <label htmlFor="filter-recurring">Recurring:</label>
+                <select
+                  id="filter-recurring"
+                  value={filter.isRecurring === undefined ? '' : filter.isRecurring.toString()}
+                  onChange={(e) => setFilter({ ...filter, isRecurring: e.target.value === '' ? undefined : e.target.value === 'true' })}
+                >
+                  <option value="">All</option>
+                  <option value="true">Recurring only</option>
+                  <option value="false">One-time only</option>
+                </select>
+              </div>
+              <div className="filter-group">
                 <label htmlFor="filter-search">Search:</label>
                 <input
                   id="filter-search"
@@ -891,10 +931,17 @@ export function ExpenseTrackerPage() {
                     {filteredTransactions.map((transaction) => (
                       <tr 
                         key={transaction.id} 
-                        className={transaction.type === 'income' ? 'income-row' : 'expense-row'}
+                        className={`${transaction.type === 'income' ? 'income-row' : 'expense-row'}${transaction.isRecurring ? ' recurring-row' : ''}`}
                       >
                         <td>{transaction.date}</td>
-                        <td>{transaction.description}</td>
+                        <td>
+                          {transaction.description}
+                          {transaction.isRecurring && (
+                            <span className="recurring-badge" title="Recurring transaction">
+                              <MaterialIcon name="autorenew" size="small" />
+                            </span>
+                          )}
+                        </td>
                         <td>
                           {transaction.type === 'income' 
                             ? INCOME_SOURCES.find(s => s.id === (transaction as IncomeEntry).source)?.name
@@ -1238,6 +1285,11 @@ function TransactionFormDialog({
     (initialData as ExpenseEntry)?.expenseType || 
     getCategoryInfo((initialData as ExpenseEntry)?.category || 'OTHER').defaultExpenseType
   );
+  
+  // Recurring state - common for both income and expense
+  const [isRecurring, setIsRecurring] = useState<boolean>(
+    initialData?.isRecurring ?? false
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1255,6 +1307,7 @@ function TransactionFormDialog({
         description,
         source,
         currency,
+        isRecurring,
       });
     } else {
       onSubmit({
@@ -1265,6 +1318,7 @@ function TransactionFormDialog({
         subCategory: subCategory || undefined,
         expenseType,
         currency,
+        isRecurring,
       });
     }
   };
@@ -1373,6 +1427,24 @@ function TransactionFormDialog({
               </div>
             </>
           )}
+          
+          {/* Recurring checkbox - applies to both income and expense */}
+          <div className="form-group form-group-checkbox">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+              />
+              <span className="checkbox-text">
+                <MaterialIcon name="autorenew" size="small" />
+                Recurring transaction
+              </span>
+            </label>
+            <span className="checkbox-hint">
+              Recurring transactions will be automatically copied to new months
+            </span>
+          </div>
           
           <div className="dialog-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>
