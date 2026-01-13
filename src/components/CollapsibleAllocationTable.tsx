@@ -646,8 +646,8 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                         <td>
                           {isEditing ? (
                             <div className="edit-actions">
-                              <button onClick={() => saveEditing(asset.id)} className="btn-save" title="Save">✓</button>
-                              <button onClick={cancelEditing} className="btn-cancel-edit" title="Cancel">✕</button>
+                              <button onClick={() => saveEditing(asset.id)} className="btn-save" title="Save"><MaterialIcon name="check" size="small" /></button>
+                              <button onClick={cancelEditing} className="btn-cancel-edit" title="Cancel"><MaterialIcon name="close" size="small" /></button>
                               <button onClick={() => {
                                 if (confirm(`Delete ${asset.name}?`)) {
                                   onDeleteAsset(asset.id);
@@ -656,7 +656,7 @@ export const CollapsibleAllocationTable: React.FC<CollapsibleAllocationTableProp
                               }} className="btn-delete" title="Delete"><MaterialIcon name="delete" size="small" /></button>
                             </div>
                           ) : (
-                            <button onClick={() => startEditing(asset)} className="btn-edit" title="Edit">✎</button>
+                            <button onClick={() => startEditing(asset)} className="btn-edit" title="Edit"><MaterialIcon name="edit" size="small" /></button>
                           )}
                         </td>
                       </tr>

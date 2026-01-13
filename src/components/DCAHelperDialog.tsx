@@ -494,7 +494,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                                         disabled={!actualSharesInputs[allocation.assetId]}
                                         aria-label={`Confirm ${allocation.assetName}`}
                                       >
-                                        ✓
+                                        <MaterialIcon name="check" size="small" />
                                       </button>
                                     </div>
                                   ) : (
@@ -518,7 +518,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                                         disabled={!actualAmountInputs[allocation.assetId]}
                                         aria-label={`Confirm ${allocation.assetName}`}
                                       >
-                                        ✓
+                                        <MaterialIcon name="check" size="small" />
                                       </button>
                                     </div>
                                   )
@@ -634,7 +634,7 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                       className="action-btn primary-btn"
                       onClick={handleConfirmAll}
                     >
-                      ✓ Confirm All
+                      <MaterialIcon name="check" /> Confirm All
                     </button>
                     <button className="action-btn reset-btn" onClick={handleReset}>
                       <MaterialIcon name="refresh" /> Restart

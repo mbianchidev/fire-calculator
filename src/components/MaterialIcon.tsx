@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * MaterialIcon Component
  * Renders Google Material Symbols icons
