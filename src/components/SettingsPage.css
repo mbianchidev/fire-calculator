@@ -159,6 +159,12 @@
   color: var(--text-muted);
 }
 
+/* When setting-help is followed by a button, add more bottom margin */
+.setting-help + button,
+.setting-help + .secondary-btn {
+  margin-top: 1rem;
+}
+
 .toggle-group {
   display: flex;
   gap: 0.5rem;
@@ -450,6 +456,7 @@
   accent-color: var(--accent-primary);
   flex-shrink: 0;
   margin-top: 0.1rem;
+  margin-right: 0.5rem;
 }
 
 .checkbox-label span {
@@ -457,7 +464,7 @@
 }
 
 .checkbox-label + .setting-help {
-  margin-left: 2rem;
+  margin-left: 2.5rem;
   padding-left: 0;
 }
 

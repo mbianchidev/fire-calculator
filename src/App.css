@@ -1365,8 +1365,8 @@ body {
   }
 
   .profile-menu-container {
-    position: absolute;
-    right: 2rem;
+    position: relative;
+    right: auto;
   }
 }
 
