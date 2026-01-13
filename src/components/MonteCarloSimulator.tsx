@@ -4,6 +4,7 @@ import { runMonteCarloSimulation } from '../utils/monteCarlo';
 import { loadSettings } from '../utils/cookieSettings';
 import { NumberInput } from './NumberInput';
 import { MonteCarloChart } from './MonteCarloChart';
+import { MaterialIcon } from './MaterialIcon';
 import { formatDisplayCurrency, formatDisplayPercent } from '../utils/numberFormatter';
 
 interface MonteCarloSimulatorProps {
@@ -106,7 +107,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
   return (
     <section className="monte-carlo-section" aria-labelledby="monte-carlo-heading">
       <div data-tour="monte-carlo-overview">
-        <h2 id="monte-carlo-heading"><span aria-hidden="true" className="page-header-emoji">🎲</span> Monte Carlo Simulations</h2>
+        <h2 id="monte-carlo-heading"><MaterialIcon name="casino" className="page-header-icon" /> Monte Carlo Simulations</h2>
         <p className="section-description">
           Run multiple simulations with random market returns to assess the probability of reaching FIRE.
         </p>
@@ -122,7 +123,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
           aria-controls="mc-base-data-content"
         >
           <span className="mc-base-data-title">
-            <span aria-hidden="true">📊</span> Simulation Base Data
+            <MaterialIcon name="bar_chart" /> Simulation Base Data
           </span>
           <span className="mc-base-data-subtitle">
             Data from FIRE Calculator used in simulations
@@ -214,7 +215,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
               </div>
             </div>
             <p className="mc-base-data-note">
-              <span aria-hidden="true">💡</span> These values are loaded from the FIRE Calculator. To modify them, go to the <a href="/fire-calculator">FIRE Calculator</a> page.
+              <MaterialIcon name="lightbulb" /> These values are loaded from the FIRE Calculator. To modify them, go to the <a href="/fire-calculator">FIRE Calculator</a> page.
             </p>
           </div>
         )}
@@ -285,7 +286,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
 
       {hasErrors && (
         <div className="validation-error-banner mc-validation-errors" role="alert" aria-live="polite">
-          <strong><span aria-hidden="true">⚠️</span> Please fix validation errors before running simulations</strong>
+          <strong><MaterialIcon name="warning" /> Please fix validation errors before running simulations</strong>
         </div>
       )}
 
@@ -296,7 +297,7 @@ export const MonteCarloSimulator: React.FC<MonteCarloSimulatorProps> = ({ inputs
           disabled={isRunning || hasErrors}
           aria-label={isRunning ? 'Running simulations, please wait' : hasErrors ? 'Fix validation errors to run simulations' : 'Run Monte Carlo simulations'}
         >
-          <span aria-hidden="true">{isRunning ? '⏳' : '▶️'}</span> {isRunning ? 'Running Simulations...' : 'Run Simulations'}
+          {isRunning ? <MaterialIcon name="hourglass_empty" /> : <MaterialIcon name="play_arrow" />} {isRunning ? 'Running Simulations...' : 'Run Simulations'}
         </button>
       </div>
 

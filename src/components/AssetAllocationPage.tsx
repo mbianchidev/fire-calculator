@@ -13,6 +13,7 @@ import { exportAssetAllocationToCSV, importAssetAllocationFromCSV } from '../uti
 import { loadSettings } from '../utils/cookieSettings';
 import { getDemoAssetAllocationData } from '../utils/defaults';
 import { syncAssetAllocationToNetWorth } from '../utils/dataSync';
+import { MaterialIcon } from './MaterialIcon';
 import { EditableAssetClassTable } from './EditableAssetClassTable';
 import { AllocationChart } from './AllocationChart';
 import { SharedAssetDialog } from './SharedAssetDialog';
@@ -418,7 +419,7 @@ export const AssetAllocationPage: React.FC = () => {
     const syncEnabled = netWorthData?.settings.syncWithAssetAllocation || false;
     
     const warningMessage = syncEnabled
-      ? 'Are you sure you want to reset all Asset Allocation data?\n\n⚠️ WARNING: With sync enabled, this will also clear the Net Worth Tracker data for the current month (assets and cash).\n\nHistorical Net Worth data will NOT be affected.'
+      ? 'Are you sure you want to reset all Asset Allocation data?\n\nWARNING: With sync enabled, this will also clear the Net Worth Tracker data for the current month (assets and cash).\n\nHistorical Net Worth data will NOT be affected.'
       : 'Are you sure you want to reset all Asset Allocation data? This will clear all saved assets.';
     
     if (confirm(warningMessage)) {
@@ -530,7 +531,7 @@ export const AssetAllocationPage: React.FC = () => {
   return (
     <div className="asset-allocation-page">
       <header className="page-header">
-        <h1><span aria-hidden="true" className="page-header-emoji">📊</span> Asset Allocation Manager</h1>
+        <h1><MaterialIcon name="pie_chart" className="page-header-icon" /> Asset Allocation Manager</h1>
         <p>
           Manage and visualize your portfolio asset allocation. Set target allocations,
           track current positions, and see recommended actions to rebalance your portfolio.
@@ -541,7 +542,7 @@ export const AssetAllocationPage: React.FC = () => {
         {/* Sync status banner */}
         {isSyncEnabled && (
           <div className="sync-status-banner" role="status" aria-live="polite">
-            <span aria-hidden="true">🔄</span> Syncing with Net Worth Tracker (current month)
+            <MaterialIcon name="sync" /> Syncing with Net Worth Tracker (current month)
           </div>
         )}
 
@@ -564,13 +565,13 @@ export const AssetAllocationPage: React.FC = () => {
             aria-expanded={isHowToUseOpen}
             aria-controls="how-to-use-content"
           >
-            <h4><span aria-hidden="true">💡</span> How to Use <span className="collapse-icon-small" aria-hidden="true">{isHowToUseOpen ? '▼' : '▶'}</span></h4>
+            <h4><MaterialIcon name="lightbulb" /> How to Use <span className="collapse-icon-small" aria-hidden="true">{isHowToUseOpen ? '▼' : '▶'}</span></h4>
           </button>
           {isHowToUseOpen && (
             <ul id="how-to-use-content" className="how-to-use-content">
               <li><strong>Add Asset:</strong> Click the "Add Asset" button to add a new asset with type selection</li>
-              <li><strong>Edit Asset:</strong> Click the edit <span aria-label="edit button">(✎)</span> button in any row to edit the current value and target %</li>
-              <li><strong>Delete Asset:</strong> When editing an asset, click the trash icon <span aria-label="delete button">(🗑️)</span> to delete it</li>
+              <li><strong>Edit Asset:</strong> Click the edit (pencil) button in any row to edit the current value and target %</li>
+              <li><strong>Delete Asset:</strong> When editing an asset, click the trash icon to delete it</li>
               <li><strong>Collapsible Tables:</strong> Click on an asset class header to expand/collapse and see individual assets</li>
               <li><strong>Target Mode:</strong> Choose "%" for percentage-based allocation, "SET" for fixed amounts (only for cash types), or "OFF" to exclude</li>
               <li><strong>Percentage targets</strong> for active assets within a class should sum to 100%</li>
@@ -595,7 +596,7 @@ export const AssetAllocationPage: React.FC = () => {
 
         {!allocation.isValid && (
           <div className="validation-errors" role="alert" aria-live="polite">
-            <strong><span aria-hidden="true">⚠️</span> Validation Errors:</strong>
+            <strong><MaterialIcon name="warning" /> Validation Errors:</strong>
             <ul>
               {allocation.validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
@@ -613,7 +614,7 @@ export const AssetAllocationPage: React.FC = () => {
               style={{ marginLeft: '1rem' }}
               aria-label="Edit all asset class allocations"
             >
-              <span aria-hidden="true">✏️</span> Edit All
+              <MaterialIcon name="edit" /> Edit All
             </button>
           </div>
           <EditableAssetClassTable
@@ -684,7 +685,7 @@ export const AssetAllocationPage: React.FC = () => {
                   style={{ background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)', color: 'white' }}
                   aria-label="Open Dollar Cost Averaging helper"
                 >
-                  <span aria-hidden="true">💰</span> DCA Helper
+                  <MaterialIcon name="savings" /> DCA Helper
                 </button>
               </div>
               <div data-tour="add-asset-button">
@@ -693,7 +694,7 @@ export const AssetAllocationPage: React.FC = () => {
                   className="action-btn primary-btn"
                   aria-label="Add new asset to portfolio"
                 >
-                  <span aria-hidden="true">➕</span> Add Asset
+                  <MaterialIcon name="add" /> Add Asset
                 </button>
               </div>
             </div>

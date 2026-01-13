@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CategoryBreakdown, getCategoryInfo } from '../types/expenseTracker';
+import { MaterialIcon } from './MaterialIcon';
 
 // Color palette for categories
 const COLORS = [
@@ -46,7 +47,7 @@ function CustomTooltip({ active, payload, currency }: CustomTooltipProps) {
       border: '1px solid rgba(20, 120, 150, 0.4)',
     }}>
       <p style={{ margin: 0, fontWeight: 600, color: '#F8FAFC' }}>
-        {categoryInfo.icon} {categoryInfo.name}
+        <MaterialIcon name={categoryInfo.icon} size="small" /> {categoryInfo.name}
       </p>
       <p style={{ margin: '0.25rem 0 0', color: '#94A3B8' }}>
         {formatCurrency(data.totalAmount, currency)} ({data.percentage.toFixed(1)}%)
@@ -114,7 +115,7 @@ function renderLegend(props: any) {
               flexShrink: 0,
             }} />
             <span style={{ color: '#F8FAFC' }}>
-              {categoryInfo.icon} {categoryInfo.name}
+              <MaterialIcon name={categoryInfo.icon} size="small" /> {categoryInfo.name}
             </span>
           </li>
         );

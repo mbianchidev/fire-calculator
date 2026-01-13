@@ -11,6 +11,7 @@ import { SupportedCurrency, SUPPORTED_CURRENCIES } from '../types/currency';
 import { formatAssetName } from '../utils/allocationCalculator';
 import { convertToEUR } from '../utils/currencyConverter';
 import { loadSettings } from '../utils/cookieSettings';
+import { MaterialIcon } from './MaterialIcon';
 
 interface SharedAssetDialogProps {
   mode: 'assetAllocation' | 'netWorthTracker';
@@ -295,8 +296,8 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
-          <h3>{isEditing ? '✏️ Edit' : '➕ Add'} Asset</h3>
-          <button className="dialog-close" onClick={onClose}>✕</button>
+          <h3>{isEditing ? 'Edit' : 'Add'} Asset</h3>
+          <button className="dialog-close" onClick={onClose}><MaterialIcon name="close" size="small" /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="dialog-form">

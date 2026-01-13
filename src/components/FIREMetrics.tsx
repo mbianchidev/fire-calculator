@@ -1,6 +1,7 @@
 import { CalculationResult } from '../types/calculator';
 import { formatCurrency } from '../utils/allocationCalculator';
 import { useState } from 'react';
+import { MaterialIcon } from './MaterialIcon';
 
 interface FIREMetricsProps {
   result: CalculationResult;
@@ -63,13 +64,13 @@ export const FIREMetrics: React.FC<FIREMetricsProps> = ({ result, currentAge, zo
   return (
     <section className="fire-metrics" aria-labelledby="fire-metrics-heading" data-tour="results-section">
       <div className="fire-metrics-header">
-        <h3 id="fire-metrics-heading"><span aria-hidden="true">🎯</span> FIRE Metrics</h3>
+        <h3 id="fire-metrics-heading"><MaterialIcon name="gps_fixed" /> FIRE Metrics</h3>
         <button 
           className="share-button" 
           onClick={handleShare}
           aria-label={copied ? 'Link copied to clipboard' : 'Copy link to share this calculation'}
         >
-          <span aria-hidden="true">{copied ? '✓' : copyFailed ? '✗' : '🔗'}</span> {copied ? 'Copied!' : copyFailed ? 'Failed' : 'Share'}
+          {copied ? <MaterialIcon name="check" /> : copyFailed ? <MaterialIcon name="close" /> : <MaterialIcon name="link" />} {copied ? 'Copied!' : copyFailed ? 'Failed' : 'Share'}
         </button>
       </div>
       <div className="metrics-grid" role="list">

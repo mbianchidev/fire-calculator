@@ -223,18 +223,18 @@ export interface OperationTypeInfo {
 }
 
 export const OPERATION_TYPES: OperationTypeInfo[] = [
-  { id: 'PURCHASE', name: 'Asset Purchase', icon: '📈', isIncome: false },
-  { id: 'SALE', name: 'Asset Sale', icon: '📉', isIncome: true },
-  { id: 'DIVIDEND', name: 'Dividend Received', icon: '💵', isIncome: true },
-  { id: 'EXPENSE_REIMBURSEMENT', name: 'Expense Reimbursement', icon: '💳', isIncome: true },
-  { id: 'GIFT_RECEIVED', name: 'Gift Received', icon: '🎁', isIncome: true },
-  { id: 'GIFT_GIVEN', name: 'Gift Given', icon: '🎁', isIncome: false },
-  { id: 'TAX_PAID', name: 'Tax Paid', icon: '🏛️', isIncome: false },
-  { id: 'CASH_TRANSFER', name: 'Cash Transfer', icon: '🔄', isIncome: false },
-  { id: 'PENSION_CONTRIBUTION', name: 'Pension Contribution', icon: '🧓', isIncome: false },
-  { id: 'PENSION_ADJUSTMENT', name: 'Pension Adjustment', icon: '📊', isIncome: false },
-  { id: 'PRICE_UPDATE', name: 'Price Update', icon: '💹', isIncome: false },
-  { id: 'OTHER', name: 'Other', icon: '📝', isIncome: false },
+  { id: 'PURCHASE', name: 'Asset Purchase', icon: 'trending_up', isIncome: false },
+  { id: 'SALE', name: 'Asset Sale', icon: 'trending_down', isIncome: true },
+  { id: 'DIVIDEND', name: 'Dividend Received', icon: 'payments', isIncome: true },
+  { id: 'EXPENSE_REIMBURSEMENT', name: 'Expense Reimbursement', icon: 'credit_card', isIncome: true },
+  { id: 'GIFT_RECEIVED', name: 'Gift Received', icon: 'redeem', isIncome: true },
+  { id: 'GIFT_GIVEN', name: 'Gift Given', icon: 'card_giftcard', isIncome: false },
+  { id: 'TAX_PAID', name: 'Tax Paid', icon: 'account_balance', isIncome: false },
+  { id: 'CASH_TRANSFER', name: 'Cash Transfer', icon: 'sync', isIncome: false },
+  { id: 'PENSION_CONTRIBUTION', name: 'Pension Contribution', icon: 'elderly', isIncome: false },
+  { id: 'PENSION_ADJUSTMENT', name: 'Pension Adjustment', icon: 'bar_chart', isIncome: false },
+  { id: 'PRICE_UPDATE', name: 'Price Update', icon: 'currency_exchange', isIncome: false },
+  { id: 'OTHER', name: 'Other', icon: 'edit_note', isIncome: false },
 ];
 
 /**
@@ -252,12 +252,12 @@ export interface AssetClassInfo {
 }
 
 export const ASSET_CLASSES: AssetClassInfo[] = [
-  { id: 'STOCKS', name: 'Stocks', icon: '📊' },
-  { id: 'BONDS', name: 'Bonds', icon: '📜' },
-  { id: 'ETF', name: 'ETF', icon: '📈' },
-  { id: 'CRYPTO', name: 'Crypto', icon: '₿' },
-  { id: 'REAL_ESTATE', name: 'Real Estate', icon: '🏠' },
-  { id: 'OTHER', name: 'Other', icon: '📦' },
+  { id: 'STOCKS', name: 'Stocks', icon: 'bar_chart' },
+  { id: 'BONDS', name: 'Bonds', icon: 'description' },
+  { id: 'ETF', name: 'ETF', icon: 'trending_up' },
+  { id: 'CRYPTO', name: 'Crypto', icon: 'currency_bitcoin' },
+  { id: 'REAL_ESTATE', name: 'Real Estate', icon: 'home' },
+  { id: 'OTHER', name: 'Other', icon: 'inventory_2' },
 ];
 
 // Account type display info
@@ -268,11 +268,11 @@ export interface AccountTypeInfo {
 }
 
 export const ACCOUNT_TYPES: AccountTypeInfo[] = [
-  { id: 'SAVINGS', name: 'Savings Account', icon: '🏦' },
-  { id: 'CHECKING', name: 'Checking Account', icon: '💳' },
-  { id: 'BROKERAGE', name: 'Brokerage Account', icon: '📈' },
-  { id: 'CREDIT_CARD', name: 'Credit Card', icon: '💳' },
-  { id: 'OTHER', name: 'Other', icon: '💰' },
+  { id: 'SAVINGS', name: 'Savings Account', icon: 'savings' },
+  { id: 'CHECKING', name: 'Checking Account', icon: 'credit_card' },
+  { id: 'BROKERAGE', name: 'Brokerage Account', icon: 'trending_up' },
+  { id: 'CREDIT_CARD', name: 'Credit Card', icon: 'credit_card' },
+  { id: 'OTHER', name: 'Other', icon: 'attach_money' },
 ];
 
 // Pension type display info
@@ -283,8 +283,8 @@ export interface PensionTypeInfo {
 }
 
 export const PENSION_TYPES: PensionTypeInfo[] = [
-  { id: 'STATE', name: 'State Pension', icon: '🏛️' },
-  { id: 'PRIVATE', name: 'Private Pension', icon: '🏦' },
-  { id: 'EMPLOYER', name: 'Employer Pension', icon: '🏢' },
-  { id: 'OTHER', name: 'Other Pension', icon: '🧓' },
+  { id: 'STATE', name: 'State Pension', icon: 'account_balance' },
+  { id: 'PRIVATE', name: 'Private Pension', icon: 'savings' },
+  { id: 'EMPLOYER', name: 'Employer Pension', icon: 'business' },
+  { id: 'OTHER', name: 'Other Pension', icon: 'elderly' },
 ];
