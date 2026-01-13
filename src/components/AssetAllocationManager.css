@@ -55,15 +55,17 @@
   box-shadow: 0 4px 12px rgba(0, 150, 136, 0.4);
 }
 
-/* Reset button styling - medium-dark grey */
+/* Reset button styling - lighter grey for visibility */
 .reset-btn {
-  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-elevated) 100%);
+  background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
   color: white;
+  border: 1px solid #9CA3AF;
 }
 
 .reset-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(97, 97, 97, 0.4);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.5);
+  background: linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
 }
 
 /* Back button styling - blue */
@@ -1271,6 +1273,38 @@
 .dca-dialog {
   max-width: 900px;
   width: 95%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make the DCA dialog header sticky so the X close button is always visible */
+.dca-dialog .dialog-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg-elevated);
+  z-index: 10;
+  padding: 1rem 0;
+  margin: -1rem 0 1rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dca-dialog .dialog-close {
+  font-size: 1.75rem;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+}
+
+.dca-dialog .dialog-close:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
 }
 
 .dialog-description {
