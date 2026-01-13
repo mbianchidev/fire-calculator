@@ -27,17 +27,17 @@
   --text-muted: #64748B;
   --text-inverse: #0A0B0E;
   
-  /* Accent Colors - Blue Marine Primary */
-  --accent-primary: #147896;
-  --accent-primary-dark: #0E5A70;
-  --accent-primary-light: #1A9BC2;
-  --accent-glow: rgba(20, 120, 150, 0.4);
-  --accent-glow-strong: rgba(20, 120, 150, 0.6);
+  /* Accent Colors - Teal to Dark Gray Gradient */
+  --accent-primary: #2DD4BF;
+  --accent-primary-dark: #14B8A6;
+  --accent-primary-light: #5EEAD4;
+  --accent-glow: rgba(45, 212, 191, 0.4);
+  --accent-glow-strong: rgba(45, 212, 191, 0.6);
   
-  /* Accent Colors - Sky Blue Secondary */
-  --accent-gold: #38BDF8;
-  --accent-gold-dark: #0EA5E9;
-  --accent-gold-glow: rgba(56, 189, 248, 0.4);
+  /* Accent Colors - Dark Gray Secondary */
+  --accent-gold: #4B5563;
+  --accent-gold-dark: #374151;
+  --accent-gold-glow: rgba(75, 85, 99, 0.4);
   
   /* Semantic Colors */
   --success: #22C55E;
@@ -164,8 +164,9 @@ body {
 }
 
 .app-header p {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 1.1rem;
+  opacity: 0.9;
 }
 
 /* ============================================================================

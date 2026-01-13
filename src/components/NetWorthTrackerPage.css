@@ -518,6 +518,24 @@
   grid-column: span 2;
 }
 
+/* Ensure dialog inputs have dark background */
+.net-worth-dialog input,
+.net-worth-dialog select,
+.net-worth-dialog textarea {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.net-worth-dialog input:focus,
+.net-worth-dialog select:focus,
+.net-worth-dialog textarea:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
 @media (max-width: 600px) {
   .net-worth-dialog .form-row {
     grid-template-columns: 1fr;

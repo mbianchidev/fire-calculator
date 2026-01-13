@@ -524,6 +524,8 @@
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.3s;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .dialog-input:focus,

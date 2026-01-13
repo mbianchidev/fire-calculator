@@ -2,62 +2,52 @@
    GUIDED TOUR - Premium Fintech Dark Theme
    ============================================================================ */
 
+/* Tour overlay - full screen backdrop */
 .tour-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(10, 11, 14, 0.9);
-  backdrop-filter: blur(8px);
-  z-index: 9998;
+  background: rgba(10, 11, 14, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
   animation: fadeIn 0.3s ease-out;
 }
 
-.tour-spotlight {
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  border: 3px solid var(--accent-primary);
-  border-radius: var(--radius-md);
-  box-shadow: 
-    0 0 0 9999px rgba(10, 11, 14, 0.85),
-    0 0 40px var(--accent-glow-strong),
-    inset 0 0 40px var(--accent-glow);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 
-      0 0 0 9999px rgba(10, 11, 14, 0.85),
-      0 0 40px var(--accent-glow-strong),
-      inset 0 0 40px var(--accent-glow);
-  }
-  50% {
-    box-shadow: 
-      0 0 0 9999px rgba(10, 11, 14, 0.85),
-      0 0 60px var(--accent-glow-strong),
-      inset 0 0 60px var(--accent-glow-strong);
-  }
-}
-
-.tour-tooltip {
-  position: fixed;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  max-width: 400px;
-  z-index: 10000;
-  box-shadow: var(--shadow-xl);
-  border: 2px solid var(--accent-primary);
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Tour modal container */
+.tour-modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  max-width: 550px;
+  width: 100%;
+  min-height: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-accent);
+  animation: slideUp 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -65,96 +55,208 @@
   }
 }
 
+/* Tour header with step indicators and skip button */
 .tour-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  border-radius: 16px 16px 0 0;
 }
 
 .tour-step-indicator {
-  font-size: 0.85rem;
-  color: var(--accent-gold);
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  background: rgba(255, 184, 0, 0.15);
-  border-radius: var(--radius-full);
-}
-
-.tour-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: all var(--transition-fast);
-  border-radius: var(--radius-sm);
-}
-
-.tour-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
-  transform: rotate(90deg);
-}
-
-.tour-title {
-  font-family: var(--font-heading);
-  font-size: 1.3rem;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  font-weight: 700;
-}
-
-.tour-content {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-}
-
-.tour-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.tour-nav {
   display: flex;
   gap: 0.5rem;
 }
 
+.tour-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  transition: all 0.3s;
+}
+
+.tour-step-dot.active {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  transform: scale(1.2);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.tour-step-dot.completed {
+  background: var(--success);
+}
+
+.tour-skip-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.tour-skip-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tour-skip-btn:focus {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Tour body content */
+.tour-body {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tour-icon-large {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.tour-title {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+
+/* Tour step content styling */
+.tour-step-content {
+  text-align: left;
+}
+
+.tour-step-content p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.tour-step-content p:last-child {
+  margin-bottom: 0;
+}
+
+.tour-privacy-note {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--success);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin-top: 1rem;
+}
+
+.tour-note-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.tour-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.tour-feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tour-feature-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Integration diagram styling */
+.tour-integration-diagram {
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 1rem 0;
+  border: 1px solid var(--border-subtle);
+}
+
+.tour-integration-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.tour-integration-icon {
+  font-size: 1.5rem;
+}
+
+.tour-integration-arrow {
+  color: var(--accent-primary);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.tour-integration-text {
+  flex: 1;
+  min-width: 150px;
+}
+
+.tour-tip {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  color: var(--warning);
+}
+
+/* Tour footer with navigation buttons */
+.tour-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  border-radius: 0 0 16px 16px;
+}
+
+.tour-step-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Tour buttons */
 .tour-btn {
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s;
   border: none;
-}
-
-.tour-btn-prev {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 2px solid var(--border-subtle);
-}
-
-.tour-btn-prev:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  transform: translateX(-2px);
-}
-
-.tour-btn-next {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
-  color: var(--text-inverse);
-  box-shadow: var(--glow-primary);
-}
-
-.tour-btn-next:hover:not(:disabled) {
-  transform: translateX(2px);
-  box-shadow: 0 6px 20px var(--accent-glow-strong);
+  min-height: 44px;
 }
 
 .tour-btn:disabled {
@@ -162,43 +264,722 @@
   cursor: not-allowed;
 }
 
-.tour-skip {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color var(--transition-fast);
+.tour-btn:focus {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
-.tour-skip:hover {
+.tour-btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.tour-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--accent-glow-strong);
+}
+
+.tour-btn-secondary {
+  background: var(--bg-elevated);
   color: var(--text-primary);
-  text-decoration: underline;
+  border: 2px solid var(--border-subtle);
 }
 
-@media (max-width: 768px) {
-  .tour-tooltip {
-    max-width: calc(100vw - 2rem);
-    padding: 1.25rem;
+.tour-btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+/* End tour dialog styling */
+.tour-end-modal {
+  max-width: 480px;
+  text-align: center;
+}
+
+.tour-end-header {
+  padding: 2rem 1.5rem 1rem;
+}
+
+.tour-end-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.tour-end-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+.tour-end-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.tour-end-content p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.tour-end-question {
+  color: var(--text-primary) !important;
+  margin-top: 1.5rem;
+}
+
+.tour-end-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tour-end-actions .tour-btn {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.tour-btn-icon {
+  font-size: 1.5rem;
+}
+
+.tour-btn-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.tour-end-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 0 0 16px 16px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .tour-overlay {
+    padding: 0.5rem;
+  }
+
+  .tour-modal {
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+
+  .tour-header {
+    padding: 1rem;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .tour-body {
+    padding: 1.5rem 1rem;
+  }
+
+  .tour-icon-large {
+    font-size: 3rem;
   }
 
   .tour-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
 
-  .tour-content {
+  .tour-step-content p {
     font-size: 0.95rem;
   }
 
-  .tour-actions {
-    flex-direction: column-reverse;
+  .tour-feature-list li {
+    font-size: 0.9rem;
   }
 
-  .tour-nav {
-    width: 100%;
+  .tour-footer {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-radius: 0 0 12px 12px;
   }
 
   .tour-btn {
-    flex: 1;
+    padding: 0.625rem 1rem;
+    font-size: 0.9rem;
   }
+
+  .tour-step-count {
+    width: 100%;
+    text-align: center;
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+
+  .tour-end-actions {
+    flex-direction: column;
+  }
+
+  .tour-end-actions .tour-btn {
+    min-width: 100%;
+  }
+
+  .tour-integration-item {
+    font-size: 0.875rem;
+  }
+
+  .tour-integration-icon {
+    font-size: 1.25rem;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .tour-overlay,
+  .tour-modal {
+    animation: none;
+  }
+
+  .tour-btn:hover {
+    transform: none;
+  }
+
+  .tour-step-dot.active {
+    transform: none;
+  }
+}
+
+/* Print - hide tour */
+@media print {
+  .tour-overlay {
+    display: none;
+  }
+}
+
+/* Interactive Tour Styles */
+
+/* Transparent overlay for interactive mode */
+.tour-overlay-transparent {
+  background: rgba(10, 11, 14, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* Continue modal */
+.tour-continue-modal {
+  max-width: 420px;
+  text-align: center;
+}
+
+.tour-continue-header {
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.tour-continue-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.tour-continue-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+.tour-continue-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.tour-continue-content p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.tour-continue-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tour-continue-actions .tour-btn {
+  min-width: 140px;
+}
+
+/* Interactive tour overlay - dims the page */
+.tour-interactive-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 11, 14, 0.7);
+  /* No blur to keep highlighted content crisp */
+  z-index: 9999;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Tooltip container - highest z-index to always be above everything */
+.tour-tooltip-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10003;
+  width: 100%;
+  max-width: 450px;
+  padding: 0 1rem;
+}
+
+.tour-tooltip {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-accent);
+  animation: slideUp 0.3s ease-out;
+}
+
+.tour-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  border-radius: 12px 12px 0 0;
+}
+
+.tour-tooltip-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-family: var(--font-heading);
+}
+
+.tour-tooltip-skip-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tour-tooltip-skip {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tour-tooltip-skip-step {
+  color: var(--accent-primary);
+}
+
+.tour-tooltip-skip-step:hover {
+  background: rgba(20, 120, 150, 0.15);
+  color: var(--accent-primary-light);
+}
+
+.tour-tooltip-skip:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tour-tooltip p {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.tour-tooltip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  border-radius: 0 0 12px 12px;
+}
+
+.tour-tooltip-count {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tour-btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  min-height: 36px;
+}
+
+/* Mobile responsive for interactive tour */
+@media (max-width: 600px) {
+  .tour-tooltip-container {
+    bottom: 1rem;
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .tour-tooltip-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .tour-tooltip-header h3 {
+    font-size: 1rem;
+  }
+
+  .tour-tooltip p {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tour-tooltip-footer {
+    padding: 0.875rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tour-tooltip-count {
+    width: 100%;
+    text-align: center;
+    order: -1;
+    margin-bottom: 0.25rem;
+  }
+
+  .tour-continue-actions {
+    flex-direction: column;
+  }
+
+  .tour-continue-actions .tour-btn {
+    width: 100%;
+  }
+}
+
+/* Element highlight styles - Dark theme */
+.tour-highlight {
+  position: relative;
+  z-index: 10000 !important;
+  box-shadow: 0 0 0 4px var(--accent-glow-strong), 0 0 20px var(--accent-glow) !important;
+  border-radius: 8px;
+  animation: tourPulse 2s ease-in-out infinite;
+  background: var(--bg-secondary) !important;
+}
+
+@keyframes tourPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px var(--accent-glow-strong), 0 0 20px var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 6px var(--accent-glow-strong), 0 0 30px var(--accent-glow-strong);
+  }
+}
+
+/* Make highlighted input fields editable above the overlay */
+.tour-highlight input,
+.tour-highlight select,
+.tour-highlight textarea,
+.tour-highlight button {
+  position: relative;
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+
+/* Dialog highlight during tour - ensure dialog is above overlay and highlighted */
+.tour-interactive-mode .dialog,
+.tour-interactive-mode .dca-dialog,
+.tour-interactive-mode .net-worth-dialog,
+.tour-interactive-mode .dialog-content {
+  z-index: 10001 !important;
+}
+
+/* When dialog is highlighted, ensure all its inputs are accessible */
+.tour-interactive-mode .dialog.tour-highlight input,
+.tour-interactive-mode .dialog.tour-highlight select,
+.tour-interactive-mode .dialog.tour-highlight textarea,
+.tour-interactive-mode .dialog.tour-highlight button,
+.tour-interactive-mode .dca-dialog.tour-highlight input,
+.tour-interactive-mode .dca-dialog.tour-highlight select,
+.tour-interactive-mode .dca-dialog.tour-highlight textarea,
+.tour-interactive-mode .dca-dialog.tour-highlight button,
+.tour-interactive-mode .net-worth-dialog.tour-highlight input,
+.tour-interactive-mode .net-worth-dialog.tour-highlight select,
+.tour-interactive-mode .net-worth-dialog.tour-highlight textarea,
+.tour-interactive-mode .net-worth-dialog.tour-highlight button,
+.tour-interactive-mode .dialog-content.tour-highlight input,
+.tour-interactive-mode .dialog-content.tour-highlight select,
+.tour-interactive-mode .dialog-content.tour-highlight textarea,
+.tour-interactive-mode .dialog-content.tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: auto !important;
+}
+
+/* Ensure dialog overlay doesn't block dialog during tour */
+.tour-interactive-mode .dialog-overlay {
+  z-index: 10000 !important;
+}
+
+/* Tooltip hint for input fields */
+.tour-tooltip-hint {
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  background: rgba(20, 120, 150, 0.15);
+  border-top: 1px solid var(--accent-primary);
+  color: var(--accent-primary-light);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tour-hint-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Tooltip error message */
+.tour-tooltip-error {
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  background: rgba(239, 68, 68, 0.15);
+  border-top: 1px solid var(--error);
+  color: var(--error);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.tour-error-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Ensure highlighted elements are above the overlay */
+.tour-interactive-overlay ~ * .tour-highlight {
+  pointer-events: auto;
+}
+
+/* 
+ * Strategy: During interactive tour mode, we disable inputs/buttons that are NOT in:
+ * - The highlighted section (.tour-highlight)
+ * - The tour tooltip (.tour-tooltip)
+ * - Dialogs (.dialog, .dca-dialog, .net-worth-dialog)
+ * 
+ * We use a two-step approach:
+ * 1. First disable elements in non-highlighted data-tour sections
+ * 2. Then explicitly re-enable elements in highlighted sections (with higher specificity)
+ */
+
+/* Disable inputs in non-highlighted data-tour sections */
+.tour-interactive-mode [data-tour]:not(.tour-highlight) input,
+.tour-interactive-mode [data-tour]:not(.tour-highlight) select,
+.tour-interactive-mode [data-tour]:not(.tour-highlight) textarea {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Disable buttons INSIDE non-highlighted data-tour sections, but NOT buttons that ARE the data-tour element */
+.tour-interactive-mode [data-tour]:not(.tour-highlight) button:not([data-tour]) {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Buttons that ARE the data-tour element (like budget/analytics tabs) should be dimmed but not disabled when not highlighted */
+.tour-interactive-mode button[data-tour]:not(.tour-highlight) {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+}
+
+/* Buttons with data-tour AND tour-highlight should be fully enabled */
+.tour-interactive-mode button[data-tour].tour-highlight {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Tab buttons with tour-highlight should look like they're being hovered */
+.tour-interactive-mode button.tab[data-tour].tour-highlight {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Keep highlighted section inputs AND buttons enabled (this rule enables buttons too!) */
+.tour-interactive-mode .tour-highlight input,
+.tour-interactive-mode .tour-highlight select,
+.tour-interactive-mode .tour-highlight textarea,
+.tour-interactive-mode .tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Ensure tables inside highlighted sections are fully visible and opaque */
+.tour-interactive-mode .tour-highlight table,
+.tour-interactive-mode .tour-highlight thead,
+.tour-interactive-mode .tour-highlight tbody,
+.tour-interactive-mode .tour-highlight tr,
+.tour-interactive-mode .tour-highlight th,
+.tour-interactive-mode .tour-highlight td {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure all content inside highlighted sections is visible - critical for table data */
+body.tour-interactive-mode .tour-highlight,
+body.tour-interactive-mode .tour-highlight * {
+  opacity: 1 !important;
+}
+
+/* Specifically ensure breakdown-table and all its children are fully visible */
+body.tour-interactive-mode .tour-highlight .breakdown-table,
+body.tour-interactive-mode .tour-highlight .breakdown-table *,
+body.tour-interactive-mode .tour-highlight table *,
+body.tour-interactive-mode .tour-highlight tbody tr,
+body.tour-interactive-mode .tour-highlight tbody td {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure analytics section and table have proper background when highlighted */
+body.tour-interactive-mode .tour-highlight.analytics-section,
+body.tour-interactive-mode .tour-highlight .breakdown-table-container,
+body.tour-interactive-mode .tour-highlight .chart-container {
+  background: var(--bg-secondary) !important;
+}
+
+body.tour-interactive-mode .tour-highlight .breakdown-table th {
+  background: var(--bg-tertiary) !important;
+  opacity: 1 !important;
+  color: var(--text-secondary) !important;
+}
+
+body.tour-interactive-mode .tour-highlight .breakdown-table td {
+  background: var(--bg-secondary) !important;
+  opacity: 1 !important;
+  color: var(--text-primary) !important;
+}
+
+/* Keep tour tooltip buttons enabled */
+.tour-interactive-mode .tour-tooltip button,
+.tour-interactive-mode .tour-tooltip-skip,
+.tour-interactive-mode .tour-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+/* Keep dialog close buttons enabled during tour */
+.tour-interactive-mode .dialog-close {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+/* Keep ALL dialog inputs enabled when dialog is highlighted (isDialogStep) */
+.tour-interactive-mode .dialog.tour-highlight input,
+.tour-interactive-mode .dialog.tour-highlight select,
+.tour-interactive-mode .dialog.tour-highlight textarea,
+.tour-interactive-mode .dialog.tour-highlight button,
+.tour-interactive-mode .dca-dialog.tour-highlight input,
+.tour-interactive-mode .dca-dialog.tour-highlight select,
+.tour-interactive-mode .dca-dialog.tour-highlight textarea,
+.tour-interactive-mode .dca-dialog.tour-highlight button,
+.tour-interactive-mode .net-worth-dialog.tour-highlight input,
+.tour-interactive-mode .net-worth-dialog.tour-highlight select,
+.tour-interactive-mode .net-worth-dialog.tour-highlight textarea,
+.tour-interactive-mode .net-worth-dialog.tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: auto !important;
+}
+
+/* Keep run-simulation button and any button with tour-highlight enabled */
+.tour-interactive-mode .run-simulation-btn.tour-highlight,
+.tour-interactive-mode button.tour-highlight {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Ensure ALL buttons inside highlighted sections are fully clickable (consolidated rule with high specificity) */
+body.tour-interactive-mode button.tour-highlight,
+body.tour-interactive-mode .tour-highlight button,
+body.tour-interactive-mode .tour-highlight > button,
+body.tour-interactive-mode [data-tour].tour-highlight button,
+body.tour-interactive-mode [data-tour].tour-highlight button.action-btn,
+body.tour-interactive-mode [data-tour].tour-highlight button.primary-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Ultra-high specificity for any button inside ANY element with tour-highlight class */
+body.tour-interactive-mode *[data-tour].tour-highlight button,
+body.tour-interactive-mode [data-tour].tour-highlight button,
+body.tour-interactive-mode div.tour-highlight button,
+body.tour-interactive-mode section.tour-highlight button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+/* Specifically target action-btn and primary-btn inside any tour-highlight container */
+body.tour-interactive-mode .tour-highlight .action-btn,
+body.tour-interactive-mode .tour-highlight .primary-btn,
+body.tour-interactive-mode .tour-highlight button.action-btn,
+body.tour-interactive-mode .tour-highlight button.primary-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Draggable tooltip styles */
+.tour-tooltip-header.tour-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.tour-tooltip-header.tour-draggable:active {
+  cursor: grabbing;
+}
+
+.tour-tooltip-container.tour-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.tour-tooltip-container.tour-dragging .tour-tooltip {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
 }

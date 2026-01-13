@@ -604,8 +604,8 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
               <div className="dca-actions">
                 {!isConfirmMode ? (
                   <>
-                    <button className="action-btn start-over-btn" onClick={handleReset}>
-                      🔄 Start Over
+                    <button className="action-btn reset-btn" onClick={handleReset}>
+                      🔄 Restart
                     </button>
                     <button 
                       className="action-btn primary-btn"
@@ -635,8 +635,8 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                     >
                       ✓ Confirm All
                     </button>
-                    <button className="action-btn start-over-btn" onClick={handleReset}>
-                      🔄 Start Over
+                    <button className="action-btn reset-btn" onClick={handleReset}>
+                      🔄 Restart
                     </button>
                   </>
                 )}
@@ -656,10 +656,6 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
               </ul>
             </div>
           )}
-        </div>
-
-        <div className="dialog-footer">
-          <button className="action-btn" onClick={handleClose}>Close</button>
         </div>
       </div>
     </div>
