@@ -308,7 +308,7 @@ function App() {
         <a href="#main-content" className="skip-link">Skip to main content</a>
         
         <header className="app-header">
-          <h1><MaterialIcon name="payments" className="header-icon" /> Fire Tools</h1>
+          <h1><MaterialIcon name="local_fire_department" className="header-icon" /> Fire Tools</h1>
           <p>Rocket fuel for your financial planning</p>
         </header>
 

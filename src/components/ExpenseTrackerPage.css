@@ -206,6 +206,11 @@
   color: var(--text-secondary);
 }
 
+.rule-bar-label span:last-child {
+  font-weight: 700;
+  color: var(--text-tertiary);
+}
+
 .rule-bar-track {
   position: relative;
   height: 24px;
@@ -254,7 +259,7 @@
 
 .rule-bar-amount {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-align: right;
 }
 
