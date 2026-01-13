@@ -604,60 +604,65 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           {notificationPrefs.enableInAppNotifications && (
             <>
               <div className="setting-item">
-                <label className="checkbox-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     checked={notificationPrefs.newMonthReminders}
                     onChange={(e) => handleNotificationPrefChange('newMonthReminders', e.target.checked)}
                   />
+                  <span className="toggle-switch"></span>
                   <span>New Month Reminders</span>
                 </label>
                 <span className="setting-help">Remind to update financial data at the start of each month</span>
               </div>
 
               <div className="setting-item">
-                <label className="checkbox-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     checked={notificationPrefs.newQuarterReminders}
                     onChange={(e) => handleNotificationPrefChange('newQuarterReminders', e.target.checked)}
                   />
+                  <span className="toggle-switch"></span>
                   <span>New Quarter Reminders</span>
                 </label>
                 <span className="setting-help">Remind to review quarterly performance</span>
               </div>
 
               <div className="setting-item">
-                <label className="checkbox-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     checked={notificationPrefs.taxReminders}
                     onChange={(e) => handleNotificationPrefChange('taxReminders', e.target.checked)}
                   />
+                  <span className="toggle-switch"></span>
                   <span>Tax Payment Reminders</span>
                 </label>
                 <span className="setting-help">Remind about upcoming tax deadlines</span>
               </div>
 
               <div className="setting-item">
-                <label className="checkbox-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     checked={notificationPrefs.dcaReminders}
                     onChange={(e) => handleNotificationPrefChange('dcaReminders', e.target.checked)}
                   />
+                  <span className="toggle-switch"></span>
                   <span>DCA Investment Reminders</span>
                 </label>
                 <span className="setting-help">Remind about regular investment contributions</span>
               </div>
 
               <div className="setting-item">
-                <label className="checkbox-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     checked={notificationPrefs.fireMilestones}
                     onChange={(e) => handleNotificationPrefChange('fireMilestones', e.target.checked)}
                   />
+                  <span className="toggle-switch"></span>
                   <span>FIRE Milestone Alerts</span>
                 </label>
                 <span className="setting-help">Get notified when you reach FIRE milestones (25%, 50%, 75%, 100%)</span>
