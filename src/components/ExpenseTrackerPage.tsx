@@ -916,8 +916,8 @@ export function ExpenseTrackerPage() {
                   onChange={(e) => setFilter({ 
                     ...filter, 
                     category: e.target.value as ExpenseCategory || undefined,
-                    // When selecting a category, also filter to expenses only
-                    transactionType: e.target.value ? 'expense' : filter.transactionType
+                    // When selecting a category, filter to expenses only; when clearing, reset to all transactions
+                    transactionType: e.target.value ? 'expense' : undefined
                   })}
                   disabled={filter.transactionType === 'income'}
                 >
@@ -945,8 +945,8 @@ export function ExpenseTrackerPage() {
                   onChange={(e) => setFilter({ 
                     ...filter, 
                     expenseType: e.target.value as ExpenseType || undefined,
-                    // When selecting needs/wants, also filter to expenses only
-                    transactionType: e.target.value ? 'expense' : filter.transactionType
+                    // When selecting needs/wants, filter to expenses only; when clearing, reset to all transactions
+                    transactionType: e.target.value ? 'expense' : undefined
                   })}
                   disabled={filter.transactionType === 'income'}
                 >
@@ -1603,14 +1603,15 @@ function TransactionFormDialog({
             </>
           )}
           
-          {/* Recurring checkbox - applies to both income and expense */}
+          {/* Recurring toggle - applies to both income and expense */}
           <div className="form-group form-group-checkbox">
-            <label className="checkbox-label checkbox-label-inline">
+            <label className="toggle-switch-label">
               <input
                 type="checkbox"
                 checked={isRecurring}
                 onChange={(e) => setIsRecurring(e.target.checked)}
               />
+              <span className="toggle-switch"></span>
               <MaterialIcon name="autorenew" size="small" />
               <span>Recurring transaction</span>
             </label>
