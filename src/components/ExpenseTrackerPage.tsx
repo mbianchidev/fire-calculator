@@ -694,7 +694,7 @@ export function ExpenseTrackerPage() {
               <span className="card-icon" aria-hidden="true"><MaterialIcon name="trending_down" /></span>
               <div className="card-content">
                 <span className="card-label">Total Expenses</span>
-                <span className="card-value"><PrivacyBlur shouldBlur={false}>{formatCurrency(summary.totalExpenses, data.currency)}</PrivacyBlur></span>
+                <span className="card-value">{formatCurrency(summary.totalExpenses, data.currency)}</span>
               </div>
             </div>
             <div className={`summary-card balance ${summary.netBalance >= 0 ? 'positive' : 'negative'}`}>

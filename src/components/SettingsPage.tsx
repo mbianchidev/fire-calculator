@@ -592,14 +592,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 ))}
               </optgroup>
             </select>
-            {settings.country && isEUCountry(settings.country) && (
-              <span className="setting-help eu-notice">
-                <MaterialIcon name="info" size="small" /> EU resident: You'll receive UCITS compliance warnings for non-EU ETFs
-              </span>
-            )}
-            {settings.country && !isEUCountry(settings.country) && (
-              <span className="setting-help">Country set to {ALL_COUNTRIES.find(c => c.code === settings.country)?.name}</span>
-            )}
+            {(() => {
+              const isEU = settings.country && isEUCountry(settings.country);
+              if (isEU) {
+                return (
+                  <span className="setting-help eu-notice">
+                    <MaterialIcon name="info" size="small" /> EU resident: You'll receive UCITS compliance warnings for non-EU ETFs
+                  </span>
+                );
+              } else if (settings.country) {
+                return (
+                  <span className="setting-help">Country set to {ALL_COUNTRIES.find(c => c.code === settings.country)?.name}</span>
+                );
+              }
+              return null;
+            })()}
           </div>
         </section>
 
