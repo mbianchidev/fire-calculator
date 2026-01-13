@@ -223,6 +223,14 @@ export function filterTransactions<T extends Transaction>(
   filter: TransactionFilter
 ): T[] {
   return transactions.filter(transaction => {
+    // Transaction type filter (income vs expense)
+    if (filter.transactionType) {
+      const transactionType = 'source' in transaction ? 'income' : 'expense';
+      if (transactionType !== filter.transactionType) {
+        return false;
+      }
+    }
+
     // Exact date filter
     if (filter.filterDate && transaction.date !== filter.filterDate) {
       return false;
@@ -244,11 +252,14 @@ export function filterTransactions<T extends Transaction>(
       return false;
     }
 
-    // Search term filter - searches in description and amount
+    // Search term filter - searches in description and amount (supports both . and , for decimals)
     if (filter.searchTerm) {
       const searchLower = filter.searchTerm.toLowerCase();
       const descriptionMatches = transaction.description.toLowerCase().includes(searchLower);
-      const amountMatches = transaction.amount.toString().includes(filter.searchTerm);
+      // Normalize search term: replace comma with dot for amount comparison
+      const normalizedSearchTerm = filter.searchTerm.replace(',', '.');
+      const amountString = transaction.amount.toString();
+      const amountMatches = amountString.includes(filter.searchTerm) || amountString.includes(normalizedSearchTerm);
       if (!descriptionMatches && !amountMatches) {
         return false;
       }
@@ -263,7 +274,7 @@ export function filterTransactions<T extends Transaction>(
       }
     }
 
-    // Type-specific filters
+    // Type-specific filters - only apply to expenses
     if ('category' in transaction) {
       const expense = transaction as unknown as ExpenseEntry;
       if (filter.category && expense.category !== filter.category) {
@@ -271,6 +282,14 @@ export function filterTransactions<T extends Transaction>(
       }
       if (filter.expenseType && expense.expenseType !== filter.expenseType) {
         return false;
+      }
+    } else {
+      // This is an income transaction - exclude if filtering by expense category or expense type
+      if (filter.category) {
+        return false; // Income should not appear when filtering by expense category
+      }
+      if (filter.expenseType) {
+        return false; // Income should not appear when filtering by Needs/Wants
       }
     }
 

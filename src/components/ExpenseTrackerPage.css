@@ -509,6 +509,70 @@
   color: var(--warning);
 }
 
+/* Sum row in transactions table */
+.transactions-table tfoot .sum-row {
+  background: var(--bg-tertiary);
+  border-top: 2px solid var(--border-subtle);
+}
+
+.transactions-table .sum-row td {
+  padding: 0.75rem 1rem;
+}
+
+.transactions-table .sum-row .sum-label {
+  text-align: right;
+}
+
+.transactions-table .sum-row .positive {
+  color: var(--success);
+}
+
+.transactions-table .sum-row .negative {
+  color: var(--error);
+}
+
+/* Amount range filter */
+.filter-group-amount-range {
+  flex-wrap: wrap;
+}
+
+.amount-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.amount-range-inputs input {
+  width: 70px;
+  padding: 0.4rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.amount-range-separator {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Date filter input fix */
+.date-filter-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  color-scheme: dark;
+}
+
+.date-filter-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 .btn-icon {
   background: none;
   border: none;
@@ -907,6 +971,16 @@
   cursor: pointer;
   font-size: 1rem;
   color: var(--text-primary);
+}
+
+.checkbox-label-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label-inline .material-symbols-outlined {
+  color: var(--accent-primary);
 }
 
 .checkbox-label input[type="checkbox"] {

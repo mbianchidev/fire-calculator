@@ -176,6 +176,7 @@ export interface TransactionFilter {
   category?: ExpenseCategory;
   incomeSource?: IncomeSource;
   expenseType?: ExpenseType;
+  transactionType?: 'income' | 'expense'; // Filter by transaction type
   minAmount?: number;
   maxAmount?: number;
   searchTerm?: string;

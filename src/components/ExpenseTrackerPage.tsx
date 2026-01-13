@@ -890,13 +890,38 @@ export function ExpenseTrackerPage() {
                 </button>
               </div>
               <div className="filter-group">
+                <label htmlFor="filter-transaction-type">Show:</label>
+                <select
+                  id="filter-transaction-type"
+                  value={filter.transactionType || ''}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    transactionType: e.target.value as 'income' | 'expense' || undefined,
+                    // Clear category filter if switching to income
+                    category: e.target.value === 'income' ? undefined : filter.category,
+                    // Clear expense type filter if switching to income  
+                    expenseType: e.target.value === 'income' ? undefined : filter.expenseType
+                  })}
+                >
+                  <option value="">All Transactions</option>
+                  <option value="expense">Only Expenses</option>
+                  <option value="income">Only Income</option>
+                </select>
+              </div>
+              <div className="filter-group">
                 <label htmlFor="filter-category">Category:</label>
                 <select
                   id="filter-category"
                   value={filter.category || ''}
-                  onChange={(e) => setFilter({ ...filter, category: e.target.value as ExpenseCategory || undefined })}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    category: e.target.value as ExpenseCategory || undefined,
+                    // When selecting a category, also filter to expenses only
+                    transactionType: e.target.value ? 'expense' : filter.transactionType
+                  })}
+                  disabled={filter.transactionType === 'income'}
                 >
-                  <option value="">All</option>
+                  <option value="">All Categories</option>
                   {EXPENSE_CATEGORIES.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -907,6 +932,7 @@ export function ExpenseTrackerPage() {
                 <input
                   id="filter-date"
                   type="date"
+                  className="date-filter-input"
                   value={filter.filterDate || ''}
                   onChange={(e) => setFilter({ ...filter, filterDate: e.target.value || undefined })}
                 />
@@ -916,7 +942,13 @@ export function ExpenseTrackerPage() {
                 <select
                   id="filter-type"
                   value={filter.expenseType || ''}
-                  onChange={(e) => setFilter({ ...filter, expenseType: e.target.value as ExpenseType || undefined })}
+                  onChange={(e) => setFilter({ 
+                    ...filter, 
+                    expenseType: e.target.value as ExpenseType || undefined,
+                    // When selecting needs/wants, also filter to expenses only
+                    transactionType: e.target.value ? 'expense' : filter.transactionType
+                  })}
+                  disabled={filter.transactionType === 'income'}
                 >
                   <option value="">All</option>
                   <option value="NEED">Needs</option>
@@ -944,6 +976,30 @@ export function ExpenseTrackerPage() {
                   value={filter.searchTerm || ''}
                   onChange={(e) => setFilter({ ...filter, searchTerm: e.target.value || undefined })}
                 />
+              </div>
+              <div className="filter-group filter-group-amount-range">
+                <label>Amount Range:</label>
+                <div className="amount-range-inputs">
+                  <input
+                    id="filter-min-amount"
+                    type="number"
+                    placeholder="Min"
+                    min="0"
+                    step="0.01"
+                    value={filter.minAmount ?? ''}
+                    onChange={(e) => setFilter({ ...filter, minAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                  <span className="amount-range-separator">-</span>
+                  <input
+                    id="filter-max-amount"
+                    type="number"
+                    placeholder="Max"
+                    min="0"
+                    step="0.01"
+                    value={filter.maxAmount ?? ''}
+                    onChange={(e) => setFilter({ ...filter, maxAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1024,6 +1080,35 @@ export function ExpenseTrackerPage() {
                       </tr>
                     ))}
                   </tbody>
+                  {/* Sum row - only shown when filtering/searching */}
+                  {(filter.searchTerm || filter.category || filter.filterDate || filter.expenseType || filter.transactionType || filter.isRecurring !== undefined || filter.minAmount !== undefined || filter.maxAmount !== undefined) && filteredTransactions.length > 0 && (
+                    <tfoot>
+                      <tr className="sum-row">
+                        <td colSpan={4} className="sum-label">
+                          <strong>Sum of filtered transactions:</strong>
+                        </td>
+                        <td className="amount-col">
+                          <strong>
+                            {(() => {
+                              const totalIncome = filteredTransactions
+                                .filter(t => t.type === 'income')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              const totalExpenses = filteredTransactions
+                                .filter(t => t.type === 'expense')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              const netAmount = totalIncome - totalExpenses;
+                              return (
+                                <span className={netAmount >= 0 ? 'positive' : 'negative'}>
+                                  {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, data.currency)}
+                                </span>
+                              );
+                            })()}
+                          </strong>
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               )}
             </div>
@@ -1520,16 +1605,14 @@ function TransactionFormDialog({
           
           {/* Recurring checkbox - applies to both income and expense */}
           <div className="form-group form-group-checkbox">
-            <label className="checkbox-label">
+            <label className="checkbox-label checkbox-label-inline">
               <input
                 type="checkbox"
                 checked={isRecurring}
                 onChange={(e) => setIsRecurring(e.target.checked)}
               />
-              <span className="checkbox-text">
-                <MaterialIcon name="autorenew" size="small" />
-                Recurring transaction
-              </span>
+              <MaterialIcon name="autorenew" size="small" />
+              <span>Recurring transaction</span>
             </label>
             <span className="checkbox-hint">
               Recurring transactions will be automatically copied to new months
