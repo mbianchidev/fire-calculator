@@ -741,7 +741,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 <span className="setting-help">Get notified when you reach FIRE milestones (25%, 50%, 75%, 100%)</span>
               </div>
             </>
-          )}}
+          )}
 
           <div className="setting-item">
             <div className="subsection-header-with-tooltip">
