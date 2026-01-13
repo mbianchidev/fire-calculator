@@ -52,6 +52,7 @@ export interface Transaction {
   amount: number;
   description: string;
   currency?: SupportedCurrency;
+  isRecurring?: boolean; // Whether this is a recurring transaction
 }
 
 // Income entry
@@ -177,6 +178,7 @@ export interface TransactionFilter {
   minAmount?: number;
   maxAmount?: number;
   searchTerm?: string;
+  isRecurring?: boolean; // Filter for recurring transactions
 }
 
 export interface TransactionSort {

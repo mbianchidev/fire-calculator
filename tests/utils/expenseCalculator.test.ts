@@ -339,6 +339,29 @@ describe('Expense Calculator', () => {
       const filtered = filterTransactions(mockExpenses, filter);
       expect(filtered.length).toBe(2); // UTILITIES (200) and GROCERIES (400)
     });
+
+    it('should filter by recurring transactions (true)', () => {
+      const recurringExpenses: ExpenseEntry[] = [
+        { id: 'exp-r1', type: 'expense', date: '2024-01-05', amount: 1500, description: 'Rent', category: 'HOUSING', expenseType: 'NEED', isRecurring: true },
+        { id: 'exp-r2', type: 'expense', date: '2024-01-10', amount: 200, description: 'Electric', category: 'UTILITIES', expenseType: 'NEED', isRecurring: true },
+        { id: 'exp-nr1', type: 'expense', date: '2024-01-12', amount: 150, description: 'Dinner', category: 'DINING_OUT', expenseType: 'WANT', isRecurring: false },
+      ];
+      const filter: TransactionFilter = { isRecurring: true };
+      const filtered = filterTransactions(recurringExpenses, filter);
+      expect(filtered.length).toBe(2);
+      expect(filtered.every(t => t.isRecurring === true)).toBe(true);
+    });
+
+    it('should filter by non-recurring transactions (false)', () => {
+      const mixedExpenses: ExpenseEntry[] = [
+        { id: 'exp-r1', type: 'expense', date: '2024-01-05', amount: 1500, description: 'Rent', category: 'HOUSING', expenseType: 'NEED', isRecurring: true },
+        { id: 'exp-nr1', type: 'expense', date: '2024-01-12', amount: 150, description: 'Dinner', category: 'DINING_OUT', expenseType: 'WANT', isRecurring: false },
+        { id: 'exp-nr2', type: 'expense', date: '2024-01-18', amount: 50, description: 'Coffee', category: 'DINING_OUT', expenseType: 'WANT' }, // undefined isRecurring
+      ];
+      const filter: TransactionFilter = { isRecurring: false };
+      const filtered = filterTransactions(mixedExpenses, filter);
+      expect(filtered.length).toBe(2); // non-recurring and undefined should both match false
+    });
   });
 
   describe('sortTransactions', () => {
