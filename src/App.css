@@ -220,9 +220,17 @@ body {
   justify-content: center;
 }
 
-.profile-menu-container {
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   position: absolute;
   right: 2rem;
+}
+
+.profile-menu-container {
+  position: relative;
+  right: auto;
 }
 
 .nav-link {
