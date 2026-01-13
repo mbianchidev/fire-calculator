@@ -604,14 +604,14 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
               <div className="dca-actions">
                 {!isConfirmMode ? (
                   <>
-                    <button className="action-btn start-over-btn" onClick={handleReset}>
-                      🔄 Start Over
+                    <button className="action-btn reset-btn" onClick={handleReset}>
+                      🔄 Restart
                     </button>
                     <button 
                       className="action-btn primary-btn"
                       onClick={() => setIsConfirmMode(true)}
                     >
-                      ✍️ Confirm Investments
+                      Confirm
                     </button>
                   </>
                 ) : allConfirmed ? (
@@ -635,8 +635,8 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                     >
                       ✓ Confirm All
                     </button>
-                    <button className="action-btn start-over-btn" onClick={handleReset}>
-                      🔄 Start Over
+                    <button className="action-btn reset-btn" onClick={handleReset}>
+                      🔄 Restart
                     </button>
                   </>
                 )}
@@ -652,14 +652,10 @@ export const DCAHelperDialog: React.FC<DCAHelperDialogProps> = ({
                 <li>The calculator will distribute it according to your asset allocation targets</li>
                 <li>Current prices are fetched from Yahoo Finance API</li>
                 <li>You'll see the exact number of shares (fractional) to buy for each asset</li>
-                <li><strong>NEW:</strong> After investing, click "Confirm Investments" to record actual shares purchased and track deviations</li>
+                <li><strong>NEW:</strong> After investing, click "Confirm" to record actual shares purchased and track deviations</li>
               </ul>
             </div>
           )}
-        </div>
-
-        <div className="dialog-footer">
-          <button className="action-btn" onClick={handleClose}>Close</button>
         </div>
       </div>
     </div>

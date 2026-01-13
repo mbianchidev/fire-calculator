@@ -1,13 +1,17 @@
+/* ============================================================================
+   POLICY PAGES - Premium Fintech Dark Theme
+   ============================================================================ */
+
 /* Policy pages shared styles */
 .policy-page {
   flex: 1;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   margin: 2rem auto;
   max-width: 1000px;
   width: 100%;
   padding: 0 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .policy-container {
@@ -17,21 +21,21 @@
 }
 
 .policy-container h1 {
-  color: #333;
+  color: var(--text-primary);
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .last-updated {
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.95rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border-subtle);
 }
 
 .policy-section {
@@ -39,28 +43,28 @@
 }
 
 .policy-section h2 {
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.8rem;
   margin-bottom: 1rem;
   margin-top: 2rem;
 }
 
 .policy-section h3 {
-  color: #555;
+  color: var(--text-secondary);
   font-size: 1.4rem;
   margin-bottom: 0.75rem;
   margin-top: 1.5rem;
 }
 
 .policy-section h4 {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   margin-top: 1rem;
 }
 
 .policy-section p {
-  color: #444;
+  color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 1rem;
   font-size: 1rem;
@@ -72,38 +76,38 @@
 }
 
 .policy-section li {
-  color: #444;
+  color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 0.5rem;
   font-size: 1rem;
 }
 
 .policy-section a {
-  color: #5568d4;
+  color: var(--accent-primary);
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .policy-section a:hover {
-  color: #764ba2;
+  color: var(--accent-gold);
 }
 
 .policy-section a:focus {
-  outline: 3px solid #5568d4;
+  outline: 3px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
 .policy-section code {
-  background: #f5f5f5;
+  background: var(--bg-tertiary);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
-  color: #d63384;
+  color: var(--accent-gold);
 }
 
 .policy-section strong {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -112,14 +116,14 @@
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .policy-table thead {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  color: var(--text-inverse);
 }
 
 .policy-table th {
@@ -131,13 +135,13 @@
 
 .policy-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  color: #444;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 .policy-table tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
 }
 
 .policy-table tbody tr:last-child td {
@@ -153,15 +157,15 @@
 .cookie-table {
   width: 100%;
   border-collapse: collapse;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   overflow: hidden;
   min-width: 700px;
 }
 
 .cookie-table thead {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
+  color: var(--text-inverse);
 }
 
 .cookie-table th {
@@ -174,8 +178,8 @@
 
 .cookie-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  color: #444;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   vertical-align: top;
 }
@@ -183,10 +187,11 @@
 .cookie-table td:first-child {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.85rem;
+  color: var(--accent-gold);
 }
 
 .cookie-table tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
 }
 
 .cookie-table tbody tr:last-child td {
@@ -195,21 +200,21 @@
 
 /* Info box */
 .info-box {
-  background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);
-  border-left: 4px solid #2196F3;
+  background: rgba(45, 212, 191, 0.1);
+  border-left: 4px solid var(--accent-primary);
   padding: 1.5rem;
   margin: 1.5rem 0;
   border-radius: 8px;
 }
 
 .info-box h4 {
-  color: #1976D2;
+  color: var(--accent-primary);
   margin-bottom: 0.75rem;
   font-size: 1.1rem;
 }
 
 .info-box p {
-  color: #0d47a1;
+  color: var(--text-secondary);
   margin-bottom: 0;
   font-size: 0.95rem;
 }
@@ -333,6 +338,7 @@
     box-shadow: none;
     margin: 0;
     padding: 0;
+    background: white;
   }
 
   .policy-container h1 {
@@ -343,6 +349,14 @@
   .policy-section a {
     color: #333;
     text-decoration: underline;
+  }
+
+  .policy-section p,
+  .policy-section li,
+  .policy-section h2,
+  .policy-section h3,
+  .policy-section h4 {
+    color: #333;
   }
 
   .policy-table thead,

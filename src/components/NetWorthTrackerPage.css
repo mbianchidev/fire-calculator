@@ -11,20 +11,20 @@
 
 .net-worth-tracker-page .page-header h1 {
   font-size: 2rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .net-worth-tracker-page .page-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
 .net-worth-tracker-main {
-  background: white;
+  background: var(--bg-elevated);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 /* Net Worth Summary Cards */
@@ -34,7 +34,7 @@
 
 .net-worth-summary h3 {
   font-size: 1.3rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
@@ -54,19 +54,19 @@
 }
 
 .net-worth-card.assets {
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  background: linear-gradient(135deg, var(--info) 0%, var(--info) 100%);
 }
 
 .net-worth-card.cash {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, var(--success) 0%, var(--success) 100%);
 }
 
 .net-worth-card.pension {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning) 100%);
 }
 
 .net-worth-card.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
 }
 
 .net-worth-card .card-icon {
@@ -95,11 +95,11 @@
 }
 
 .net-worth-card .card-change.positive {
-  color: #90EE90;
+  color: var(--success);
 }
 
 .net-worth-card .card-change.negative {
-  color: #FFB6C1;
+  color: var(--error);
 }
 
 /* Data Entry Section */
@@ -116,7 +116,7 @@
 
 .data-entry-section h3 {
   font-size: 1.3rem;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -133,7 +133,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: transform 0.2s, box-shadow 0.2s;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
   color: white;
 }
 
@@ -143,19 +143,19 @@
 }
 
 .btn-entry.asset {
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  background: linear-gradient(135deg, var(--info) 0%, var(--info) 100%);
 }
 
 .btn-entry.cash {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, var(--success) 0%, var(--success) 100%);
 }
 
 .btn-entry.pension {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning) 100%);
 }
 
 .btn-entry.operation {
-  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
 }
 
 /* Data Tables */
@@ -165,14 +165,14 @@
 }
 
 .data-table-section {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 1rem;
 }
 
 .data-table-section h4 {
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -189,17 +189,17 @@
 .data-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .data-table th {
-  background: white;
+  background: var(--bg-elevated);
   font-weight: 600;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .data-table tbody tr:hover {
-  background: rgba(102, 126, 234, 0.05);
+  background: rgba(0, 212, 170, 0.05);
 }
 
 .data-table .amount-col {
@@ -219,12 +219,12 @@
 
 .chart-section h3 {
   font-size: 1.3rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .chart-container {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 1.5rem;
   min-height: 300px;
@@ -246,28 +246,28 @@
 
 .chart-view-mode label {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .view-mode-select {
   padding: 0.4rem 0.8rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-subtle);
   border-radius: 6px;
-  background: white;
+  background: var(--bg-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .view-mode-select:hover {
-  border-color: #667eea;
+  border-color: var(--accent-primary);
 }
 
 .view-mode-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
 }
 
 .chart-toggle {
@@ -276,7 +276,7 @@
   gap: 0.5rem;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 /* Forecast confidence info box */
@@ -291,21 +291,21 @@
 }
 
 .forecast-confidence-box.low {
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-  border: 1px solid #ffb74d;
-  color: #e65100;
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(251, 146, 60, 0.1) 100%);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  color: var(--warning);
 }
 
 .forecast-confidence-box.medium {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border: 1px solid #64b5f6;
-  color: #1565c0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--info);
 }
 
 .forecast-confidence-box.high {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border: 1px solid #81c784;
-  color: #2e7d32;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--success);
 }
 
 .forecast-confidence-icon {
@@ -329,14 +329,14 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: white;
+  background: var(--bg-elevated);
   border-radius: 8px;
   flex-wrap: wrap;
 }
 
 .currency-selector-label {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -353,16 +353,17 @@
 
 .currency-btn {
   padding: 0.4rem 0.8rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-subtle);
   border-radius: 6px;
-  background: white;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.2s;
 }
 
 .currency-btn:hover {
-  border-color: #667eea;
+  border-color: var(--accent-primary);
   transform: translateY(-1px);
 }
 
@@ -374,7 +375,7 @@
 /* FIRE Progress Section */
 .fire-progress-section {
   margin-top: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%);
   border-radius: 12px;
   padding: 1.5rem;
   color: white;
@@ -436,7 +437,7 @@
 
 .fire-progress-fill {
   height: 100%;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 6px;
   transition: width 0.5s ease;
 }
@@ -445,7 +446,7 @@
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state-icon {
@@ -455,7 +456,7 @@
 
 .empty-state h4 {
   font-size: 1.2rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -517,6 +518,24 @@
   grid-column: span 2;
 }
 
+/* Ensure dialog inputs have dark background */
+.net-worth-dialog input,
+.net-worth-dialog select,
+.net-worth-dialog textarea {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.net-worth-dialog input:focus,
+.net-worth-dialog select:focus,
+.net-worth-dialog textarea:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
 @media (max-width: 600px) {
   .net-worth-dialog .form-row {
     grid-template-columns: 1fr;
@@ -529,12 +548,12 @@
 
 /* Error styles for form validation */
 .net-worth-dialog .input-error {
-  border-color: #f44336;
+  border-color: var(--error);
   box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
 }
 
 .net-worth-dialog .error-message {
-  color: #f44336;
+  color: var(--error);
   font-size: 0.75rem;
   margin-top: 0.25rem;
   display: block;
@@ -542,11 +561,11 @@
 
 /* Sync Configuration Section */
 .sync-config-section {
-  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(255, 184, 0, 0.1) 100%);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  border: 1px solid #2196F3;
+  border: 1px solid var(--accent-primary);
 }
 
 .sync-config-content {
@@ -562,14 +581,14 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .sync-toggle-label input[type="checkbox"] {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #2196F3;
+  accent-color: var(--info);
 }
 
 .sync-label-text {
@@ -579,13 +598,13 @@
 }
 
 .sync-info {
-  background: white;
+  background: var(--bg-elevated);
   border-radius: 6px;
   padding: 1rem;
   margin: 0;
   font-size: 0.9rem;
-  color: #555;
-  border-left: 3px solid #2196F3;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--accent-primary);
 }
 
 .sync-info span[aria-hidden="true"] {

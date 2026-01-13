@@ -1,15 +1,18 @@
-/* Cookie consent banner */
+/* ============================================================================
+   COOKIE CONSENT BANNER - Premium Fintech Dark Theme
+   ============================================================================ */
+
 .cookie-banner {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  background: rgba(18, 20, 26, 0.98);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -8px 40px rgba(0, 212, 170, 0.2);
   z-index: 9999;
   padding: 1.5rem;
-  border-top: 3px solid #5568d4;
+  border-top: 2px solid var(--accent-primary);
   animation: slideUp 0.4s ease-out;
 }
 
@@ -40,44 +43,45 @@
 
 .cookie-banner-title {
   margin: 0 0 0.5rem 0;
+  font-family: var(--font-heading);
   font-size: 1.2rem;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .cookie-banner-description {
   margin: 0 0 0.5rem 0;
-  color: #555;
+  color: var(--text-secondary);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .cookie-banner-description strong {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .cookie-banner-links {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .cookie-banner-links a {
-  color: #5568d4;
+  color: var(--accent-primary);
   text-decoration: underline;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .cookie-banner-links a:hover {
-  color: #764ba2;
+  color: var(--accent-gold);
 }
 
 .cookie-banner-links a:focus {
-  outline: 3px solid #5568d4;
+  outline: 3px solid var(--accent-primary);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .cookie-banner-actions {
@@ -85,16 +89,16 @@
 }
 
 .cookie-btn-acknowledge {
-  background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
+  color: var(--text-inverse);
   border: none;
   padding: 0.875rem 2rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all var(--transition-base);
+  box-shadow: var(--glow-primary);
   min-height: 44px;
   min-width: 100px;
   white-space: nowrap;
@@ -102,20 +106,19 @@
 
 .cookie-btn-acknowledge:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 30px var(--accent-glow-strong);
 }
 
 .cookie-btn-acknowledge:focus {
-  outline: 3px solid #5568d4;
+  outline: 3px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
 .cookie-btn-acknowledge:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--glow-primary);
 }
 
-/* Mobile responsive - Tablet portrait and below */
 @media (max-width: 768px) {
   .cookie-banner {
     padding: 1.25rem 1rem;
@@ -151,7 +154,6 @@
   }
 }
 
-/* Mobile small */
 @media (max-width: 480px) {
   .cookie-banner {
     padding: 1rem 0.875rem;
@@ -181,7 +183,6 @@
   }
 }
 
-/* Large screens */
 @media (min-width: 1440px) {
   .cookie-banner {
     padding: 2rem 3rem;
@@ -205,7 +206,6 @@
   }
 }
 
-/* 4K displays */
 @media (min-width: 2560px) {
   .cookie-banner {
     padding: 2.5rem 4rem;
@@ -234,7 +234,6 @@
   }
 }
 
-/* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .cookie-banner {
     animation: none;
@@ -249,7 +248,6 @@
   }
 }
 
-/* Print - hide banner */
 @media print {
   .cookie-banner {
     display: none;

@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <!-- Google Fonts: Sora for headings, DM Sans for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>FIRE Calculator - Financial Independence Retire Early</title>
     <!-- Inline critical CSS to prevent render blocking -->
     <style>
@@ -20,12 +22,10 @@
         padding: 0;
       }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-          sans-serif;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        background: linear-gradient(135deg, #5568d4 0%, #764ba2 100%);
+        background: #0A0B0E;
         min-height: 100vh;
       }
       #root {
@@ -38,18 +38,23 @@
         flex-direction: column;
       }
       .app-header {
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(18, 20, 26, 0.95);
+        backdrop-filter: blur(20px);
         padding: 2rem;
         text-align: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 30px rgba(0, 212, 170, 0.1);
+        border-bottom: 1px solid rgba(0, 212, 170, 0.2);
       }
       .app-header h1 {
+        font-family: 'Sora', sans-serif;
         font-size: 2.5rem;
-        color: #333;
+        color: #F8FAFC;
         margin-bottom: 0.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
       }
       .app-header p {
-        color: #666;
+        color: #94A3B8;
         font-size: 1.1rem;
       }
       .app-nav {
@@ -58,8 +63,10 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem 2rem;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        background: rgba(18, 20, 26, 0.95);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 4px 30px rgba(0, 212, 170, 0.1);
+        border-bottom: 1px solid rgba(0, 212, 170, 0.1);
       }
       .nav-links {
         display: flex;
@@ -71,13 +78,15 @@
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
         text-decoration: none;
-        color: #333;
+        color: #94A3B8;
         font-weight: 500;
         background: transparent;
         min-height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
       }
       .nav-toggle {
         display: none;
@@ -91,24 +100,27 @@
       .hero-section {
         text-align: center;
         padding: 3rem 2rem;
-        background: white;
+        background: linear-gradient(135deg, rgba(18, 20, 26, 0.9) 0%, rgba(26, 29, 38, 0.9) 100%);
+        backdrop-filter: blur(20px);
         border-radius: 16px;
         margin-bottom: 3rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        /* Prevent CLS by reserving minimum height based on content */
+        box-shadow: 0 8px 40px rgba(0, 212, 170, 0.15);
+        border: 1px solid rgba(0, 212, 170, 0.2);
         min-height: 180px;
       }
       .hero-title {
+        font-family: 'Sora', sans-serif;
         font-size: 3.5rem;
-        color: #333;
+        color: #F8FAFC;
         margin-bottom: 1rem;
-        font-weight: bold;
-        /* Prevent CLS from font loading by reserving line height */
+        font-weight: 800;
         line-height: 1.2;
+        letter-spacing: -0.03em;
+        text-shadow: 0 0 30px rgba(0, 212, 170, 0.3);
       }
       .hero-subtitle {
         font-size: 1.3rem;
-        color: #666;
+        color: #94A3B8;
         max-width: 700px;
         margin: 0 auto;
         line-height: 1.6;
@@ -124,7 +136,7 @@
           border: none;
           font-size: 1.75rem;
           cursor: pointer;
-          color: #5568d4;
+          color: #00D4AA;
         }
         .nav-links {
           display: none;
