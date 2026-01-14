@@ -96,18 +96,20 @@
   border-bottom: none;
 }
 
-/* Collapsible Section Styles */
+/* Collapsible Section Styles - Unified appearance */
 .settings-section.collapsible-section {
   padding: 0;
+  border-bottom: none;
 }
 
 .settings-section.collapsible-section .collapsible-header {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 1.25rem 2rem;
+  padding: 1rem 2rem;
   background: transparent;
   border: none;
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
   text-align: left;
   transition: background var(--transition-base);
@@ -122,6 +124,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 1.1rem;
 }
 
 .settings-section.collapsible-section .collapsible-header .section-header-with-tooltip {
@@ -136,14 +139,16 @@
 }
 
 .collapse-icon-small {
-  font-size: 0.75rem;
-  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  margin-left: auto;
   color: var(--text-secondary);
   transition: transform var(--transition-base);
 }
 
 .collapsible-content {
-  padding: 0 2rem 2rem 2rem;
+  padding: 1.5rem 2rem 2rem 2rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
   animation: slideDown 0.2s ease-out;
 }
 
@@ -156,6 +161,22 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Disclaimer section styling */
+.settings-section.disclaimer-collapsible .collapsible-header h2 {
+  color: var(--warning);
+}
+
+.settings-section.disclaimer-collapsible .disclaimer-content {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid var(--warning);
+}
+
+.settings-section.disclaimer-collapsible .disclaimer-content p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 .settings-section h2 {
@@ -409,29 +430,6 @@
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-}
-
-.settings-section.disclaimer {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--text-secondary);
-  border-left: 4px solid var(--warning);
-  border-radius: var(--radius-md);
-  margin: 0 1rem;
-  padding: 1.25rem 1.5rem;
-}
-
-.settings-section.disclaimer h2 {
-  color: var(--warning);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.settings-section.disclaimer p {
-  margin: 0;
-  line-height: 1.6;
-  color: var(--text-secondary);
 }
 
 .label-with-tooltip {

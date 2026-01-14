@@ -10,6 +10,7 @@ import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoAssetAllocationData } from 
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import { clearTourPreference } from '../utils/tourPreferences';
+import { clearQuestionnairePromptPreference } from '../utils/questionnairePromptPreferences';
 import { exportAllDataAsJSON, importAllDataFromJSON, serializeAllDataExport } from '../utils/dataExportImport';
 import { loadNotificationState, updateNotificationPreferences, clearNotifications, addNotification } from '../utils/notificationStorage';
 import { type NotificationPreferences, DEFAULT_NOTIFICATION_PREFERENCES } from '../types/notification';
@@ -23,7 +24,7 @@ interface SettingsPageProps {
 }
 
 // Section identifiers for collapsible state
-const SETTINGS_SECTIONS = ['account', 'display', 'privacy', 'notifications', 'email', 'currency', 'data'] as const;
+const SETTINGS_SECTIONS = ['account', 'display', 'privacy', 'notifications', 'email', 'disclaimer', 'currency', 'data'] as const;
 type SettingsSection = typeof SETTINGS_SECTIONS[number];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) => {
@@ -899,14 +900,25 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
           )}
         </section>
 
-        {/* Currency Disclaimer - Moved before currency settings */}
-        <section className="settings-section disclaimer">
-          <h2><MaterialIcon name="warning" /> Disclaimer</h2>
-          <p>
-            Exchange rates are fetched from publicly available APIs and may not reflect real-time rates.
-            Fallback rates are used when the API is unavailable. For accurate financial decisions,
-            please verify rates with your financial institution.
-          </p>
+        {/* Currency Disclaimer */}
+        <section className="settings-section collapsible-section disclaimer-collapsible">
+          <button 
+            className="collapsible-header" 
+            onClick={() => toggleSection('disclaimer')}
+            aria-expanded={!collapsedSections.has('disclaimer')}
+            aria-controls="disclaimer-content"
+          >
+            <h2><MaterialIcon name="warning" /> Exchange Rate Disclaimer <span className="collapse-icon-small" aria-hidden="true">{collapsedSections.has('disclaimer') ? '▶' : '▼'}</span></h2>
+          </button>
+          {!collapsedSections.has('disclaimer') && (
+            <div id="disclaimer-content" className="collapsible-content disclaimer-content">
+              <p>
+                Exchange rates are fetched from publicly available APIs and may not reflect real-time rates.
+                Fallback rates are used when the API is unavailable. For accurate financial decisions,
+                please verify rates with your financial institution.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Currency Settings */}
@@ -1043,9 +1055,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 <p className="setting-help">Restart the guided tour to learn about Fire Tools features</p>
                 <button className="secondary-btn" onClick={() => {
                   clearTourPreference();
+                  clearQuestionnairePromptPreference();
                   window.location.href = '/';
                 }}>
                   <MaterialIcon name="refresh" /> Restart Tour
+                </button>
+              </div>
+
+              <div className="data-management-group">
+                <div className="subsection-header-with-tooltip">
+                  <h3><MaterialIcon name="quiz" /> FIRE Questionnaire</h3>
+                  <Tooltip content="Retake the FIRE persona questionnaire to get updated recommendations based on your current situation and goals. Your previous results will be replaced." position="right" maxWidth={350}>
+                    <span className="info-icon" aria-label="More information">i</span>
+                  </Tooltip>
+                </div>
+                <p className="setting-help">Retake the questionnaire to update your FIRE persona and recommendations</p>
+                <button className="secondary-btn" onClick={() => navigate('/questionnaire')}>
+                  <MaterialIcon name="edit" /> Retake Questionnaire
                 </button>
               </div>
 
