@@ -5,6 +5,7 @@
 import { CalculatorInputs } from '../types/calculator';
 import { Asset, AssetClass, AllocationMode } from '../types/assetAllocation';
 import { NetWorthTrackerData } from '../types/netWorthTracker';
+import type { QuestionnaireResults } from '../types/questionnaire';
 
 /**
  * Export FIRE Calculator inputs to CSV format
@@ -597,4 +598,61 @@ export function importNetWorthTrackerFromJSON(json: string): NetWorthTrackerData
   
   // Assume it's raw data
   return parsed as NetWorthTrackerData;
+}
+
+/**
+ * Export Questionnaire Results to CSV format
+ */
+export function exportQuestionnaireResultsToCSV(results: QuestionnaireResults): string {
+  const escapeCSV = (value: any): string => {
+    const str = String(value);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const rows: string[][] = [
+    ['FIRE Questionnaire Results Export'],
+    ['Generated', new Date().toISOString()],
+    ['Completed At', results.completedAt],
+    [],
+    ['Results Summary'],
+    ['Field', 'Value'],
+    ['FIRE Persona', results.persona],
+    ['Risk Tolerance', results.riskTolerance],
+    ['Safe Withdrawal Rate (%)', results.safeWithdrawalRate.toString()],
+    ['Suggested Savings Rate (%)', results.suggestedSavingsRate.toString()],
+    [],
+    ['Persona Explanation'],
+    [escapeCSV(results.personaExplanation)],
+    [],
+    ['Asset Allocation Targets'],
+    ['Asset Class', 'Percentage'],
+    ['Stocks', results.assetAllocation.stocks.toString()],
+    ['Bonds', results.assetAllocation.bonds.toString()],
+    ['Cash', results.assetAllocation.cash.toString()],
+  ];
+
+  if (results.assetAllocation.crypto !== undefined) {
+    rows.push(['Crypto', results.assetAllocation.crypto.toString()]);
+  }
+  if (results.assetAllocation.realEstate !== undefined) {
+    rows.push(['Real Estate', results.assetAllocation.realEstate.toString()]);
+  }
+
+  rows.push([]);
+  rows.push(['Suitable Asset Types']);
+  results.suitableAssets.forEach(asset => {
+    rows.push([escapeCSV(asset)]);
+  });
+
+  rows.push([]);
+  rows.push(['Questionnaire Responses']);
+  rows.push(['Question ID', 'Selected Option']);
+  results.responses.forEach(response => {
+    rows.push([escapeCSV(response.questionId), escapeCSV(response.selectedOptionId)]);
+  });
+
+  return rows.map(row => row.join(',')).join('\n');
 }
