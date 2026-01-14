@@ -955,6 +955,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
 
           <div className="data-management-group">
             <div className="subsection-header-with-tooltip">
+              <h3><MaterialIcon name="quiz" /> FIRE Questionnaire</h3>
+              <Tooltip content="Retake the FIRE persona questionnaire to get updated recommendations based on your current situation and goals. Your previous results will be replaced." position="right" maxWidth={350}>
+                <span className="info-icon" aria-label="More information">i</span>
+              </Tooltip>
+            </div>
+            <p className="setting-help">Retake the questionnaire to update your FIRE persona and recommendations</p>
+            <button className="secondary-btn" onClick={() => navigate('/questionnaire')}>
+              <MaterialIcon name="edit" /> Retake Questionnaire
+            </button>
+          </div>
+
+          <div className="data-management-group">
+            <div className="subsection-header-with-tooltip">
               <h3><MaterialIcon name="inventory_2" /> Demo Data</h3>
               <Tooltip content="Load realistic sample data to explore all features of Fire Tools. Great for testing the app or learning how to use it. This will overwrite your current data, so export first if needed!" position="right" maxWidth={350}>
                 <span className="info-icon" aria-label="More information">i</span>
