@@ -22,6 +22,7 @@ import { CookieConsent } from './components/CookieConsent';
 import { GuidedTour } from './components/GuidedTour';
 import { NotFoundPage } from './components/NotFoundPage';
 import { QuestionnairePage } from './components/QuestionnairePage';
+import { QuestionnairePrompt } from './components/QuestionnairePrompt';
 import { serializeInputsToURL, deserializeInputsFromURL, hasURLParams } from './utils/urlParams';
 import { saveFireCalculatorInputs, loadFireCalculatorInputs, clearAllData, loadAssetAllocation } from './utils/cookieStorage';
 import { exportFireCalculatorToCSV, importFireCalculatorFromCSV } from './utils/csvExport';
@@ -383,6 +384,7 @@ function App() {
 
         <CookieConsent />
         <GuidedTour />
+        <QuestionnairePrompt />
       </div>
     </Router>
   );

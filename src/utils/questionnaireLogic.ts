@@ -37,7 +37,19 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q2_retirement_timeline',
+    id: 'q2_current_age',
+    text: 'What is your current age range?',
+    description: 'Your age affects optimal asset allocation and time horizon',
+    category: 'personal',
+    options: [
+      { id: 'age_20_30', label: '20-30 years old', value: 'age_20_30', icon: 'school' },
+      { id: 'age_30_40', label: '30-40 years old', value: 'age_30_40', icon: 'work' },
+      { id: 'age_40_50', label: '40-50 years old', value: 'age_40_50', icon: 'business_center' },
+      { id: 'age_50_plus', label: '50+ years old', value: 'age_50_plus', icon: 'elderly' },
+    ],
+  },
+  {
+    id: 'q3_retirement_timeline',
     text: 'When do you plan to achieve FIRE?',
     description: 'Your target retirement age or timeframe',
     category: 'timeline',
@@ -49,7 +61,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q3_lifestyle_expectations',
+    id: 'q4_lifestyle_expectations',
     text: 'What lifestyle do you envision in retirement?',
     description: 'Your expected spending and quality of life',
     category: 'lifestyle',
@@ -61,7 +73,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q4_income_stability',
+    id: 'q5_income_stability',
     text: 'How stable and predictable is your current income?',
     description: 'Job security and income consistency',
     category: 'income',
@@ -73,7 +85,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q5_income_growth',
+    id: 'q6_income_growth',
     text: 'What are your income growth prospects?',
     description: 'Expected salary increases over time',
     category: 'income',
@@ -85,7 +97,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q6_work_preference',
+    id: 'q7_work_preference',
     text: 'How do you feel about working in retirement?',
     description: 'Willingness to work part-time after FIRE',
     category: 'personal',
@@ -97,7 +109,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q7_family_plans',
+    id: 'q8_family_plans',
     text: 'Do you have or plan to have dependents?',
     description: 'Children or family financial responsibilities',
     category: 'personal',
@@ -109,7 +121,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q8_housing',
+    id: 'q9_housing',
     text: 'What is your housing situation and preference?',
     description: 'Current and future housing plans',
     category: 'lifestyle',
@@ -121,7 +133,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q9_state_pension',
+    id: 'q10_state_pension',
     text: 'How reliable do you consider your state/government pension?',
     description: 'Trust in public pension systems',
     category: 'financial',
@@ -133,7 +145,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q10_emergency_fund',
+    id: 'q11_emergency_fund',
     text: 'How large should your emergency fund be?',
     description: 'Months of expenses in cash reserves',
     category: 'financial',
@@ -145,7 +157,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q11_market_volatility',
+    id: 'q12_market_volatility',
     text: 'How would you react to a 30% market drop?',
     description: 'Your emotional response to losses',
     category: 'risk',
@@ -157,7 +169,7 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: 'q12_health_concerns',
+    id: 'q13_health_concerns',
     text: 'How do you rate your health and healthcare costs?',
     description: 'Expected medical expenses in retirement',
     category: 'personal',
@@ -166,6 +178,18 @@ export const QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
       { id: 'good_average', label: 'Good Health, Average Costs', value: 'good_average', icon: 'favorite' },
       { id: 'fair_higher', label: 'Fair Health, Higher Costs', value: 'fair_higher', icon: 'healing' },
       { id: 'concerns_high', label: 'Health Concerns, High Costs', value: 'concerns_high', icon: 'local_hospital' },
+    ],
+  },
+  {
+    id: 'q14_legacy',
+    text: 'What is your philosophy on wealth at end of life?',
+    description: 'Whether to spend it all or leave an inheritance',
+    category: 'financial',
+    options: [
+      { id: 'die_with_zero', label: 'Die with Zero', value: 'die_with_zero', icon: 'celebration' },
+      { id: 'minimal_legacy', label: 'Minimal Legacy (Cover Funeral)', value: 'minimal_legacy', icon: 'balance' },
+      { id: 'moderate_legacy', label: 'Leave Some Inheritance', value: 'moderate_legacy', icon: 'family_restroom' },
+      { id: 'large_legacy', label: 'Preserve Wealth for Heirs', value: 'large_legacy', icon: 'account_balance' },
     ],
   },
 ];
@@ -193,167 +217,392 @@ export function calculateFIREPersona(responses: QuestionnaireResponse[]): Questi
   };
 
   // Analyze responses and calculate scores
+  // Every FIRE type gets a score (positive or negative) for every question
   
   // Q1: Risk Tolerance
   const riskTolerance = getResponse('q1_risk_tolerance');
   if (riskTolerance === 'conservative') {
+    scores.leanFire += 3;
     scores.regularFire += 3;
-    scores.leanFire += 2;
-    scores.coastFire += 2;
+    scores.fatFire -= 2;
+    scores.coastFire += 1;
+    scores.baristaFire += 2;
   } else if (riskTolerance === 'moderate') {
+    scores.leanFire += 1;
     scores.regularFire += 3;
     scores.fatFire += 2;
+    scores.coastFire += 1;
     scores.baristaFire += 2;
   } else if (riskTolerance === 'aggressive') {
-    scores.fatFire += 3;
-    scores.coastFire += 2;
-    scores.baristaFire += 1;
+    scores.leanFire -= 1;
+    scores.regularFire += 1;
+    scores.fatFire += 4;
+    scores.coastFire += 3;
+    scores.baristaFire -= 1;
   }
 
-  // Q2: Retirement Timeline
-  const timeline = getResponse('q2_retirement_timeline');
+  // Q2: Current Age (affects time horizon and asset allocation)
+  const currentAge = getResponse('q2_current_age');
+  if (currentAge === 'age_20_30') {
+    scores.leanFire += 3;
+    scores.regularFire += 1;
+    scores.fatFire += 2;
+    scores.coastFire += 4;
+    scores.baristaFire += 1;
+  } else if (currentAge === 'age_30_40') {
+    scores.leanFire += 2;
+    scores.regularFire += 3;
+    scores.fatFire += 2;
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (currentAge === 'age_40_50') {
+    scores.leanFire += 1;
+    scores.regularFire += 3;
+    scores.fatFire += 3;
+    scores.coastFire -= 1;
+    scores.baristaFire += 3;
+  } else if (currentAge === 'age_50_plus') {
+    scores.leanFire -= 1;
+    scores.regularFire += 2;
+    scores.fatFire += 3;
+    scores.coastFire -= 3;
+    scores.baristaFire += 4;
+  }
+
+  // Q3: Retirement Timeline
+  const timeline = getResponse('q3_retirement_timeline');
   if (timeline === 'very_early') {
     scores.leanFire += 4;
+    scores.regularFire -= 1;
+    scores.fatFire -= 2;
     scores.coastFire += 3;
+    scores.baristaFire += 1;
   } else if (timeline === 'early') {
     scores.leanFire += 2;
     scores.regularFire += 3;
+    scores.fatFire += 1;
+    scores.coastFire += 1;
     scores.baristaFire += 2;
   } else if (timeline === 'standard') {
+    scores.leanFire -= 1;
     scores.regularFire += 3;
-    scores.fatFire += 2;
+    scores.fatFire += 3;
+    scores.coastFire -= 1;
+    scores.baristaFire += 1;
   } else if (timeline === 'flexible') {
+    scores.leanFire -= 2;
+    scores.regularFire += 1;
+    scores.fatFire += 1;
     scores.coastFire += 4;
     scores.baristaFire += 3;
   }
 
-  // Q3: Lifestyle Expectations
-  const lifestyle = getResponse('q3_lifestyle_expectations');
+  // Q4: Lifestyle Expectations
+  const lifestyle = getResponse('q4_lifestyle_expectations');
   if (lifestyle === 'frugal') {
     scores.leanFire += 5;
-    scores.coastFire += 2;
+    scores.regularFire -= 1;
+    scores.fatFire -= 4;
+    scores.coastFire += 3;
+    scores.baristaFire += 1;
   } else if (lifestyle === 'comfortable') {
+    scores.leanFire += 1;
     scores.regularFire += 4;
+    scores.fatFire -= 1;
+    scores.coastFire += 1;
     scores.baristaFire += 2;
   } else if (lifestyle === 'abundant') {
-    scores.fatFire += 3;
+    scores.leanFire -= 3;
     scores.regularFire += 2;
+    scores.fatFire += 4;
+    scores.coastFire -= 1;
+    scores.baristaFire += 1;
   } else if (lifestyle === 'luxurious') {
+    scores.leanFire -= 5;
+    scores.regularFire -= 1;
     scores.fatFire += 5;
+    scores.coastFire -= 3;
+    scores.baristaFire -= 2;
   }
 
-  // Q4: Income Stability
-  const incomeStability = getResponse('q4_income_stability');
-  if (incomeStability === 'very_stable' || incomeStability === 'stable') {
+  // Q5: Income Stability
+  const incomeStability = getResponse('q5_income_stability');
+  if (incomeStability === 'very_stable') {
+    scores.leanFire += 2;
+    scores.regularFire += 3;
+    scores.fatFire += 2;
+    scores.coastFire += 1;
+    scores.baristaFire -= 1;
+  } else if (incomeStability === 'stable') {
+    scores.leanFire += 1;
     scores.regularFire += 2;
     scores.fatFire += 1;
-  } else {
-    scores.baristaFire += 2;
     scores.coastFire += 1;
+    scores.baristaFire += 1;
+  } else if (incomeStability === 'variable') {
+    scores.leanFire -= 1;
+    scores.regularFire -= 1;
+    scores.fatFire += 1;
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (incomeStability === 'unpredictable') {
+    scores.leanFire -= 2;
+    scores.regularFire -= 2;
+    scores.fatFire -= 1;
+    scores.coastFire += 1;
+    scores.baristaFire += 3;
   }
 
-  // Q5: Income Growth
-  const incomeGrowth = getResponse('q5_income_growth');
+  // Q6: Income Growth
+  const incomeGrowth = getResponse('q6_income_growth');
   if (incomeGrowth === 'high_growth') {
-    scores.fatFire += 3;
-    scores.coastFire += 2;
+    scores.leanFire -= 1;
+    scores.regularFire += 1;
+    scores.fatFire += 4;
+    scores.coastFire += 3;
+    scores.baristaFire -= 1;
   } else if (incomeGrowth === 'moderate_growth') {
+    scores.leanFire += 1;
     scores.regularFire += 3;
+    scores.fatFire += 1;
+    scores.coastFire += 1;
     scores.baristaFire += 1;
-  } else if (incomeGrowth === 'limited_growth' || incomeGrowth === 'peak_earnings') {
+  } else if (incomeGrowth === 'limited_growth') {
     scores.leanFire += 2;
+    scores.regularFire += 1;
+    scores.fatFire -= 2;
+    scores.coastFire -= 1;
+    scores.baristaFire += 2;
+  } else if (incomeGrowth === 'peak_earnings') {
+    scores.leanFire += 2;
+    scores.regularFire += 2;
+    scores.fatFire += 1;
+    scores.coastFire -= 2;
     scores.baristaFire += 2;
   }
 
-  // Q6: Work Preference
-  const workPreference = getResponse('q6_work_preference');
+  // Q7: Work Preference
+  const workPreference = getResponse('q7_work_preference');
   if (workPreference === 'never_work') {
-    scores.leanFire += 2;
+    scores.leanFire += 3;
+    scores.regularFire += 3;
+    scores.fatFire += 3;
+    scores.coastFire -= 3;
+    scores.baristaFire -= 3;
+  } else if (workPreference === 'maybe_hobby') {
+    scores.leanFire += 1;
     scores.regularFire += 2;
     scores.fatFire += 2;
-  } else if (workPreference === 'maybe_hobby') {
-    scores.regularFire += 2;
+    scores.coastFire += 1;
     scores.baristaFire += 1;
   } else if (workPreference === 'part_time') {
+    scores.leanFire -= 1;
+    scores.regularFire -= 1;
+    scores.fatFire -= 2;
+    scores.coastFire += 2;
     scores.baristaFire += 4;
   } else if (workPreference === 'continue_working') {
+    scores.leanFire -= 3;
+    scores.regularFire -= 2;
+    scores.fatFire -= 2;
     scores.coastFire += 4;
+    scores.baristaFire += 3;
+  }
+
+  // Q8: Family Plans
+  const familyPlans = getResponse('q8_family_plans');
+  if (familyPlans === 'no_dependents') {
+    scores.leanFire += 4;
+    scores.regularFire += 1;
+    scores.fatFire -= 1;
+    scores.coastFire += 3;
+    scores.baristaFire += 1;
+  } else if (familyPlans === 'future_kids') {
+    scores.leanFire -= 2;
+    scores.regularFire += 2;
+    scores.fatFire += 2;
+    scores.coastFire -= 1;
+    scores.baristaFire += 1;
+  } else if (familyPlans === 'young_kids') {
+    scores.leanFire -= 3;
+    scores.regularFire += 2;
+    scores.fatFire += 3;
+    scores.coastFire -= 2;
+    scores.baristaFire += 2;
+  } else if (familyPlans === 'older_dependents') {
+    scores.leanFire -= 2;
+    scores.regularFire += 1;
+    scores.fatFire += 3;
+    scores.coastFire -= 1;
     scores.baristaFire += 2;
   }
 
-  // Q7: Family Plans
-  const familyPlans = getResponse('q7_family_plans');
-  if (familyPlans === 'no_dependents') {
-    scores.leanFire += 3;
-    scores.coastFire += 2;
-  } else if (familyPlans === 'future_kids' || familyPlans === 'young_kids') {
-    scores.regularFire += 2;
-    scores.fatFire += 2;
-  } else if (familyPlans === 'older_dependents') {
-    scores.fatFire += 2;
-    scores.baristaFire += 1;
-  }
-
-  // Q8: Housing
-  const housing = getResponse('q8_housing');
+  // Q9: Housing
+  const housing = getResponse('q9_housing');
   if (housing === 'own_paid') {
-    scores.leanFire += 2;
-    scores.regularFire += 2;
-  } else if (housing === 'own_mortgage') {
-    scores.regularFire += 2;
+    scores.leanFire += 3;
+    scores.regularFire += 3;
     scores.fatFire += 1;
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (housing === 'own_mortgage') {
+    scores.leanFire -= 1;
+    scores.regularFire += 2;
+    scores.fatFire += 2;
+    scores.coastFire -= 1;
+    scores.baristaFire += 1;
   } else if (housing === 'rent_flexible') {
     scores.leanFire += 2;
-    scores.coastFire += 1;
+    scores.regularFire -= 1;
+    scores.fatFire -= 2;
+    scores.coastFire += 2;
+    scores.baristaFire += 1;
   } else if (housing === 'want_to_buy') {
-    scores.fatFire += 2;
+    scores.leanFire -= 2;
+    scores.regularFire += 1;
+    scores.fatFire += 3;
+    scores.coastFire -= 2;
     scores.baristaFire += 1;
   }
 
-  // Q9: State Pension
-  const statePension = getResponse('q9_state_pension');
-  if (statePension === 'very_reliable' || statePension === 'somewhat_reliable') {
+  // Q10: State Pension
+  const statePension = getResponse('q10_state_pension');
+  if (statePension === 'very_reliable') {
+    scores.leanFire += 1;
+    scores.regularFire += 1;
+    scores.fatFire -= 1;
+    scores.coastFire += 4;
+    scores.baristaFire += 3;
+  } else if (statePension === 'somewhat_reliable') {
+    scores.leanFire += 1;
+    scores.regularFire += 2;
+    scores.fatFire += 1;
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (statePension === 'unreliable') {
+    scores.leanFire += 2;
+    scores.regularFire += 2;
+    scores.fatFire += 2;
+    scores.coastFire -= 1;
+    scores.baristaFire -= 1;
+  } else if (statePension === 'no_pension') {
+    scores.leanFire += 2;
+    scores.regularFire += 1;
+    scores.fatFire += 3;
+    scores.coastFire -= 3;
+    scores.baristaFire -= 2;
+  }
+
+  // Q11: Emergency Fund
+  const emergencyFund = getResponse('q11_emergency_fund');
+  if (emergencyFund === 'minimal_3m') {
+    scores.leanFire -= 1;
+    scores.regularFire -= 1;
+    scores.fatFire -= 2;
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (emergencyFund === 'standard_6m') {
+    scores.leanFire += 1;
+    scores.regularFire += 3;
+    scores.fatFire += 1;
+    scores.coastFire += 1;
+    scores.baristaFire += 1;
+  } else if (emergencyFund === 'conservative_12m') {
+    scores.leanFire += 3;
+    scores.regularFire += 2;
+    scores.fatFire += 2;
+    scores.coastFire -= 1;
+    scores.baristaFire += 1;
+  } else if (emergencyFund === 'very_large_24m') {
+    scores.leanFire += 2;
+    scores.regularFire += 1;
+    scores.fatFire += 3;
+    scores.coastFire -= 2;
+    scores.baristaFire -= 1;
+  }
+
+  // Q12: Market Volatility
+  const marketVolatility = getResponse('q12_market_volatility');
+  if (marketVolatility === 'panic_sell') {
+    scores.leanFire += 2;
+    scores.regularFire += 1;
+    scores.fatFire -= 3;
+    scores.coastFire -= 2;
+    scores.baristaFire += 2;
+  } else if (marketVolatility === 'worry_hold') {
+    scores.leanFire += 2;
+    scores.regularFire += 2;
+    scores.fatFire -= 1;
+    scores.coastFire += 1;
+    scores.baristaFire += 2;
+  } else if (marketVolatility === 'stay_calm') {
+    scores.leanFire += 1;
+    scores.regularFire += 3;
+    scores.fatFire += 2;
+    scores.coastFire += 2;
+    scores.baristaFire += 1;
+  } else if (marketVolatility === 'buy_more') {
+    scores.leanFire -= 1;
+    scores.regularFire += 1;
+    scores.fatFire += 4;
+    scores.coastFire += 3;
+    scores.baristaFire -= 1;
+  }
+
+  // Q13: Health Concerns
+  const healthConcerns = getResponse('q13_health_concerns');
+  if (healthConcerns === 'excellent_low') {
+    scores.leanFire += 3;
+    scores.regularFire += 2;
+    scores.fatFire -= 1;
+    scores.coastFire += 2;
+    scores.baristaFire += 1;
+  } else if (healthConcerns === 'good_average') {
+    scores.leanFire += 1;
+    scores.regularFire += 2;
+    scores.fatFire += 1;
+    scores.coastFire += 1;
+    scores.baristaFire += 1;
+  } else if (healthConcerns === 'fair_higher') {
+    scores.leanFire -= 2;
+    scores.regularFire += 1;
+    scores.fatFire += 3;
+    scores.coastFire -= 1;
+    scores.baristaFire += 2;
+  } else if (healthConcerns === 'concerns_high') {
+    scores.leanFire -= 3;
+    scores.regularFire -= 1;
+    scores.fatFire += 4;
+    scores.coastFire -= 2;
+    scores.baristaFire += 3;
+  }
+
+  // Q14: Legacy Preference (die with zero vs leave inheritance)
+  const legacyPreference = getResponse('q14_legacy');
+  if (legacyPreference === 'die_with_zero') {
+    scores.leanFire += 4;
+    scores.regularFire += 2;
+    scores.fatFire -= 2;
     scores.coastFire += 3;
     scores.baristaFire += 2;
-  } else {
-    scores.leanFire += 1;
-    scores.regularFire += 1;
-    scores.fatFire += 1;
-  }
-
-  // Q10: Emergency Fund
-  const emergencyFund = getResponse('q10_emergency_fund');
-  if (emergencyFund === 'minimal_3m') {
-    scores.coastFire += 1;
-    scores.baristaFire += 1;
-  } else if (emergencyFund === 'standard_6m') {
-    scores.regularFire += 2;
-  } else if (emergencyFund === 'conservative_12m' || emergencyFund === 'very_large_24m') {
+  } else if (legacyPreference === 'minimal_legacy') {
     scores.leanFire += 2;
-    scores.regularFire += 1;
-  }
-
-  // Q11: Market Volatility
-  const marketVolatility = getResponse('q11_market_volatility');
-  if (marketVolatility === 'panic_sell' || marketVolatility === 'worry_hold') {
-    scores.leanFire += 2;
-    scores.regularFire += 2;
-  } else if (marketVolatility === 'stay_calm') {
-    scores.regularFire += 2;
+    scores.regularFire += 3;
     scores.fatFire += 1;
-  } else if (marketVolatility === 'buy_more') {
+    scores.coastFire += 2;
+    scores.baristaFire += 2;
+  } else if (legacyPreference === 'moderate_legacy') {
+    scores.leanFire -= 1;
+    scores.regularFire += 2;
     scores.fatFire += 3;
-    scores.coastFire += 1;
-  }
-
-  // Q12: Health Concerns
-  const healthConcerns = getResponse('q12_health_concerns');
-  if (healthConcerns === 'excellent_low' || healthConcerns === 'good_average') {
-    scores.leanFire += 1;
-    scores.coastFire += 1;
-  } else if (healthConcerns === 'fair_higher' || healthConcerns === 'concerns_high') {
-    scores.fatFire += 2;
+    scores.coastFire -= 1;
     scores.baristaFire += 1;
+  } else if (legacyPreference === 'large_legacy') {
+    scores.leanFire -= 3;
+    scores.regularFire -= 1;
+    scores.fatFire += 4;
+    scores.coastFire -= 3;
+    scores.baristaFire -= 2;
   }
 
   // Determine winning persona
@@ -373,7 +622,7 @@ export function calculateFIREPersona(responses: QuestionnaireResponse[]): Questi
     ? riskTolerance 
     : 'moderate';
   
-  const recommendations = generateRecommendations(winningPersona, riskToleranceValue);
+  const recommendations = generateRecommendations(winningPersona, riskToleranceValue, currentAge, timeline, legacyPreference);
 
   return {
     persona: winningPersona,
@@ -389,11 +638,15 @@ export function calculateFIREPersona(responses: QuestionnaireResponse[]): Questi
 }
 
 /**
- * Generate detailed recommendations based on persona and risk tolerance
+ * Generate detailed recommendations based on persona, risk tolerance, age, timeline, and legacy preference
+ * The 4% rule is a fallacy for early retirement - we use max 3% for very early FIRE
  */
 function generateRecommendations(
   persona: FIREPersona, 
-  riskTolerance: RiskTolerance
+  riskTolerance: RiskTolerance,
+  currentAge: string | undefined,
+  retirementTimeline: string | undefined,
+  legacyPreference: string | undefined
 ): {
   explanation: string;
   safeWithdrawalRate: number;
@@ -404,7 +657,7 @@ function generateRecommendations(
   const recommendations = {
     LEAN_FIRE: {
       explanation: 'You align with Lean FIRE, focusing on minimalist living and frugal retirement. This path requires the smallest nest egg but demands disciplined spending. You prioritize freedom and simplicity over luxury.',
-      safeWithdrawalRate: 3.5,
+      baseSWR: 3.0,
       suggestedSavingsRate: 60,
       assetAllocation: {
         conservative: { stocks: 50, bonds: 40, cash: 10 },
@@ -421,7 +674,7 @@ function generateRecommendations(
     },
     REGULAR_FIRE: {
       explanation: 'You align with Regular FIRE, seeking a comfortable traditional retirement lifestyle. This balanced approach allows for a modest but stable retirement without extreme frugality or luxury.',
-      safeWithdrawalRate: 4.0,
+      baseSWR: 3.5,
       suggestedSavingsRate: 50,
       assetAllocation: {
         conservative: { stocks: 60, bonds: 30, cash: 10 },
@@ -430,15 +683,15 @@ function generateRecommendations(
       },
       suitableAssets: [
         'Diversified index funds',
-        'Total stock market exchange-traded funds',
+        'Total stock market ETFs',
         'Aggregate bond funds',
-        'Real estate investment trusts (REITs)',
-        'Dividend-paying equities',
+        'International equity ETFs',
+        'Target-date retirement funds',
       ],
     },
     FAT_FIRE: {
       explanation: 'You align with Fat FIRE, pursuing an abundant lifestyle with significant financial cushion. This requires the largest nest egg but provides maximum flexibility and luxury in retirement.',
-      safeWithdrawalRate: 3.0,
+      baseSWR: 3.0,
       suggestedSavingsRate: 40,
       assetAllocation: {
         conservative: { stocks: 60, bonds: 25, cash: 10, realEstate: 5 },
@@ -456,7 +709,7 @@ function generateRecommendations(
     },
     COAST_FIRE: {
       explanation: 'You align with Coast FIRE, where you save aggressively early then let compound interest work its magic. You can switch to a lower-stress job or reduce work hours while your investments grow to FIRE.',
-      safeWithdrawalRate: 4.0,
+      baseSWR: 3.5,
       suggestedSavingsRate: 70,
       assetAllocation: {
         conservative: { stocks: 70, bonds: 20, cash: 10 },
@@ -473,7 +726,7 @@ function generateRecommendations(
     },
     BARISTA_FIRE: {
       explanation: 'You align with Barista FIRE, planning to supplement your investment income with part-time work. This provides flexibility, social engagement, and reduces the required nest egg while maintaining healthcare benefits.',
-      safeWithdrawalRate: 3.5,
+      baseSWR: 3.5,
       suggestedSavingsRate: 45,
       assetAllocation: {
         conservative: { stocks: 55, bonds: 35, cash: 10 },
@@ -482,20 +735,61 @@ function generateRecommendations(
       },
       suitableAssets: [
         'Balanced index funds',
-        'Dividend-focused funds',
+        'Total market index ETFs',
         'Bond ladders for stability',
-        'Real estate investment trusts (REITs)',
-        'Income-generating investments',
+        'Tax-efficient growth funds',
+        'Low-cost accumulating ETFs',
       ],
     },
   };
 
   const personaRec = recommendations[persona];
-  const allocation = personaRec.assetAllocation[riskTolerance];
+  let allocation = { ...personaRec.assetAllocation[riskTolerance] };
+  let safeWithdrawalRate = personaRec.baseSWR;
+
+  // Adjust SWR based on retirement timeline
+  // The 4% rule is a fallacy for early retirement (50+ years in retirement)
+  // Max 3% SWR for very early FIRE (before 40)
+  if (retirementTimeline === 'very_early') {
+    safeWithdrawalRate = Math.min(safeWithdrawalRate, 3.0);
+  } else if (retirementTimeline === 'early') {
+    safeWithdrawalRate = Math.min(safeWithdrawalRate, 3.25);
+  }
+  // For standard/flexible timelines, base SWR is appropriate
+
+  // Adjust SWR based on legacy preference
+  // "Die with zero" allows higher withdrawal rates since capital preservation isn't a goal
+  // "Leave a legacy" requires lower rates to ensure wealth preservation
+  if (legacyPreference === 'die_with_zero') {
+    safeWithdrawalRate += 0.5; // Can withdraw more if not preserving capital
+  } else if (legacyPreference === 'minimal_legacy') {
+    safeWithdrawalRate += 0.25; // Slight increase, just need to cover basics
+  } else if (legacyPreference === 'moderate_legacy') {
+    // No adjustment - base rate is appropriate
+  } else if (legacyPreference === 'large_legacy') {
+    safeWithdrawalRate -= 0.25; // Lower rate to preserve and grow wealth
+  }
+
+  // Adjust asset allocation based on age
+  // Younger investors can handle more stocks, older need more bonds
+  if (currentAge === 'age_20_30') {
+    // Young investors: more stocks, less bonds
+    allocation.stocks = Math.min(95, allocation.stocks + 10);
+    allocation.bonds = Math.max(5, allocation.bonds - 10);
+  } else if (currentAge === 'age_30_40') {
+    // Early career: slightly more stocks
+    allocation.stocks = Math.min(90, allocation.stocks + 5);
+    allocation.bonds = Math.max(5, allocation.bonds - 5);
+  } else if (currentAge === 'age_50_plus') {
+    // Closer to retirement: more bonds for stability
+    allocation.stocks = Math.max(40, allocation.stocks - 10);
+    allocation.bonds = allocation.bonds + 10;
+  }
+  // age_40_50 uses base allocation (no adjustment)
 
   return {
     explanation: personaRec.explanation,
-    safeWithdrawalRate: personaRec.safeWithdrawalRate,
+    safeWithdrawalRate,
     suggestedSavingsRate: personaRec.suggestedSavingsRate,
     assetAllocation: allocation,
     suitableAssets: personaRec.suitableAssets,

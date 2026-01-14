@@ -10,6 +10,7 @@ import { DEFAULT_INPUTS, getDemoNetWorthData, getDemoAssetAllocationData } from 
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { formatWithSeparator, validateNumberInput } from '../utils/inputValidation';
 import { clearTourPreference } from '../utils/tourPreferences';
+import { clearQuestionnairePromptPreference } from '../utils/questionnairePromptPreferences';
 import { exportAllDataAsJSON, importAllDataFromJSON, serializeAllDataExport } from '../utils/dataExportImport';
 import { loadNotificationState, updateNotificationPreferences, clearNotifications, addNotification } from '../utils/notificationStorage';
 import { type NotificationPreferences, DEFAULT_NOTIFICATION_PREFERENCES } from '../types/notification';
@@ -947,6 +948,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
             <p className="setting-help">Restart the guided tour to learn about Fire Tools features</p>
             <button className="secondary-btn" onClick={() => {
               clearTourPreference();
+              clearQuestionnairePromptPreference();
               window.location.href = '/';
             }}>
               <MaterialIcon name="refresh" /> Restart Tour
