@@ -110,6 +110,16 @@
   padding: 1.25rem;
   border-radius: 12px;
   color: white;
+  position: relative;
+}
+
+.card-privacy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  padding: 0.25rem;
 }
 
 .summary-card.income {

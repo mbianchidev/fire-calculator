@@ -4,7 +4,8 @@
 
 .settings-page {
   padding: 2rem;
-  max-width: 800px;
+  width: min(90vw, 1600px);
+  max-width: none;
   margin: 0 auto;
 }
 
@@ -94,6 +95,98 @@
 
 .settings-section:last-child {
   border-bottom: none;
+}
+
+/* Collapsible Section Styles - Unified appearance */
+.settings-section.collapsible-section {
+  padding: 0;
+  border-bottom: none;
+}
+
+.settings-section.collapsible-section .collapsible-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 2rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-base);
+}
+
+.settings-section.collapsible-section .collapsible-header:hover {
+  background: rgba(0, 212, 170, 0.05);
+}
+
+.settings-section.collapsible-section .collapsible-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.settings-section.collapsible-section .collapsible-header .section-header-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.settings-section.collapsible-section .collapsible-header .section-header-with-tooltip h2 {
+  margin: 0;
+}
+
+.collapse-icon-small {
+  font-size: 0.7rem;
+  margin-left: auto;
+  color: var(--text-secondary);
+  transition: transform var(--transition-base);
+}
+
+.collapsible-content {
+  padding: 1.5rem 2rem 2rem 2rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Exchange rate warning inside currency section */
+.exchange-rate-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid var(--warning);
+  padding: 0.75rem 1rem;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 1rem;
+}
+
+.exchange-rate-warning .material-icon {
+  color: var(--warning);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.exchange-rate-warning p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .settings-section h2 {
@@ -349,29 +442,6 @@
   cursor: pointer;
 }
 
-.settings-section.disclaimer {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--text-secondary);
-  border-left: 4px solid var(--warning);
-  border-radius: var(--radius-md);
-  margin: 0 1rem;
-  padding: 1.25rem 1.5rem;
-}
-
-.settings-section.disclaimer h2 {
-  color: var(--warning);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.settings-section.disclaimer p {
-  margin: 0;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
 .label-with-tooltip {
   display: flex;
   align-items: center;
@@ -518,4 +588,10 @@ select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: var(--bg-tertiary);
+}
+
+/* Account name setting - slightly larger */
+.account-name-input {
+  font-size: 1.1rem !important;
+  padding: 0.875rem 1rem !important;
 }

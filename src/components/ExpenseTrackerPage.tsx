@@ -744,19 +744,19 @@ export function ExpenseTrackerPage() {
           <h3 id="summary-heading">Summary for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</h3>
           <div className="summary-cards">
             <div className="summary-card income">
+              <button 
+                className="privacy-eye-btn card-privacy-btn"
+                onClick={togglePrivacyMode}
+                title={isPrivacyMode ? 'Show values' : 'Hide values'}
+                aria-pressed={isPrivacyMode}
+              >
+                <MaterialIcon name={isPrivacyMode ? 'visibility_off' : 'visibility'} size="small" />
+              </button>
               <span className="card-icon" aria-hidden="true"><MaterialIcon name="trending_up" /></span>
               <div className="card-content">
                 <span className="card-label">Total Income</span>
                 <span className="card-value">
                   <PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatCurrency(summary.totalIncome, data.currency)}</PrivacyBlur>
-                  <button 
-                    className="privacy-eye-btn"
-                    onClick={togglePrivacyMode}
-                    title={isPrivacyMode ? 'Show values' : 'Hide values'}
-                    aria-pressed={isPrivacyMode}
-                  >
-                    <MaterialIcon name={isPrivacyMode ? 'visibility_off' : 'visibility'} size="small" />
-                  </button>
                 </span>
               </div>
             </div>
