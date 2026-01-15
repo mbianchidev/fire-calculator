@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import './Tooltip.css';
 
 interface TooltipProps {
@@ -15,11 +15,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   maxWidth = 300 
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{ top?: number; left?: number; transform?: string }>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({ 
+    opacity: 0,
+    visibility: 'hidden' as const
+  });
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isVisible && triggerRef.current && tooltipRef.current) {
       const trigger = triggerRef.current.getBoundingClientRect();
       const tooltip = tooltipRef.current.getBoundingClientRect();
@@ -71,7 +74,18 @@ export const Tooltip: React.FC<TooltipProps> = ({
         top = trigger.bottom + spacing;
       }
 
-      setTooltipPosition({ top, left, transform });
+      setTooltipStyle({ 
+        top, 
+        left, 
+        transform,
+        opacity: 1,
+        visibility: 'visible' as const
+      });
+    } else {
+      setTooltipStyle({ 
+        opacity: 0,
+        visibility: 'hidden' as const
+      });
     }
   }, [isVisible, position]);
 
@@ -94,21 +108,20 @@ export const Tooltip: React.FC<TooltipProps> = ({
       >
         {children}
       </div>
-      {isVisible && (
-        <div
-          ref={tooltipRef}
-          id="tooltip-content"
-          className={`tooltip-content tooltip-${position}`}
-          style={{
-            ...tooltipPosition,
-            maxWidth: `${maxWidth}px`,
-          }}
-          role="tooltip"
-        >
-          <div className="tooltip-arrow" />
-          <div className="tooltip-text">{content}</div>
-        </div>
-      )}
+      <div
+        ref={tooltipRef}
+        id="tooltip-content"
+        className={`tooltip-content tooltip-${position}`}
+        style={{
+          ...tooltipStyle,
+          maxWidth: `${maxWidth}px`,
+        }}
+        role="tooltip"
+        aria-hidden={!isVisible}
+      >
+        <div className="tooltip-arrow" />
+        <div className="tooltip-text">{content}</div>
+      </div>
     </div>
   );
 };

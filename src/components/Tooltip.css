@@ -25,7 +25,7 @@
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  animation: tooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
 }
 
 @keyframes tooltipFadeIn {
