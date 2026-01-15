@@ -2,6 +2,61 @@
    TOOLTIP - Premium Fintech Dark Theme
    ============================================================================ */
 
+/* Simple CSS-only Tooltip */
+.simple-tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.simple-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 99999;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, #1a1f35, #252b45);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  max-width: var(--tooltip-max-width, none);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+/* Allow text wrapping when maxWidth is set */
+.simple-tooltip[style*="--tooltip-max-width"]::after {
+  white-space: normal;
+  text-align: left;
+}
+
+.simple-tooltip.tooltip-bottom::after {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+}
+
+.simple-tooltip.tooltip-top::after {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+.simple-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================================================
+   TOOLTIP - Complex Version (legacy)
+   ============================================================================ */
+
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
