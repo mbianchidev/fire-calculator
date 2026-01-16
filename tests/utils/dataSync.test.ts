@@ -784,6 +784,206 @@ describe('Data Sync Utilities', () => {
       });
     });
 
+    describe('Real Estate PROPERTY Asset Sync', () => {
+      it('should sync PROPERTY assets using currentValue directly (no shares calculation)', () => {
+        // ARRANGE
+        const currentYear = 2026;
+        const currentMonth = 1;
+        
+        const assetAllocationData: Asset[] = [
+          {
+            id: 'aa-property-1',
+            name: 'Primary Residence',
+            ticker: 'HOME',
+            assetClass: 'REAL_ESTATE' as AssetClass,
+            subAssetType: 'PROPERTY' as SubAssetType,
+            currentValue: 350000,
+            // PROPERTY assets should have shares=1, pricePerShare=currentValue
+            shares: 1,
+            pricePerShare: 350000,
+            targetMode: 'SET' as AllocationMode,
+            targetValue: 350000,
+          },
+        ];
+        
+        const netWorthData: NetWorthTrackerData = {
+          years: [
+            {
+              year: currentYear,
+              months: [
+                {
+                  year: currentYear,
+                  month: currentMonth,
+                  assets: [],
+                  cashEntries: [],
+                  pensions: [],
+                  operations: [],
+                  isFrozen: false,
+                },
+              ],
+            },
+          ],
+          currentYear,
+          currentMonth,
+          defaultCurrency: 'EUR',
+          settings: {
+            showPensionInNetWorth: true,
+            includeUnrealizedGains: true,
+          },
+        };
+        
+        // ACT
+        const result = syncAssetAllocationToNetWorth(assetAllocationData, netWorthData);
+        
+        // ASSERT
+        expect(result.years[0].months[0].assets).toHaveLength(1);
+        const property = result.years[0].months[0].assets[0];
+        expect(property.name).toBe('Primary Residence');
+        expect(property.assetClass).toBe('REAL_ESTATE');
+        // Value should be preserved
+        expect(property.shares * property.pricePerShare).toBe(350000);
+        // For PROPERTY: shares=1, pricePerShare=currentValue (consistent with value-only entry)
+        expect(property.shares).toBe(1);
+        expect(property.pricePerShare).toBe(350000);
+      });
+
+      it('should sync PROPERTY assets back from Net Worth to Asset Allocation', () => {
+        // ARRANGE
+        const currentYear = 2026;
+        const currentMonth = 1;
+        
+        const netWorthData: NetWorthTrackerData = {
+          years: [
+            {
+              year: currentYear,
+              months: [
+                {
+                  year: currentYear,
+                  month: currentMonth,
+                  assets: [
+                    {
+                      id: 'nw-property-1',
+                      ticker: 'HOME',
+                      name: 'Primary Residence',
+                      shares: 1,
+                      pricePerShare: 400000, // Updated value
+                      currency: 'EUR',
+                      assetClass: 'REAL_ESTATE',
+                      syncAssetClass: 'REAL_ESTATE',
+                      syncSubAssetType: 'PROPERTY',
+                      targetMode: 'SET',
+                      targetValue: 400000,
+                    },
+                  ],
+                  cashEntries: [],
+                  pensions: [],
+                  operations: [],
+                  isFrozen: false,
+                },
+              ],
+            },
+          ],
+          currentYear,
+          currentMonth,
+          defaultCurrency: 'EUR',
+          settings: {
+            showPensionInNetWorth: true,
+            includeUnrealizedGains: true,
+          },
+        };
+        
+        // ACT
+        const result = syncNetWorthToAssetAllocation(netWorthData);
+        
+        // ASSERT
+        expect(result).toHaveLength(1);
+        const property = result[0];
+        expect(property.name).toBe('Primary Residence');
+        expect(property.assetClass).toBe('REAL_ESTATE');
+        expect(property.subAssetType).toBe('PROPERTY');
+        expect(property.currentValue).toBe(400000);
+        // shares should be 1, pricePerShare should equal currentValue for PROPERTY
+        expect(property.shares).toBe(1);
+        expect(property.pricePerShare).toBe(400000);
+      });
+
+      it('should distinguish PROPERTY (no shares) from REIT (has shares)', () => {
+        // ARRANGE
+        const currentYear = 2026;
+        const currentMonth = 1;
+        
+        const assetAllocationData: Asset[] = [
+          {
+            id: 'aa-property-1',
+            name: 'Primary Residence',
+            ticker: 'HOME',
+            assetClass: 'REAL_ESTATE' as AssetClass,
+            subAssetType: 'PROPERTY' as SubAssetType,
+            currentValue: 350000,
+            shares: 1, // PROPERTY: single unit
+            pricePerShare: 350000, // PROPERTY: value = price
+            targetMode: 'SET' as AllocationMode,
+            targetValue: 350000,
+          },
+          {
+            id: 'aa-reit-1',
+            name: 'Vanguard Real Estate ETF',
+            ticker: 'VNQ',
+            isin: 'US9229085538',
+            assetClass: 'REAL_ESTATE' as AssetClass,
+            subAssetType: 'REIT' as SubAssetType,
+            currentValue: 15000,
+            shares: 200, // REIT: multiple shares
+            pricePerShare: 75, // REIT: regular share price
+            targetMode: 'PERCENTAGE' as AllocationMode,
+            targetPercent: 10,
+          },
+        ];
+        
+        const netWorthData: NetWorthTrackerData = {
+          years: [
+            {
+              year: currentYear,
+              months: [
+                {
+                  year: currentYear,
+                  month: currentMonth,
+                  assets: [],
+                  cashEntries: [],
+                  pensions: [],
+                  operations: [],
+                  isFrozen: false,
+                },
+              ],
+            },
+          ],
+          currentYear,
+          currentMonth,
+          defaultCurrency: 'EUR',
+          settings: {
+            showPensionInNetWorth: true,
+            includeUnrealizedGains: true,
+          },
+        };
+        
+        // ACT
+        const result = syncAssetAllocationToNetWorth(assetAllocationData, netWorthData);
+        
+        // ASSERT
+        expect(result.years[0].months[0].assets).toHaveLength(2);
+        
+        const property = result.years[0].months[0].assets.find(a => a.name === 'Primary Residence');
+        expect(property).toBeDefined();
+        expect(property!.shares).toBe(1);
+        expect(property!.pricePerShare).toBe(350000);
+        
+        const reit = result.years[0].months[0].assets.find(a => a.name === 'Vanguard Real Estate ETF');
+        expect(reit).toBeDefined();
+        expect(reit!.shares).toBe(200);
+        expect(reit!.pricePerShare).toBe(75);
+      });
+    });
+
     describe('Cash Asset Sync with Shares and Price', () => {
       it('should sync cash assets with shares and pricePerShare fields', () => {
         // ARRANGE
