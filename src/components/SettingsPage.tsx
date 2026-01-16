@@ -1119,8 +1119,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                   href="https://github.com/mbianchidev/fire-tools/issues/new?template=bug_report.yml" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="secondary-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                  className="secondary-btn external-link-btn"
                 >
                   <MaterialIcon name="open_in_new" /> Report a Bug
                 </a>
@@ -1138,8 +1137,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                   href="https://github.com/mbianchidev/fire-tools/issues/new?template=feature_request.yml" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="secondary-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                  className="secondary-btn external-link-btn"
                 >
                   <MaterialIcon name="open_in_new" /> Request a Feature
                 </a>
@@ -1157,8 +1155,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                   href="https://github.com/mbianchidev/fire-tools/issues/new?template=ux_ui_suggestion.yml" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="secondary-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                  className="secondary-btn external-link-btn"
                 >
                   <MaterialIcon name="open_in_new" /> Suggest UX/UI Improvement
                 </a>
@@ -1176,8 +1173,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                   href="https://github.com/mbianchidev/fire-tools/security/advisories/new" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="secondary-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                  className="secondary-btn external-link-btn"
                 >
                   <MaterialIcon name="open_in_new" /> Report Security Issue
                 </a>
@@ -1196,8 +1192,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                     href="https://github.com/mbianchidev/fire-tools/blob/main/README.md" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="secondary-btn"
-                    style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                    className="secondary-btn external-link-btn"
                   >
                     <MaterialIcon name="open_in_new" /> README
                   </a>
@@ -1205,8 +1200,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                     href="https://github.com/mbianchidev/fire-tools/blob/main/CONTRIBUTING.md" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="secondary-btn"
-                    style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                    className="secondary-btn external-link-btn"
                   >
                     <MaterialIcon name="open_in_new" /> Contributing Guide
                   </a>
@@ -1214,8 +1208,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                     href="https://github.com/mbianchidev/fire-tools/blob/main/SUPPORT.md" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="secondary-btn"
-                    style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                    className="secondary-btn external-link-btn"
                   >
                     <MaterialIcon name="open_in_new" /> Support
                   </a>
