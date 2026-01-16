@@ -2,11 +2,47 @@ import {
   CalculatorInputs, 
   MonteCarloInputs, 
   MonteCarloResult, 
-  SimulationRun
+  MonteCarloResultWithLogs,
+  MonteCarloFixedParameters,
+  SimulationRun,
+  SimulationLogEntry,
+  SimulationYearData
 } from '../types/calculator';
 
 // Cache for the second normal variate produced by the Box-Muller transform
 let cachedNormal: number | null = null;
+
+/**
+ * Calculate statistics from simulation results
+ */
+function calculateSimulationStats(simulations: SimulationRun[]): {
+  successCount: number;
+  failureCount: number;
+  successRate: number;
+  medianYearsToFIRE: number;
+} {
+  const successCount = simulations.filter(s => s.success).length;
+  const failureCount = simulations.length - successCount;
+  const successRate = (successCount / simulations.length) * 100;
+  
+  // Calculate median years to FIRE for successful simulations
+  const successfulYears = simulations
+    .filter(s => s.yearsToFIRE !== null)
+    .map(s => s.yearsToFIRE as number)
+    .sort((a, b) => a - b);
+  
+  let medianYearsToFIRE = 0;
+  if (successfulYears.length > 0) {
+    const midIndex = Math.floor(successfulYears.length / 2);
+    if (successfulYears.length % 2 === 0) {
+      medianYearsToFIRE = (successfulYears[midIndex - 1] + successfulYears[midIndex]) / 2;
+    } else {
+      medianYearsToFIRE = successfulYears[midIndex];
+    }
+  }
+  
+  return { successCount, failureCount, successRate, medianYearsToFIRE };
+}
 
 /**
  * Generate a random return based on expected return and volatility
@@ -40,12 +76,14 @@ function generateRandomReturn(expectedReturn: number, volatility: number): numbe
 
 /**
  * Run a single Monte Carlo simulation
+ * If captureLog is true, it will return detailed yearly data for logging
  */
 function runSingleSimulation(
   inputs: CalculatorInputs,
   mcInputs: MonteCarloInputs,
-  simulationId: number
-): SimulationRun {
+  simulationId: number,
+  captureLog: boolean = false
+): SimulationRun & { logEntry?: SimulationLogEntry } {
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - inputs.yearOfBirth;
   
@@ -66,9 +104,20 @@ function runSingleSimulation(
   let isFIREAchieved = false;
   let yearsToFIRE: number | null = null;
   
+  // Track expenses with inflation adjustment
+  // Cash return is typically negative (e.g., -2%) representing purchasing power loss
+  // We use the absolute value as the inflation rate for expense growth
+  const inflationRate = Math.abs(inputs.expectedCashReturn) / 100;
+  let currentExpenses = inputs.currentAnnualExpenses;
+  let fireExpenses = inputs.fireAnnualExpenses;
+  
+  // Collect yearly data for logging
+  const yearlyData: SimulationYearData[] = [];
+  
   const maxYears = Math.min(50, 100 - currentAge);
   
   for (let i = 0; i < maxYears; i++) {
+    const year = currentYear + i;
     const age = currentAge + i;
     
     // Check for Black Swan event
@@ -112,8 +161,26 @@ function runSingleSimulation(
     const otherIncomeTotal = pensionIncome + inputs.otherIncome;
     const totalIncome = currentLaborIncome + investmentYield + otherIncomeTotal;
     
-    // Calculate expenses
-    const expenses = isFIREAchieved ? inputs.fireAnnualExpenses : inputs.currentAnnualExpenses;
+    // Calculate expenses with inflation adjustment
+    const expenses = isFIREAchieved ? fireExpenses : currentExpenses;
+    
+    // Capture yearly data for logging if enabled
+    if (captureLog) {
+      yearlyData.push({
+        year,
+        age,
+        stockReturn: stockReturn * 100, // Convert back to percentage for display
+        bondReturn: bondReturn * 100,
+        cashReturn: cashReturn * 100,
+        portfolioReturn: portfolioReturn * 100,
+        isBlackSwan,
+        expenses,
+        laborIncome: currentLaborIncome,
+        totalIncome,
+        portfolioValue,
+        isFIREAchieved,
+      });
+    }
     
     // Calculate net change in portfolio
     let portfolioChange: number;
@@ -135,23 +202,64 @@ function runSingleSimulation(
       laborIncome = laborIncome * (1 + inputs.laborIncomeGrowthRate / 100);
     }
     
+    // Apply inflation to expenses for next year
+    currentExpenses = currentExpenses * (1 + inflationRate);
+    fireExpenses = fireExpenses * (1 + inflationRate);
+    
     // Check for failure (portfolio significantly depleted)
     if (portfolioValue < -1000) {
-      return {
+      const failureResult: SimulationRun & { logEntry?: SimulationLogEntry } = {
         simulationId,
         success: false,
         yearsToFIRE: null,
         finalPortfolio: 0,
       };
+      
+      if (captureLog) {
+        failureResult.logEntry = {
+          simulationId,
+          timestamp: new Date().toISOString(),
+          success: false,
+          yearsToFIRE: null,
+          finalPortfolio: 0,
+          yearlyData,
+        };
+      }
+      
+      return failureResult;
     }
   }
   
-  return {
+  // Determine success: either FIRE was achieved during simulation, 
+  // or final portfolio can sustain expenses at the desired withdrawal rate
+  const finalFireTarget = fireExpenses / (inputs.desiredWithdrawalRate / 100);
+  const isSuccess = isFIREAchieved || portfolioValue >= finalFireTarget;
+  
+  // If FIRE wasn't achieved during simulation but final portfolio is sufficient,
+  // mark yearsToFIRE as maxYears to indicate FIRE was reached at simulation end
+  if (!isFIREAchieved && isSuccess) {
+    yearsToFIRE = maxYears;
+  }
+  
+  const result: SimulationRun & { logEntry?: SimulationLogEntry } = {
     simulationId,
-    success: isFIREAchieved,
-    yearsToFIRE,
+    success: isSuccess,
+    yearsToFIRE: isSuccess ? yearsToFIRE : null,
     finalPortfolio: portfolioValue,
   };
+  
+  if (captureLog) {
+    result.logEntry = {
+      simulationId,
+      timestamp: new Date().toISOString(),
+      success: isSuccess,
+      yearsToFIRE: isSuccess ? yearsToFIRE : null,
+      finalPortfolio: portfolioValue,
+      yearlyData,
+    };
+  }
+  
+  return result;
 }
 
 /**
@@ -168,31 +276,66 @@ export function runMonteCarloSimulation(
     simulations.push(result);
   }
   
-  const successCount = simulations.filter(s => s.success).length;
-  const failureCount = simulations.length - successCount;
-  const successRate = (successCount / simulations.length) * 100;
+  const stats = calculateSimulationStats(simulations);
   
-  // Calculate median years to FIRE for successful simulations
-  const successfulYears = simulations
-    .filter(s => s.yearsToFIRE !== null)
-    .map(s => s.yearsToFIRE as number)
-    .sort((a, b) => a - b);
+  return {
+    ...stats,
+    simulations,
+  };
+}
+
+/**
+ * Run Monte Carlo simulations with detailed logging
+ */
+export function runMonteCarloSimulationWithLogs(
+  inputs: CalculatorInputs,
+  mcInputs: MonteCarloInputs
+): MonteCarloResultWithLogs {
+  const simulations: SimulationRun[] = [];
+  const logs: SimulationLogEntry[] = [];
   
-  let medianYearsToFIRE = 0;
-  if (successfulYears.length > 0) {
-    const midIndex = Math.floor(successfulYears.length / 2);
-    if (successfulYears.length % 2 === 0) {
-      medianYearsToFIRE = (successfulYears[midIndex - 1] + successfulYears[midIndex]) / 2;
-    } else {
-      medianYearsToFIRE = successfulYears[midIndex];
+  for (let i = 0; i < mcInputs.numSimulations; i++) {
+    const result = runSingleSimulation(inputs, mcInputs, i + 1, true);
+    simulations.push({
+      simulationId: result.simulationId,
+      success: result.success,
+      yearsToFIRE: result.yearsToFIRE,
+      finalPortfolio: result.finalPortfolio,
+    });
+    
+    if (result.logEntry) {
+      logs.push(result.logEntry);
     }
   }
   
+  const stats = calculateSimulationStats(simulations);
+  
+  // Fixed parameters to include in exports
+  const fixedParameters: MonteCarloFixedParameters = {
+    initialSavings: inputs.initialSavings,
+    stocksPercent: inputs.stocksPercent,
+    bondsPercent: inputs.bondsPercent,
+    cashPercent: inputs.cashPercent,
+    currentAnnualExpenses: inputs.currentAnnualExpenses,
+    fireAnnualExpenses: inputs.fireAnnualExpenses,
+    annualLaborIncome: inputs.annualLaborIncome,
+    savingsRate: inputs.savingsRate,
+    desiredWithdrawalRate: inputs.desiredWithdrawalRate,
+    expectedStockReturn: inputs.expectedStockReturn,
+    expectedBondReturn: inputs.expectedBondReturn,
+    expectedCashReturn: inputs.expectedCashReturn,
+    numSimulations: mcInputs.numSimulations,
+    stockVolatility: mcInputs.stockVolatility,
+    bondVolatility: mcInputs.bondVolatility,
+    blackSwanProbability: mcInputs.blackSwanProbability,
+    blackSwanImpact: mcInputs.blackSwanImpact,
+    stopWorkingAtFIRE: inputs.stopWorkingAtFIRE,
+  };
+  
   return {
-    successCount,
-    failureCount,
-    successRate,
-    medianYearsToFIRE,
+    ...stats,
     simulations,
+    logs,
+    fixedParameters,
   };
 }
