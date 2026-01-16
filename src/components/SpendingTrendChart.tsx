@@ -173,9 +173,9 @@ export function SpendingTrendChart({ data, currency }: SpendingTrendChartProps) 
           <Legend 
             formatter={(value) => {
               const categoryInfo = getCategoryInfo(value as ExpenseCategory);
-              return categoryInfo.name;
+              return <span style={{ color: '#F8FAFC' }}>{categoryInfo.name}</span>;
             }}
-            wrapperStyle={{ fontSize: '0.85rem' }}
+            wrapperStyle={{ fontSize: '0.85rem', paddingTop: '12px' }}
           />
           {activeCategories.map((category) => (
             <Line
