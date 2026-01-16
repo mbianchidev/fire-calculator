@@ -104,8 +104,9 @@ function runSingleSimulation(
   let isFIREAchieved = false;
   let yearsToFIRE: number | null = null;
   
-  // Track expenses with inflation (cash return is typically negative, representing inflation)
-  // Use the absolute value of cash return as inflation rate
+  // Track expenses with inflation adjustment
+  // Cash return is typically negative (e.g., -2%) representing purchasing power loss
+  // We use the absolute value as the inflation rate for expense growth
   const inflationRate = Math.abs(inputs.expectedCashReturn) / 100;
   let currentExpenses = inputs.currentAnnualExpenses;
   let fireExpenses = inputs.fireAnnualExpenses;
@@ -234,9 +235,10 @@ function runSingleSimulation(
   const finalFireTarget = fireExpenses / (inputs.desiredWithdrawalRate / 100);
   const isSuccess = isFIREAchieved || portfolioValue >= finalFireTarget;
   
-  // If we didn't hit FIRE during simulation but ended with enough, mark when we hit it
+  // If FIRE wasn't achieved during simulation but final portfolio is sufficient,
+  // mark yearsToFIRE as maxYears to indicate FIRE was reached at simulation end
   if (!isFIREAchieved && isSuccess) {
-    yearsToFIRE = maxYears; // Achieved at end of simulation
+    yearsToFIRE = maxYears;
   }
   
   const result: SimulationRun & { logEntry?: SimulationLogEntry } = {
