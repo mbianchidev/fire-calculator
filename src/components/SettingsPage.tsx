@@ -621,6 +621,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onSettingsChange }) 
                 </select>
                 <span className="setting-help">Number of decimal places shown for values below 1,000. Values at or above 1,000 show no decimals.</span>
               </div>
+              <div className="setting-item">
+                <div className="label-with-tooltip">
+                  <label htmlFor="dateFormat">Date Format</label>
+                  <Tooltip content="Choose how dates are displayed throughout the app. DD/MM/YYYY is common in Europe, MM/DD/YYYY is common in the US, and YYYY-MM-DD is the ISO standard format.">
+                    <span className="info-icon" aria-label="More information">i</span>
+                  </Tooltip>
+                </div>
+                <select
+                  id="dateFormat"
+                  value={settings.dateFormat ?? 'DD/MM/YYYY'}
+                  onChange={(e) => handleSettingChange('dateFormat', e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD')}
+                >
+                  <option value="DD/MM/YYYY">DD/MM/YYYY (e.g., 31/12/2024)</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY (e.g., 12/31/2024)</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD (e.g., 2024-12-31)</option>
+                </select>
+                <span className="setting-help">How dates are displayed throughout the app</span>
+              </div>
             </div>
           )}
         </section>
