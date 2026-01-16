@@ -252,10 +252,11 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
       return;
     }
 
-    // Shares and pricePerShare are required EXCEPT for cash accounts (not MONEY_ETF) in assetAllocation mode
+    // Shares and pricePerShare are required EXCEPT for cash accounts (not MONEY_ETF) and PROPERTY assets
     const isCashAccount = mode === 'assetAllocation' && assetClass === 'CASH' && subAssetType !== 'MONEY_ETF';
+    const isPropertyAsset = subAssetType === 'PROPERTY';
     
-    if (!isCashAccount) {
+    if (!isCashAccount && !isPropertyAsset) {
       if (!shares.trim() || parseFloat(shares) <= 0) {
         alert('Please enter a valid number of shares');
         return;
@@ -270,13 +271,21 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
     const generatedTicker = ticker.trim().toUpperCase() || 
       `${name.trim().substring(0, 4).toUpperCase()}${Date.now().toString().slice(-4)}`;
 
-    // Calculate value differently for cash accounts (not MONEY_ETF)
-    const sharesNum = parseFloat(shares) || 1;
-    const priceNum = parseFloat(pricePerShare) || 0;
+    // Calculate value differently for cash accounts (not MONEY_ETF) and PROPERTY assets
+    // For these types, value is directly entered (not shares × price)
+    let sharesNum = parseFloat(shares) || 1;
+    let priceNum = parseFloat(pricePerShare) || 0;
+    let valueNum: number;
     
-    // For cash accounts (not MONEY_ETF) in Asset Allocation, value is directly entered (not shares × price)
-    // Note: isCashAccount is already declared above in validation section
-    const valueNum = isCashAccount && priceNum === 0 ? sharesNum : sharesNum * priceNum;
+    if (isCashAccount || isPropertyAsset) {
+      // For cash and PROPERTY: value is entered directly
+      // Store as shares=1, pricePerShare=value for consistent data model
+      valueNum = parseFloat(shares) || 0; // shares field is repurposed for value input
+      sharesNum = 1;
+      priceNum = valueNum;
+    } else {
+      valueNum = sharesNum * priceNum;
+    }
 
     // Convert to EUR if needed
     const valueInEUR = currency === 'EUR'
@@ -482,8 +491,8 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
             )}
           </div>
 
-          {/* Only show shares and price fields for non-cash accounts or for MONEY_ETF */}
-          {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && (
+          {/* Only show shares and price fields for non-cash accounts, non-PROPERTY assets, or for MONEY_ETF */}
+          {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && subAssetType !== 'PROPERTY' && (
             <div className="form-row">
               <div className="form-group">
                 <label>Number of Shares *</label>
@@ -517,19 +526,19 @@ export const SharedAssetDialog: React.FC<SharedAssetDialogProps> = ({
 
           <div className="form-row">
             <div className="form-group">
-              <label>Current Value {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && mode === 'assetAllocation' ? '(Calculated)' : (mode === 'netWorthTracker' && (assetClass !== 'CASH' || subAssetType === 'MONEY_ETF')) ? '(Calculated)' : ''} *</label>
+              <label>Current Value {(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && subAssetType !== 'PROPERTY' && mode === 'assetAllocation' ? '(Calculated)' : (mode === 'netWorthTracker' && (assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && subAssetType !== 'PROPERTY') ? '(Calculated)' : ''} *</label>
               <input
-                type={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'number' : 'text'}
+                type={((assetClass === 'CASH' && subAssetType !== 'MONEY_ETF') || subAssetType === 'PROPERTY') ? 'number' : 'text'}
                 value={currentValue}
-                onChange={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? (e) => {
+                onChange={((assetClass === 'CASH' && subAssetType !== 'MONEY_ETF') || subAssetType === 'PROPERTY') ? (e) => {
                   setShares(e.target.value);
                   setPricePerShare('1');
                 } : undefined}
                 className="dialog-input dialog-input-calculated"
-                disabled={(assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') || mode === 'netWorthTracker'}
-                placeholder={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'Enter cash amount' : ''}
-                min={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? '0' : undefined}
-                step={(assetClass === 'CASH' && subAssetType !== 'MONEY_ETF' && mode === 'assetAllocation') ? 'any' : undefined}
+                disabled={((assetClass !== 'CASH' || subAssetType === 'MONEY_ETF') && subAssetType !== 'PROPERTY') || (mode === 'netWorthTracker' && subAssetType !== 'PROPERTY')}
+                placeholder={((assetClass === 'CASH' && subAssetType !== 'MONEY_ETF') || subAssetType === 'PROPERTY') ? (subAssetType === 'PROPERTY' ? 'Enter property value' : 'Enter cash amount') : ''}
+                min={((assetClass === 'CASH' && subAssetType !== 'MONEY_ETF') || subAssetType === 'PROPERTY') ? '0' : undefined}
+                step={((assetClass === 'CASH' && subAssetType !== 'MONEY_ETF') || subAssetType === 'PROPERTY') ? 'any' : undefined}
                 required
               />
             </div>
