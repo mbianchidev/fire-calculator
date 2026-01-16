@@ -10,6 +10,8 @@ import {
 } from '../types/currency';
 import { encryptData, decryptData } from './cookieEncryption';
 
+export type DateFormat = 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
+
 export interface UserSettings {
   accountName: string;
   decimalSeparator: '.' | ',';
@@ -17,6 +19,7 @@ export interface UserSettings {
   currencySettings: CurrencySettings;
   privacyMode: boolean;
   country?: string;
+  dateFormat: DateFormat;
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -26,6 +29,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   currencySettings: DEFAULT_CURRENCY_SETTINGS,
   privacyMode: false,
   country: undefined,
+  dateFormat: 'DD/MM/YYYY',
 };
 
 const SETTINGS_KEY = 'fire-calculator-settings';
@@ -156,6 +160,13 @@ export function validateSettings(settings: Partial<UserSettings>): { isValid: bo
       if (typeof rate !== 'number' || rate <= 0) {
         errors.push(`Invalid rate for ${currency}: must be a positive number`);
       }
+    }
+  }
+
+  if (settings.dateFormat !== undefined) {
+    const validFormats = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'];
+    if (!validFormats.includes(settings.dateFormat)) {
+      errors.push('Date format must be "DD/MM/YYYY", "MM/DD/YYYY", or "YYYY-MM-DD"');
     }
   }
 
