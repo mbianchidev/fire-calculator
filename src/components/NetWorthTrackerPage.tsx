@@ -1008,32 +1008,36 @@ export function NetWorthTrackerPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentMonthData.assets.map(asset => (
-                      <tr key={asset.id}>
-                        <td>{asset.name}</td>
-                        <td>{asset.ticker}</td>
-                        <td>{ASSET_CLASSES.find(c => c.id === asset.assetClass)?.name || asset.assetClass}</td>
-                        <td><PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatDisplayNumber(asset.shares)}</PrivacyBlur></td>
-                        <td className="amount-col"><PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatCurrency(asset.pricePerShare, asset.currency)}</PrivacyBlur></td>
-                        <td className="amount-col"><PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatCurrency(asset.shares * asset.pricePerShare, asset.currency)}</PrivacyBlur></td>
-                        <td className="actions-col">
-                          <button
-                            className="btn-icon"
-                            onClick={() => { setEditingItem(asset); setEditingItemType('asset'); setShowAssetDialog(true); }}
-                            aria-label="Edit asset"
-                          >
-                            <MaterialIcon name="edit" size="small" />
-                          </button>
-                          <button
-                            className="btn-icon delete"
-                            onClick={() => handleDeleteAsset(asset.id)}
-                            aria-label="Delete asset"
-                          >
-                            <MaterialIcon name="delete" size="small" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {currentMonthData.assets.map(asset => {
+                      // Only hide shares/price for PROPERTY sub-assets, not REITs
+                      const isPropertyAsset = asset.syncSubAssetType === 'PROPERTY';
+                      return (
+                        <tr key={asset.id}>
+                          <td>{asset.name}</td>
+                          <td>{asset.ticker}</td>
+                          <td>{ASSET_CLASSES.find(c => c.id === asset.assetClass)?.name || asset.assetClass}</td>
+                          <td>{isPropertyAsset ? '-' : <PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatDisplayNumber(asset.shares)}</PrivacyBlur>}</td>
+                          <td className="amount-col">{isPropertyAsset ? '-' : <PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatCurrency(asset.pricePerShare, asset.currency)}</PrivacyBlur>}</td>
+                          <td className="amount-col"><PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatCurrency(asset.shares * asset.pricePerShare, asset.currency)}</PrivacyBlur></td>
+                          <td className="actions-col">
+                            <button
+                              className="btn-icon"
+                              onClick={() => { setEditingItem(asset); setEditingItemType('asset'); setShowAssetDialog(true); }}
+                              aria-label="Edit asset"
+                            >
+                              <MaterialIcon name="edit" size="small" />
+                            </button>
+                            <button
+                              className="btn-icon delete"
+                              onClick={() => handleDeleteAsset(asset.id)}
+                              aria-label="Delete asset"
+                            >
+                              <MaterialIcon name="delete" size="small" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (
