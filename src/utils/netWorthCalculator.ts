@@ -11,6 +11,8 @@ import {
   FIREProgress,
 } from '../types/netWorthTracker';
 import { SupportedCurrency } from '../types/currency';
+import { calculateDepreciatedValue } from './depreciationCalculator';
+import { calculateNetPropertyValue } from './mortgageCalculator';
 
 // Options for net worth calculation
 export interface NetWorthCalculationOptions {
@@ -43,7 +45,23 @@ export function calculateMonthlyNetWorth(
   // Calculate total asset value (shares * price)
   // Values are already in the default currency (converted when user changes currency in Settings)
   const totalAssetValue = snapshot.assets.reduce((sum, asset) => {
-    const valueInCurrency = asset.shares * asset.pricePerShare;
+    let valueInCurrency: number;
+    
+    // Handle vehicle depreciation
+    if (asset.assetClass === 'VEHICLE' && asset.vehicleDepreciation) {
+      const currentDate = new Date().toISOString().split('T')[0];
+      valueInCurrency = calculateDepreciatedValue(asset.vehicleDepreciation, currentDate);
+    }
+    // Handle real estate with mortgage (net property value = property value - mortgage balance)
+    else if (asset.assetClass === 'REAL_ESTATE' && asset.mortgageInfo) {
+      const propertyValue = asset.shares * asset.pricePerShare;
+      valueInCurrency = calculateNetPropertyValue(propertyValue, asset.mortgageInfo.currentBalance);
+    }
+    // Standard calculation for all other asset types
+    else {
+      valueInCurrency = asset.shares * asset.pricePerShare;
+    }
+    
     return sum + valueInCurrency;
   }, 0);
 

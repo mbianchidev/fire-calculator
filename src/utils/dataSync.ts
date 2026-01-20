@@ -237,7 +237,13 @@ export function syncNetWorthToAssetAllocation(
   const assets: Asset[] = [];
   
   // Convert asset holdings to assets (restore sync metadata)
+  // Skip physical assets (vehicles, collectibles, art) as they don't belong in asset allocation
   for (const holding of monthData.assets) {
+    // Skip physical assets that shouldn't be in asset allocation
+    if (['VEHICLE', 'COLLECTIBLE', 'ART'].includes(holding.assetClass)) {
+      continue;
+    }
+    
     const asset: Asset = {
       id: holding.id,
       name: holding.name,
