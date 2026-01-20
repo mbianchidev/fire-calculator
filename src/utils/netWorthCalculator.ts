@@ -24,6 +24,8 @@ export interface MonthlyNetWorthResult {
   totalCash: number;
   totalPension: number;
   totalTaxesPaid: number;
+  totalDebt: number;
+  totalTaxLiability: number;
   netWorth: number;
 }
 
@@ -62,16 +64,28 @@ export function calculateMonthlyNetWorth(
     .filter((op) => op.type === 'TAX_PAID')
     .reduce((sum, op) => sum + op.amount, 0);
 
-  // Net worth = assets + cash + pension - taxes
+  // Calculate total debt (negative impact on net worth)
+  const totalDebt = (snapshot.debts || []).reduce((sum, debt) => {
+    return sum + debt.currentBalance;
+  }, 0);
+
+  // Calculate total tax liability (unpaid taxes, negative impact on net worth)
+  const totalTaxLiability = (snapshot.taxes || []).reduce((sum, tax) => {
+    return tax.isPaid ? sum : sum + tax.amount;
+  }, 0);
+
+  // Net worth = assets + cash + pension - debt - tax liability
   // Note: Taxes are typically already deducted from cash/income, so we don't subtract again
-  // unless tracking separately. For simplicity, net worth = assets + cash + pension
-  const netWorth = totalAssetValue + totalCash + totalPension;
+  // unless tracking separately. For simplicity, net worth = assets + cash + pension - debt - tax liability
+  const netWorth = totalAssetValue + totalCash + totalPension - totalDebt - totalTaxLiability;
 
   return {
     totalAssetValue,
     totalCash,
     totalPension,
     totalTaxesPaid,
+    totalDebt,
+    totalTaxLiability,
     netWorth,
   };
 }
@@ -198,6 +212,8 @@ export function calculateMonthlyVariations(
         assetValueChange: 0,
         cashChange: 0,
         pensionChange: 0,
+        debtChange: 0,
+        taxLiabilityChange: 0,
       });
     } else {
       const changeFromPrevMonth = result.netWorth - prevResult.netWorth;
@@ -214,6 +230,8 @@ export function calculateMonthlyVariations(
         assetValueChange: result.totalAssetValue - prevResult.totalAssetValue,
         cashChange: result.totalCash - prevResult.totalCash,
         pensionChange: result.totalPension - prevResult.totalPension,
+        debtChange: result.totalDebt - prevResult.totalDebt,
+        taxLiabilityChange: result.totalTaxLiability - prevResult.totalTaxLiability,
       });
     }
 
