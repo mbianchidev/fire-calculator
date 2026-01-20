@@ -222,7 +222,7 @@ function runSingleSimulation(
       }
     }
     
-    // Sequence of returns risk: check first 5-10 years post-FIRE
+    // Sequence of returns risk: check first 10 years post-FIRE
     if (isFIREAchieved && yearFIREAchieved !== null && portfolioAtFIRE !== null) {
       const yearsPostFIRE = year - yearFIREAchieved;
       if (yearsPostFIRE > 0 && yearsPostFIRE <= 10) {
