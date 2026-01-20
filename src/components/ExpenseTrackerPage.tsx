@@ -37,7 +37,8 @@ import {
   exportExpenseTrackerToCSV,
   importExpenseTrackerFromCSV,
 } from '../utils/csvExport';
-import { loadSettings, saveSettings } from '../utils/cookieSettings';
+import { loadSettings, saveSettings, type DateFormat } from '../utils/cookieSettings';
+import { formatDate } from '../utils/dateFormatter';
 import { generateDemoExpenseData } from '../utils/demoExpenseData';
 import { useTableSort } from '../utils/useTableSort';
 import { formatDisplayCurrency, formatDisplayPercent } from '../utils/numberFormatter';
@@ -164,6 +165,29 @@ export function ExpenseTrackerPage() {
     const settings = loadSettings();
     return settings.privacyMode;
   });
+  
+  // Date format state (loaded from settings)
+  const [dateFormat, setDateFormat] = useState<DateFormat>(() => {
+    const settings = loadSettings();
+    return settings.dateFormat;
+  });
+  
+  // Listen for settings changes (e.g., from Settings page)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const settings = loadSettings();
+      setDateFormat(settings.dateFormat);
+      setIsPrivacyMode(settings.privacyMode);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
+  }, []);
   
   // Toggle privacy mode and save to settings
   const togglePrivacyMode = () => {
@@ -1061,7 +1085,7 @@ export function ExpenseTrackerPage() {
                         key={transaction.id} 
                         className={`${transaction.type === 'income' ? 'income-row' : 'expense-row'}${transaction.isRecurring ? ' recurring-row' : ''}`}
                       >
-                        <td>{transaction.date}</td>
+                        <td>{formatDate(transaction.date, dateFormat)}</td>
                         <td>
                           {transaction.description}
                           {transaction.isRecurring && (
