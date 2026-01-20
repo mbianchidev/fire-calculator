@@ -30,7 +30,8 @@ import {
   loadAssetAllocation,
   saveAssetAllocation,
 } from '../utils/cookieStorage';
-import { loadSettings, saveSettings } from '../utils/cookieSettings';
+import { loadSettings, saveSettings, type DateFormat } from '../utils/cookieSettings';
+import { formatDate } from '../utils/dateFormatter';
 import { generateDemoNetWorthDataForYear } from '../utils/defaults';
 import { syncAssetAllocationToNetWorth, syncNetWorthToAssetAllocation, DEFAULT_ASSET_CLASS_TARGETS } from '../utils/dataSync';
 import { formatDisplayCurrency, formatDisplayPercent, formatDisplayNumber } from '../utils/numberFormatter';
@@ -159,6 +160,29 @@ export function NetWorthTrackerPage() {
     const settings = loadSettings();
     return settings.privacyMode;
   });
+  
+  // Date format state (loaded from settings)
+  const [dateFormat, setDateFormat] = useState<DateFormat>(() => {
+    const settings = loadSettings();
+    return settings.dateFormat;
+  });
+  
+  // Listen for settings changes (e.g., from Settings page)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const settings = loadSettings();
+      setDateFormat(settings.dateFormat);
+      setIsPrivacyMode(settings.privacyMode);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
+  }, []);
   
   // Toggle privacy mode and save to settings
   const togglePrivacyMode = () => {
@@ -1165,7 +1189,7 @@ export function NetWorthTrackerPage() {
                       const opType = OPERATION_TYPES.find(t => t.id === op.type);
                       return (
                         <tr key={op.id}>
-                          <td>{op.date}</td>
+                          <td>{formatDate(op.date, dateFormat)}</td>
                           <td><MaterialIcon name={opType?.icon || 'edit_note'} size="small" /> {opType?.name || op.type}</td>
                           <td>{op.description}</td>
                           <td className={`amount-col ${opType?.isIncome ? 'positive' : 'negative'}`}>

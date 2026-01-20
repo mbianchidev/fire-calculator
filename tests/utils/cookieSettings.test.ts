@@ -3,6 +3,7 @@ import {
   saveSettings,
   loadSettings,
   clearSettings,
+  validateSettings,
   DEFAULT_SETTINGS,
   type UserSettings,
 } from '../../src/utils/cookieSettings';
@@ -280,6 +281,64 @@ describe('Cookie Settings utilities', () => {
     it('should default to undefined for country', () => {
       const loaded = loadSettings();
       expect(loaded.country).toBeUndefined();
+    });
+  });
+
+  describe('dateFormat setting', () => {
+    it('should save and load date format setting', () => {
+      const settings: UserSettings = {
+        ...DEFAULT_SETTINGS,
+        dateFormat: 'MM/DD/YYYY',
+      };
+      
+      saveSettings(settings);
+      const loaded = loadSettings();
+      
+      expect(loaded.dateFormat).toBe('MM/DD/YYYY');
+    });
+
+    it('should default to DD/MM/YYYY for date format', () => {
+      const loaded = loadSettings();
+      expect(loaded.dateFormat).toBe('DD/MM/YYYY');
+    });
+
+    it('should allow YYYY-MM-DD format', () => {
+      const settings: UserSettings = {
+        ...DEFAULT_SETTINGS,
+        dateFormat: 'YYYY-MM-DD',
+      };
+      
+      saveSettings(settings);
+      const loaded = loadSettings();
+      
+      expect(loaded.dateFormat).toBe('YYYY-MM-DD');
+    });
+  });
+
+  describe('validateSettings', () => {
+    it('should accept valid date format DD/MM/YYYY', () => {
+      const result = validateSettings({ dateFormat: 'DD/MM/YYYY' });
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should accept valid date format MM/DD/YYYY', () => {
+      const result = validateSettings({ dateFormat: 'MM/DD/YYYY' });
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should accept valid date format YYYY-MM-DD', () => {
+      const result = validateSettings({ dateFormat: 'YYYY-MM-DD' });
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject invalid date format', () => {
+      // Using any to bypass type checking for invalid input test
+      const result = validateSettings({ dateFormat: 'invalid' as unknown as 'DD/MM/YYYY' });
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain('Date format must be "DD/MM/YYYY", "MM/DD/YYYY", or "YYYY-MM-DD"');
     });
   });
 });

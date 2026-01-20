@@ -19,6 +19,8 @@ import {
   type Notification,
   getNotificationTypeInfo,
 } from '../types/notification';
+import { loadSettings, type DateFormat } from '../utils/cookieSettings';
+import { formatDate } from '../utils/dateFormatter';
 import './NotificationBell.css';
 
 interface NotificationBellProps {
@@ -32,6 +34,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dateFormat, setDateFormat] = useState<DateFormat>('DD/MM/YYYY');
   const panelRef = useRef<HTMLDivElement>(null);
   const hasCheckedRef = useRef(false);
 
@@ -48,6 +51,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     hasCheckedRef.current = true;
 
     const state = loadNotificationState();
+    
+    // Load user's date format preference
+    const settings = loadSettings();
+    setDateFormat(settings.dateFormat);
     
     // Generate time-based notifications
     const newNotifications = checkAndGenerateTimeBasedNotifications(
@@ -157,7 +164,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    return then.toLocaleDateString();
+    return formatDate(then, dateFormat);
   };
 
   return (
