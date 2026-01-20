@@ -1495,6 +1495,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: var(--error);
 }
 
+.failure-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.failure-reason-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.inflation-cell {
+  color: var(--warning);
+}
+
 .mc-logs-view-btn {
   background: transparent;
   border: 1px solid var(--border-subtle);

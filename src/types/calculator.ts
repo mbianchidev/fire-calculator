@@ -89,11 +89,25 @@ export interface MonteCarloResult {
   simulations: SimulationRun[];
 }
 
+/**
+ * Failure reasons for Monte Carlo simulations
+ */
+export type SimulationFailureReason = 
+  | 'portfolio_depleted'           // Portfolio dropped to <= 0
+  | 'sequence_of_returns_risk'     // Bad returns in first 5-10 years post-FIRE
+  | 'unsustainable_ending'         // Final portfolio < 50% of FIRE target
+  | 'fire_too_late'                // FIRE achieved after retirement age
+  | 'withdrawal_rate_breach'       // Required withdrawal rate > 6%
+  | 'fire_lost'                    // Portfolio dropped below FIRE target and never recovered
+  | 'forced_return_to_work'        // Portfolio dropped below 3-5 years of expenses
+  | 'healthcare_expense_shock';    // Late-life expenses exceeded capacity
+
 export interface SimulationRun {
   simulationId: number;
   success: boolean;
   yearsToFIRE: number | null;
   finalPortfolio: number;
+  failureReasons?: SimulationFailureReason[];
 }
 
 /**
@@ -105,6 +119,7 @@ export interface SimulationYearData {
   stockReturn: number;
   bondReturn: number;
   cashReturn: number;
+  simulatedInflation: number;  // Simulated inflation rate for this year
   portfolioReturn: number;
   isBlackSwan: boolean;
   expenses: number;
@@ -112,6 +127,7 @@ export interface SimulationYearData {
   totalIncome: number;
   portfolioValue: number;
   isFIREAchieved: boolean;
+  withdrawalRate?: number;  // Current withdrawal rate if post-FIRE
 }
 
 /**
@@ -124,6 +140,7 @@ export interface SimulationLogEntry {
   yearsToFIRE: number | null;
   finalPortfolio: number;
   yearlyData: SimulationYearData[];
+  failureReasons?: SimulationFailureReason[];
 }
 
 /**

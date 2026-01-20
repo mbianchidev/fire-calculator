@@ -1,5 +1,5 @@
 import { useState, useMemo, Fragment } from 'react';
-import { SimulationLogEntry, MonteCarloFixedParameters } from '../types/calculator';
+import { SimulationLogEntry, MonteCarloFixedParameters, SimulationFailureReason } from '../types/calculator';
 import { MaterialIcon } from './MaterialIcon';
 import { exportMonteCarloLogsToCSV, exportMonteCarloLogsToJSON } from '../utils/csvExport';
 import { loadSettings } from '../utils/cookieSettings';
@@ -13,6 +13,21 @@ interface MonteCarloLogsProps {
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+
+// Human-readable failure reason labels
+const FAILURE_REASON_LABELS: Record<SimulationFailureReason, string> = {
+  'portfolio_depleted': 'Portfolio Depleted',
+  'sequence_of_returns_risk': 'Sequence of Returns Risk',
+  'unsustainable_ending': 'Unsustainable Ending',
+  'fire_too_late': 'FIRE Too Late',
+  'withdrawal_rate_breach': 'Withdrawal Rate Breach',
+  'fire_lost': 'FIRE Lost',
+  'forced_return_to_work': 'Forced Return to Work',
+  'healthcare_expense_shock': 'Healthcare Expense Shock',
+};
+
+// Format number with 2 decimal places
+const formatDecimal = (value: number): string => value.toFixed(2);
 
 export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({ 
   logs, 
@@ -198,6 +213,15 @@ export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({
                         <span className={`status-badge ${log.success ? 'success' : 'failure'}`}>
                           {log.success ? 'Success' : 'Failed'}
                         </span>
+                        {log.failureReasons && log.failureReasons.length > 0 && (
+                          <div className="failure-reasons">
+                            {log.failureReasons.map(reason => (
+                              <span key={reason} className="failure-reason-badge" title={FAILURE_REASON_LABELS[reason]}>
+                                {FAILURE_REASON_LABELS[reason]}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td>{log.yearsToFIRE !== null ? `${log.yearsToFIRE} years` : 'N/A'}</td>
                       <td>
@@ -226,14 +250,15 @@ export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({
                               <h5>Initial Parameters</h5>
                               <div className="mc-logs-params-grid">
                                 <span>Initial Savings: <PrivacyBlur isPrivacyMode={isPrivacyMode}>{formatDisplayCurrency(fixedParameters.initialSavings, defaultCurrency)}</PrivacyBlur></span>
-                                <span>Stocks: {fixedParameters.stocksPercent}%</span>
-                                <span>Bonds: {fixedParameters.bondsPercent}%</span>
-                                <span>Cash: {fixedParameters.cashPercent}%</span>
-                                <span>Expected Stock Return: {fixedParameters.expectedStockReturn}%</span>
-                                <span>Expected Bond Return: {fixedParameters.expectedBondReturn}%</span>
-                                <span>Withdrawal Rate: {fixedParameters.desiredWithdrawalRate}%</span>
-                                <span>Stock Volatility: {fixedParameters.stockVolatility}%</span>
-                                <span>Bond Volatility: {fixedParameters.bondVolatility}%</span>
+                                <span>Stocks: {formatDecimal(fixedParameters.stocksPercent)}%</span>
+                                <span>Bonds: {formatDecimal(fixedParameters.bondsPercent)}%</span>
+                                <span>Cash: {formatDecimal(fixedParameters.cashPercent)}%</span>
+                                <span>Expected Stock Return: {formatDecimal(fixedParameters.expectedStockReturn)}%</span>
+                                <span>Expected Bond Return: {formatDecimal(fixedParameters.expectedBondReturn)}%</span>
+                                <span>Base Inflation: {formatDecimal(Math.abs(fixedParameters.expectedCashReturn))}%</span>
+                                <span>Withdrawal Rate: {formatDecimal(fixedParameters.desiredWithdrawalRate)}%</span>
+                                <span>Stock Volatility: {formatDecimal(fixedParameters.stockVolatility)}%</span>
+                                <span>Bond Volatility: {formatDecimal(fixedParameters.bondVolatility)}%</span>
                               </div>
                             </div>
                             {/* Yearly breakdown table */}
@@ -245,11 +270,13 @@ export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({
                                     <th scope="col">Age</th>
                                     <th scope="col">Stock Return</th>
                                     <th scope="col">Bond Return</th>
+                                    <th scope="col">Inflation</th>
                                     <th scope="col">Portfolio Return</th>
                                     <th scope="col">Black Swan</th>
                                     <th scope="col">Expenses</th>
                                     <th scope="col">Labor Income</th>
                                     <th scope="col">Portfolio Value</th>
+                                    <th scope="col">Withdrawal %</th>
                                     <th scope="col">FIRE</th>
                                   </tr>
                                 </thead>
@@ -266,6 +293,9 @@ export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({
                                       </td>
                                       <td className={yearData.bondReturn < 0 ? 'negative' : 'positive'}>
                                         {formatDisplayPercent(yearData.bondReturn)}
+                                      </td>
+                                      <td className="inflation-cell">
+                                        {formatDecimal(yearData.simulatedInflation || Math.abs(yearData.cashReturn))}%
                                       </td>
                                       <td className={yearData.portfolioReturn < 0 ? 'negative' : 'positive'}>
                                         {formatDisplayPercent(yearData.portfolioReturn)}
@@ -291,6 +321,9 @@ export const MonteCarloLogs: React.FC<MonteCarloLogsProps> = ({
                                         <PrivacyBlur isPrivacyMode={isPrivacyMode}>
                                           {formatDisplayCurrency(yearData.portfolioValue, defaultCurrency)}
                                         </PrivacyBlur>
+                                      </td>
+                                      <td className={yearData.withdrawalRate && yearData.withdrawalRate > 6 ? 'negative' : ''}>
+                                        {yearData.withdrawalRate ? `${formatDecimal(yearData.withdrawalRate)}%` : '-'}
                                       </td>
                                       <td>
                                         {yearData.isFIREAchieved && (

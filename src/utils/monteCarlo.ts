@@ -6,7 +6,8 @@ import {
   MonteCarloFixedParameters,
   SimulationRun,
   SimulationLogEntry,
-  SimulationYearData
+  SimulationYearData,
+  SimulationFailureReason
 } from '../types/calculator';
 
 // Cache for the second normal variate produced by the Box-Muller transform
@@ -103,13 +104,29 @@ function runSingleSimulation(
   let laborIncome = inputs.annualLaborIncome;
   let isFIREAchieved = false;
   let yearsToFIRE: number | null = null;
+  let yearFIREAchieved: number | null = null;
+  let ageFIREAchieved: number | null = null;
+  
+  // Track for failure criteria
+  let fireLost = false;
+  let fireRecovered = false;
+  let sequenceOfReturnsRisk = false;
+  let withdrawalRateBreach = false;
+  let forcedReturnToWork = false;
+  let healthcareExpenseShock = false;
+  
+  // Track portfolio at FIRE achievement for sequence of returns risk
+  let portfolioAtFIRE: number | null = null;
+  
+  // Base inflation rate from cash return (typically negative, e.g., -2%)
+  const baseInflationRate = Math.abs(inputs.expectedCashReturn) / 100;
   
   // Track expenses with inflation adjustment
-  // Cash return is typically negative (e.g., -2%) representing purchasing power loss
-  // We use the absolute value as the inflation rate for expense growth
-  const inflationRate = Math.abs(inputs.expectedCashReturn) / 100;
   let currentExpenses = inputs.currentAnnualExpenses;
   let fireExpenses = inputs.fireAnnualExpenses;
+  
+  // Track cumulative inflation for real value calculation
+  let cumulativeInflation = 1;
   
   // Collect yearly data for logging
   const yearlyData: SimulationYearData[] = [];
@@ -132,7 +149,11 @@ function runSingleSimulation(
       mcInputs.blackSwanImpact / 200 : // bonds less affected
       generateRandomReturn(inputs.expectedBondReturn / 100, mcInputs.bondVolatility / 100);
     
-    const cashReturn = inputs.expectedCashReturn / 100;
+    // Vary inflation with +/- 1% delta from base rate
+    const inflationDelta = (Math.random() * 2 - 1) / 100; // -1% to +1%
+    const simulatedInflation = baseInflationRate + inflationDelta;
+    
+    const cashReturn = -simulatedInflation; // Cash return is negative of inflation
     
     // Calculate portfolio return
     const portfolioReturn = (
@@ -145,6 +166,17 @@ function runSingleSimulation(
     if (!isFIREAchieved && portfolioValue >= fireTarget) {
       isFIREAchieved = true;
       yearsToFIRE = i;
+      yearFIREAchieved = year;
+      ageFIREAchieved = age;
+      portfolioAtFIRE = portfolioValue;
+    }
+    
+    // Track if FIRE was lost and recovered
+    if (isFIREAchieved && !fireLost && portfolioValue < fireTarget) {
+      fireLost = true;
+    }
+    if (fireLost && portfolioValue >= fireTarget) {
+      fireRecovered = true;
     }
     
     // If stopWorkingAtFIRE is enabled, stop working once FIRE is achieved.
@@ -162,7 +194,44 @@ function runSingleSimulation(
     const totalIncome = currentLaborIncome + investmentYield + otherIncomeTotal;
     
     // Calculate expenses with inflation adjustment
-    const expenses = isFIREAchieved ? fireExpenses : currentExpenses;
+    // Healthcare expense shock: increase expenses by 30% after age 75
+    let expenses = isFIREAchieved ? fireExpenses : currentExpenses;
+    if (age >= 75) {
+      expenses = expenses * 1.3; // 30% increase for healthcare costs
+      if (isFIREAchieved && !isWorking && portfolioValue > 0) {
+        const healthcareWithdrawalRate = (expenses / portfolioValue) * 100;
+        if (healthcareWithdrawalRate > 8) {
+          healthcareExpenseShock = true;
+        }
+      }
+    }
+    
+    // Calculate current withdrawal rate if post-FIRE and not working
+    let currentWithdrawalRate: number | undefined;
+    if (isFIREAchieved && !isWorking && portfolioValue > 0) {
+      currentWithdrawalRate = (expenses / portfolioValue) * 100;
+      
+      // Check for withdrawal rate breach (> 6%)
+      if (currentWithdrawalRate > 6) {
+        withdrawalRateBreach = true;
+      }
+      
+      // Check for forced return to work (portfolio < 3 years of expenses)
+      if (portfolioValue < expenses * 3) {
+        forcedReturnToWork = true;
+      }
+    }
+    
+    // Sequence of returns risk: check first 5-10 years post-FIRE
+    if (isFIREAchieved && yearFIREAchieved !== null && portfolioAtFIRE !== null) {
+      const yearsPostFIRE = year - yearFIREAchieved;
+      if (yearsPostFIRE > 0 && yearsPostFIRE <= 10) {
+        // If portfolio drops below 50% of value at FIRE achievement
+        if (portfolioValue < portfolioAtFIRE * 0.5) {
+          sequenceOfReturnsRisk = true;
+        }
+      }
+    }
     
     // Capture yearly data for logging if enabled
     if (captureLog) {
@@ -172,6 +241,7 @@ function runSingleSimulation(
         stockReturn: stockReturn * 100, // Convert back to percentage for display
         bondReturn: bondReturn * 100,
         cashReturn: cashReturn * 100,
+        simulatedInflation: simulatedInflation * 100,
         portfolioReturn: portfolioReturn * 100,
         isBlackSwan,
         expenses,
@@ -179,6 +249,7 @@ function runSingleSimulation(
         totalIncome,
         portfolioValue,
         isFIREAchieved,
+        withdrawalRate: currentWithdrawalRate,
       });
     }
     
@@ -203,16 +274,22 @@ function runSingleSimulation(
     }
     
     // Apply inflation to expenses for next year
-    currentExpenses = currentExpenses * (1 + inflationRate);
-    fireExpenses = fireExpenses * (1 + inflationRate);
+    currentExpenses = currentExpenses * (1 + simulatedInflation);
+    fireExpenses = fireExpenses * (1 + simulatedInflation);
     
-    // Check for failure (portfolio significantly depleted)
-    if (portfolioValue < -1000) {
+    // Track cumulative inflation
+    cumulativeInflation = cumulativeInflation * (1 + simulatedInflation);
+    
+    // Check for failure: portfolio depleted (<= 0)
+    if (portfolioValue <= 0) {
+      const failureReasons: SimulationFailureReason[] = ['portfolio_depleted'];
+      
       const failureResult: SimulationRun & { logEntry?: SimulationLogEntry } = {
         simulationId,
         success: false,
         yearsToFIRE: null,
         finalPortfolio: 0,
+        failureReasons,
       };
       
       if (captureLog) {
@@ -223,6 +300,7 @@ function runSingleSimulation(
           yearsToFIRE: null,
           finalPortfolio: 0,
           yearlyData,
+          failureReasons,
         };
       }
       
@@ -230,10 +308,52 @@ function runSingleSimulation(
     }
   }
   
-  // Determine success: either FIRE was achieved during simulation, 
-  // or final portfolio can sustain expenses at the desired withdrawal rate
+  // Collect all failure reasons
+  const failureReasons: SimulationFailureReason[] = [];
+  
+  // Check for unsustainable ending portfolio (< 50% of inflation-adjusted FIRE target)
+  const inflationAdjustedFireTarget = (inputs.fireAnnualExpenses * cumulativeInflation) / (inputs.desiredWithdrawalRate / 100);
+  if (portfolioValue < inflationAdjustedFireTarget * 0.5) {
+    failureReasons.push('unsustainable_ending');
+  }
+  
+  // Check if FIRE was achieved too late (after state pension age)
+  if (isFIREAchieved && ageFIREAchieved !== null && ageFIREAchieved >= inputs.retirementAge) {
+    failureReasons.push('fire_too_late');
+  }
+  
+  // Check if FIRE was lost and never recovered
+  if (fireLost && !fireRecovered) {
+    failureReasons.push('fire_lost');
+  }
+  
+  // Add other failure reasons if triggered
+  if (sequenceOfReturnsRisk) {
+    failureReasons.push('sequence_of_returns_risk');
+  }
+  if (withdrawalRateBreach) {
+    failureReasons.push('withdrawal_rate_breach');
+  }
+  if (forcedReturnToWork) {
+    failureReasons.push('forced_return_to_work');
+  }
+  if (healthcareExpenseShock) {
+    failureReasons.push('healthcare_expense_shock');
+  }
+  
+  // Determine success: 
+  // 1. FIRE was achieved during simulation OR final portfolio >= inflation-adjusted FIRE target
+  // 2. No critical failures
+  const criticalFailures: SimulationFailureReason[] = [
+    'portfolio_depleted',
+    'fire_lost',
+    'unsustainable_ending',
+    'forced_return_to_work',
+  ];
+  
+  const hasCriticalFailure = failureReasons.some(r => criticalFailures.includes(r));
   const finalFireTarget = fireExpenses / (inputs.desiredWithdrawalRate / 100);
-  const isSuccess = isFIREAchieved || portfolioValue >= finalFireTarget;
+  const isSuccess = (isFIREAchieved || portfolioValue >= finalFireTarget) && !hasCriticalFailure;
   
   // If FIRE wasn't achieved during simulation but final portfolio is sufficient,
   // mark yearsToFIRE as maxYears to indicate FIRE was reached at simulation end
@@ -246,6 +366,7 @@ function runSingleSimulation(
     success: isSuccess,
     yearsToFIRE: isSuccess ? yearsToFIRE : null,
     finalPortfolio: portfolioValue,
+    failureReasons: failureReasons.length > 0 ? failureReasons : undefined,
   };
   
   if (captureLog) {
@@ -256,6 +377,7 @@ function runSingleSimulation(
       yearsToFIRE: isSuccess ? yearsToFIRE : null,
       finalPortfolio: portfolioValue,
       yearlyData,
+      failureReasons: failureReasons.length > 0 ? failureReasons : undefined,
     };
   }
   
